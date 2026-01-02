@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Constructor for testing with custom QueryExecutor
   AppDatabase.forTesting(QueryExecutor executor, {this.skipSeeding = true})
-      : super(executor);
+    : super(executor);
 
   @override
   int get schemaVersion => 1;
@@ -80,6 +80,11 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'red_letter.db'));
+
+    if (Platform.isMacOS || Platform.isIOS) {
+      print('📱 Database file path: ${file.path}');
+    }
+
     return NativeDatabase(file);
   });
 }

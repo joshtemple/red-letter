@@ -1,12 +1,42 @@
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:red_letter/data/database/app_database.dart';
+import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/main.dart'; // Imports main app widget
 
 void main() {
   group('End-to-End Practice Flow', () {
     testWidgets('Complete walkthrough of all practice modes', (tester) async {
+      // Setup In-Memory Database
+      final db = AppDatabase.forTesting(
+        NativeDatabase.memory(),
+        skipSeeding: true,
+      );
+      final repository = PassageRepository.fromDatabase(db);
+
+      // Seed Data
+      await repository.insertPassage(
+        PassagesCompanion(
+          passageId: const Value('mat-5-44'),
+          reference: const Value('Matthew 5:44'),
+          passageText: const Value(
+            'Love your enemies and pray for those who persecute you',
+          ),
+          translationId: const Value('esv'),
+          tags: const Value('test'),
+        ),
+      );
+
       // 1. App Launch
-      await tester.pumpWidget(const RedLetterApp());
+      await tester.pumpWidget(RedLetterApp(repository: repository));
+
+      // Dispose DB after test
+      addTearDown(() async {
+        await db.close();
+      });
+
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
