@@ -105,6 +105,24 @@ class WordOcclusion {
     return revealIndices(indicesToReveal);
   }
 
+  /// The index of the first hidden word in the passage (sequential order).
+  /// Returns null if all words are revealed.
+  int? get firstHiddenIndex {
+    if (hiddenIndices.isEmpty) return null;
+    return hiddenIndices.reduce(min);
+  }
+
+  /// Checks if the input matches the word at [index].
+  /// Does NOT modify the occlusion state (pure check).
+  bool checkWord(int index, String input) {
+    if (!hiddenIndices.contains(index)) return false;
+
+    final hiddenWord = _cleanWord(passage.words[index]);
+    final cleanInput = _cleanWord(input);
+
+    return hiddenWord.isNotEmpty && hiddenWord == cleanInput;
+  }
+
   String _cleanWord(String word) {
     // Remove punctuation, keep alphanumeric.
     // This is a simple implementation; might need refinement for non-English.

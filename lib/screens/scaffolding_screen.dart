@@ -4,7 +4,6 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
-import 'package:red_letter/widgets/passage_text.dart';
 
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
@@ -25,6 +24,7 @@ class ScaffoldingScreen extends StatefulWidget {
 class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
   late WordOcclusion _occlusion;
   final TextEditingController _inputController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -37,19 +37,34 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
   @override
   void dispose() {
     _inputController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _handleInputChange(String input) {
-    if (input.isEmpty) return;
+    if (input.isEmpty) {
+      setState(() {}); // Update to show empty cursor
+      return;
+    }
 
-    final newOcclusion = _occlusion.checkInput(input);
-    if (newOcclusion != _occlusion) {
-      setState(() {
-        _occlusion = newOcclusion;
-      });
-      // Clear input on successful match (active tracking)
-      _inputController.clear();
+    final targetIndex = _occlusion.firstHiddenIndex;
+    if (targetIndex != null) {
+      if (_occlusion.checkWord(targetIndex, input)) {
+        // Match found!
+        final nextOcclusion = _occlusion.revealIndices({targetIndex});
+        setState(() {
+          _occlusion = nextOcclusion;
+          _inputController.clear();
+        });
+
+        // Auto-advance if complete
+        if (nextOcclusion.visibleRatio >= 1.0) {
+          widget.onContinue();
+        }
+      } else {
+        // No match, just update state to show typing
+        setState(() {});
+      }
     }
   }
 
@@ -57,12 +72,11 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
     return _occlusion.visibleRatio >= 1.0;
   }
 
-  String _getDisplayText() {
-    return _occlusion.getDisplayText();
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Determine the active word index for inline rendering
+    final activeIndex = _occlusion.firstHiddenIndex;
+
     return Scaffold(
       backgroundColor: RedLetterColors.background,
       appBar: AppBar(
@@ -72,47 +86,130 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SizedBox(height: 72),
-                      Text(
-                        _getDisplayText(),
-                        textAlign: TextAlign.center,
-                        style: RedLetterTypography.passageBody,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.state.currentPassage.reference,
-                        textAlign: TextAlign.center,
-                        style: RedLetterTypography.passageReference,
-                      ),
-                      const SizedBox(height: 48),
-                      PassageInput(
-                        controller: _inputController,
-                        hintText: 'Type the missing words...',
-                        onChanged: _handleInputChange,
-                      ),
-                    ],
+        child: GestureDetector(
+          onTap: () {
+            // Tapping anywhere focuses the hidden input to ensure keyboard is up
+            if (!_focusNode.hasFocus) {
+              _focusNode.requestFocus();
+            }
+          },
+          behavior: HitTestBehavior.translucent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 72),
+                        // Hidden input field to capture typing
+                        SizedBox(
+                          width: 1,
+                          height: 1,
+                          child: TextField(
+                            controller: _inputController,
+                            focusNode: _focusNode,
+                            autofocus: true,
+                            onChanged: _handleInputChange,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            // Hide the cursor and text
+                            showCursor: false,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              counterText: '',
+                            ),
+                            style: const TextStyle(color: Colors.transparent),
+                          ),
+                        ),
+                        _buildInlinePassage(activeIndex),
+                        const SizedBox(height: 24),
+                        Text(
+                          widget.state.currentPassage.reference,
+                          textAlign: TextAlign.center,
+                          style: RedLetterTypography.passageReference,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
-                child: _ContinueButton(
-                  onPressed: widget.onContinue,
-                  enabled: _isComplete,
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
+                  child: _ContinueButton(
+                    onPressed: widget.onContinue,
+                    enabled: _isComplete,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInlinePassage(int? activeIndex) {
+    final words = widget.state.currentPassage.words;
+    final spans = <InlineSpan>[];
+
+    for (int i = 0; i < words.length; i++) {
+      final isHidden = _occlusion.isWordHidden(i);
+      final isLast = i == words.length - 1;
+
+      if (isHidden) {
+        if (i == activeIndex) {
+          // Active word being typed
+          final targetWordLength = words[i].length;
+          final currentInput = _inputController.text;
+
+          // Ensure we don't overflow if the user somehow types more than the word
+          // though checkWord would usually clear it or ignore it.
+          final displayText = currentInput.length >= targetWordLength
+              ? currentInput
+              : currentInput.padRight(targetWordLength, '_');
+
+          spans.add(
+            TextSpan(
+              text: displayText,
+              style: RedLetterTypography.passageBody.copyWith(
+                color: RedLetterColors.accent,
+                decoration: TextDecoration.underline,
+                decorationColor: RedLetterColors.accent.withOpacity(0.5),
+              ),
+            ),
+          );
+        } else {
+          // Future hidden word
+          spans.add(
+            TextSpan(
+              text: '_' * words[i].length,
+              style: RedLetterTypography.passageBody.copyWith(
+                color: RedLetterColors.divider, // Faded for future words?
+              ),
+            ),
+          );
+        }
+      } else {
+        // Visible (revealed or originally visible)
+        spans.add(
+          TextSpan(text: words[i], style: RedLetterTypography.passageBody),
+        );
+      }
+
+      // Add space if not last
+      if (!isLast) {
+        spans.add(const TextSpan(text: ' '));
+      }
+    }
+
+    return RichText(
+      key: const Key('passage_text'),
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: RedLetterTypography.passageBody, // Default style
+        children: spans,
       ),
     );
   }

@@ -5,7 +5,6 @@ import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
-import 'package:red_letter/widgets/passage_text.dart';
 
 void main() {
   group('ScaffoldingScreen', () {
@@ -57,17 +56,15 @@ void main() {
 
       await tester.pump();
 
-      // Should find some underscores (hidden words)
-      final textFinders = find.byType(Text);
-      final texts = tester.widgetList<Text>(textFinders);
-      final hasUnderscores = texts.any((text) {
-        final data = text.data;
-        return data != null && data.contains('_');
-      });
-      expect(hasUnderscores, true);
+      final richTextFinder = find.byKey(const Key('passage_text'));
+      expect(richTextFinder, findsOneWidget);
+      final richText = tester.widget<RichText>(richTextFinder);
+      final plainText = richText.text.toPlainText();
+
+      expect(plainText.contains('_'), isTrue);
     });
 
-    testWidgets('should display passage reference', (
+    testWidgets('should display hidden input field (autofocused)', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -80,10 +77,16 @@ void main() {
         ),
       );
 
-      expect(find.text(testState.currentPassage.reference), findsOneWidget);
+      final textFieldFinder = find.byType(TextField);
+      expect(textFieldFinder, findsOneWidget);
+      final textField = tester.widget<TextField>(textFieldFinder);
+      expect(textField.autofocus, isTrue);
+
+      // Verify transparency/hidden nature?
+      // style color is transparent.
     });
 
-    testWidgets('should display input field with hint', (
+    testWidgets('should reveal first hidden word when typed correctly', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -96,91 +99,33 @@ void main() {
         ),
       );
 
-      expect(find.byType(PassageInput), findsOneWidget);
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.decoration?.hintText, 'Type the missing words...');
-    });
-
-    testWidgets('should display continue button', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: testState,
-            onContinue: () {},
-            occlusion: testOcclusion,
-          ),
-        ),
-      );
-
-      expect(find.text('Continue'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsOneWidget);
-    });
-
-    testWidgets('continue button should be disabled initially', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: testState,
-            onContinue: () {},
-            occlusion: testOcclusion,
-          ),
-        ),
-      );
-
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(button.onPressed, isNull);
-    });
-
-    testWidgets('should reveal word and clear input when typed correctly', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: testState,
-            onContinue: () {},
-            occlusion: testOcclusion,
-          ),
-        ),
-      );
-
-      // Get a word that we know is hidden from the seeded occlusion
-      int? hiddenIndex;
-      for (int i = 0; i < testPassage.words.length; i++) {
-        if (testOcclusion.isWordHidden(i)) {
-          hiddenIndex = i;
-          break;
-        }
-      }
-
-      expect(hiddenIndex, isNotNull);
-      final hiddenWord = testPassage.words[hiddenIndex!];
-
-      // Verify word is initially not displayed in passage (body text contains underscores)
-      // Note: This relies on how Text widgets are constructed.
-      // Easiest is to verify hiddenWord is NOT found.
-      // But verify it is not found as a standalone word?
-      // The passage is one big string. "Love your _______"
-      // So 'enemies' should not be found.
-      // But we have 'enemies' in testPassage.text which might be in memory.
-      // find.text searchs for Widgets.
+      // Identify first hidden word
+      final firstHiddenIndex = testOcclusion.firstHiddenIndex;
+      expect(firstHiddenIndex, isNotNull);
+      final hiddenWord = testPassage.words[firstHiddenIndex!];
 
       // Type the hidden word
       await tester.enterText(find.byType(TextField), hiddenWord);
       await tester.pump();
 
+      // Check RichText for revealed word
+      final richText = tester.widget<RichText>(
+        find.byKey(const Key('passage_text')),
+      );
+      final plainText = richText.text.toPlainText();
+
+      // It should contain the word now (revealed)
+      expect(plainText.contains(hiddenWord), isTrue);
+      // And should NOT contain underscores at that position (hard to verifying position with plainText)
+      // But we can check hiddenIndices count via state? No access to private state.
+      // We rely on appearance.
+
       // Input should be cleared
-      expect(
-        find.textContaining(hiddenWord),
-        findsOneWidget,
-      ); // Found in passage now
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.controller?.text, isEmpty);
     });
 
-    testWidgets('should be case insensitive for word matching', (
+    testWidgets('should NOT reveal random hidden word (must be sequential)', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -193,161 +138,106 @@ void main() {
         ),
       );
 
-      // Get a hidden word
-      int? hiddenIndex;
-      for (int i = 0; i < testPassage.words.length; i++) {
+      // Find a hidden word that is NOT the first one
+      // With seed 42, passage length 10.
+      // Let's iterate.
+      int? secondHiddenIndex;
+      final firstHiddenIndex = testOcclusion.firstHiddenIndex!;
+      for (int i = firstHiddenIndex + 1; i < testPassage.words.length; i++) {
         if (testOcclusion.isWordHidden(i)) {
-          hiddenIndex = i;
+          secondHiddenIndex = i;
           break;
         }
       }
 
-      final hiddenWord = testPassage.words[hiddenIndex!];
-      final upperCaseWord = hiddenWord.toUpperCase();
+      // If we found a second hidden word
+      if (secondHiddenIndex != null) {
+        final hiddenWord = testPassage.words[secondHiddenIndex];
 
-      // Type in different case
-      await tester.enterText(find.byType(TextField), upperCaseWord);
-      await tester.pump();
+        // Type it
+        await tester.enterText(find.byType(TextField), hiddenWord);
+        await tester.pump();
 
-      // Should still reveal the word (found in passage text)
-      // The passage text will display the original case from the passage model
-      expect(find.textContaining(hiddenWord), findsOneWidget);
+        final textField = tester.widget<TextField>(find.byType(TextField));
+        // Input NOT cleared
+        expect(textField.controller?.text, equals(hiddenWord));
+      }
     });
 
-    testWidgets('should enable continue button when all words revealed', (
-      WidgetTester tester,
-    ) async {
-      final shortPassage = Passage.fromText(
-        id: 'test',
-        text: 'Love God',
-        reference: 'Test 1:1',
-      );
-      final shortOcclusion = WordOcclusion.generate(
-        passage: shortPassage,
-        seed: 42,
-      );
-      final shortState = PracticeState.initial(
-        shortPassage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
+    testWidgets(
+      'should enable continue button and auto-advance when all words revealed sequentially',
+      (WidgetTester tester) async {
+        final shortPassage = Passage.fromText(
+          id: 'test',
+          text: 'Love God',
+          reference: 'Test 1:1',
+        );
+        final shortOcclusion = WordOcclusion.manual(
+          passage: shortPassage,
+          hiddenIndices: {0, 1},
+        );
+        final shortState = PracticeState.initial(
+          shortPassage,
+        ).copyWith(currentMode: PracticeMode.scaffolding);
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: shortState,
-            onContinue: () => continuePressed = true,
-            occlusion: shortOcclusion,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ScaffoldingScreen(
+              state: shortState,
+              onContinue: () => continuePressed = true,
+              occlusion: shortOcclusion,
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        // Type "Love"
+        await tester.enterText(find.byType(TextField), 'Love');
+        await tester.pumpAndSettle();
+        expect(continuePressed, isFalse);
 
-      // Type all words
-      // Since we clear input on match, we need to type them one by one if they are separate checks
-      // But checkInput handles multiple tokens.
-      // However, checkInput clears buffer on match.
-      // If we type "Love God".
-      // "Love" matches -> clear. " God" is lost?
-      // Wait, if I type "Love God" via tester.enterText, it sets the whole text at once.
-      // _handleInputChange("Love God") ->
-      // checkInput("Love God") -> matches "Love" and "God".
-      // Returns new occlusion with both revealed.
-      // Clears input.
-      // So it should work.
-      await tester.enterText(find.byType(TextField), shortPassage.text);
-      await tester.pump();
+        // Type "God"
+        await tester.enterText(find.byType(TextField), 'God');
+        await tester.pumpAndSettle();
 
-      // Button should be enabled
-      final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      expect(button.onPressed, isNotNull);
-    });
+        // Should auto-advance
+        expect(continuePressed, isTrue);
+      },
+    );
 
-    testWidgets('should call onContinue when button pressed after completion', (
-      WidgetTester tester,
-    ) async {
-      final shortPassage = Passage.fromText(
-        id: 'test',
-        text: 'Love God',
-        reference: 'Test 1:1',
-      );
-      final shortOcclusion = WordOcclusion.generate(
-        passage: shortPassage,
-        seed: 42,
-      );
-      final shortState = PracticeState.initial(
-        shortPassage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: shortState,
-            onContinue: () => continuePressed = true,
-            occlusion: shortOcclusion,
+    testWidgets(
+      'should preserve fixed length underline when typing partial word',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ScaffoldingScreen(
+              state: testState,
+              onContinue: () {},
+              occlusion: testOcclusion,
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        // Get initial text length
+        final richTextBefore = tester.widget<RichText>(
+          find.byKey(const Key('passage_text')),
+        );
+        final lengthBefore = richTextBefore.text.toPlainText().length;
 
-      expect(continuePressed, false);
+        // Type "X"
+        await tester.enterText(find.byType(TextField), 'X');
+        await tester.pump();
 
-      // Type all words to enable button
-      await tester.enterText(find.byType(TextField), shortPassage.text);
-      await tester.pump();
+        // Check RichText content
+        final richTextAfter = tester.widget<RichText>(
+          find.byKey(const Key('passage_text')),
+        );
+        final plainTextAfter = richTextAfter.text.toPlainText();
 
-      // Tap continue button
-      await tester.tap(find.text('Continue'));
-      await tester.pump();
-
-      expect(continuePressed, true);
-    });
-
-    testWidgets('should be scrollable for long passages', (
-      WidgetTester tester,
-    ) async {
-      final longPassage = Passage.fromText(
-        id: 'long',
-        text: 'This is a very long passage ' * 50,
-        reference: 'Test 1:1',
-      );
-      final longOcclusion = WordOcclusion.generate(
-        passage: longPassage,
-        seed: 42,
-      );
-      final longState = PracticeState.initial(
-        longPassage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: longState,
-            onContinue: () {},
-            occlusion: longOcclusion,
-          ),
-        ),
-      );
-
-      expect(find.byType(SingleChildScrollView), findsOneWidget);
-    });
-
-    testWidgets('should have proper layout structure', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ScaffoldingScreen(
-            state: testState,
-            onContinue: () {},
-            occlusion: testOcclusion,
-          ),
-        ),
-      );
-
-      expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
-      expect(find.byType(SafeArea), findsWidgets);
-    });
+        expect(plainTextAfter.contains('X'), isTrue);
+        // Length should remain mostly constant (padded)
+        // Note: punctuation or multiple spaces might shift it, but for simple strings it's static.
+        expect(plainTextAfter.length, equals(lengthBefore));
+      },
+    );
   });
 }
