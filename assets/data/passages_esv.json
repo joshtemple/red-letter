@@ -1,0 +1,660 @@
+{
+  "translation_id": "esv",
+  "translation_name": "English Standard Version",
+  "passages": [
+    {
+      "passage_id": "mat-5-3",
+      "reference": "Matthew 5:3",
+      "text": "Blessed are the poor in spirit, for theirs is the kingdom of heaven.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-4",
+      "reference": "Matthew 5:4",
+      "text": "Blessed are those who mourn, for they shall be comforted.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-5",
+      "reference": "Matthew 5:5",
+      "text": "Blessed are the meek, for they shall inherit the earth.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-6",
+      "reference": "Matthew 5:6",
+      "text": "Blessed are those who hunger and thirst for righteousness, for they shall be satisfied.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-7",
+      "reference": "Matthew 5:7",
+      "text": "Blessed are the merciful, for they shall receive mercy.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-8",
+      "reference": "Matthew 5:8",
+      "text": "Blessed are the pure in heart, for they shall see God.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-9",
+      "reference": "Matthew 5:9",
+      "text": "Blessed are the peacemakers, for they shall be called sons of God.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-10",
+      "reference": "Matthew 5:10",
+      "text": "Blessed are those who are persecuted for righteousness' sake, for theirs is the kingdom of heaven.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-11",
+      "reference": "Matthew 5:11",
+      "text": "Blessed are you when others revile you and persecute you and utter all kinds of evil against you falsely on my account.",
+      "tags": "sermon-on-mount,beatitudes"
+    },
+    {
+      "passage_id": "mat-5-12",
+      "reference": "Matthew 5:12",
+      "text": "Rejoice and be glad, for your reward is great in heaven, for so they persecuted the prophets who were before you.",
+      "tags": "sermon-on-mount,beatitudes,commands"
+    },
+    {
+      "passage_id": "mat-5-13",
+      "reference": "Matthew 5:13",
+      "text": "You are the salt of the earth, but if salt has lost its taste, how shall its saltiness be restored? It is no longer good for anything except to be thrown out and trampled under people's feet.",
+      "tags": "sermon-on-mount,salt-and-light"
+    },
+    {
+      "passage_id": "mat-5-14",
+      "reference": "Matthew 5:14",
+      "text": "You are the light of the world. A city set on a hill cannot be hidden.",
+      "tags": "sermon-on-mount,salt-and-light"
+    },
+    {
+      "passage_id": "mat-5-15",
+      "reference": "Matthew 5:15",
+      "text": "Nor do people light a lamp and put it under a basket, but on a stand, and it gives light to all in the house.",
+      "tags": "sermon-on-mount,salt-and-light"
+    },
+    {
+      "passage_id": "mat-5-16",
+      "reference": "Matthew 5:16",
+      "text": "In the same way, let your light shine before others, so that they may see your good works and give glory to your Father who is in heaven.",
+      "tags": "sermon-on-mount,salt-and-light,commands"
+    },
+    {
+      "passage_id": "mat-5-17",
+      "reference": "Matthew 5:17",
+      "text": "Do not think that I have come to abolish the Law or the Prophets; I have not come to abolish them but to fulfill them.",
+      "tags": "sermon-on-mount,law"
+    },
+    {
+      "passage_id": "mat-5-18",
+      "reference": "Matthew 5:18",
+      "text": "For truly, I say to you, until heaven and earth pass away, not an iota, not a dot, will pass from the Law until all is accomplished.",
+      "tags": "sermon-on-mount,law"
+    },
+    {
+      "passage_id": "mat-5-19",
+      "reference": "Matthew 5:19",
+      "text": "Therefore whoever relaxes one of the least of these commandments and teaches others to do the same will be called least in the kingdom of heaven, but whoever does them and teaches them will be called great in the kingdom of heaven.",
+      "tags": "sermon-on-mount,law"
+    },
+    {
+      "passage_id": "mat-5-20",
+      "reference": "Matthew 5:20",
+      "text": "For I tell you, unless your righteousness exceeds that of the scribes and Pharisees, you will never enter the kingdom of heaven.",
+      "tags": "sermon-on-mount,righteousness"
+    },
+    {
+      "passage_id": "mat-5-21",
+      "reference": "Matthew 5:21",
+      "text": "You have heard that it was said to those of old, 'You shall not murder; and whoever murders will be liable to judgment.'",
+      "tags": "sermon-on-mount,anger"
+    },
+    {
+      "passage_id": "mat-5-22",
+      "reference": "Matthew 5:22",
+      "text": "But I say to you that everyone who is angry with his brother will be liable to judgment; whoever insults his brother will be liable to the council; and whoever says, 'You fool!' will be liable to the hell of fire.",
+      "tags": "sermon-on-mount,anger,commands"
+    },
+    {
+      "passage_id": "mat-5-23",
+      "reference": "Matthew 5:23",
+      "text": "So if you are offering your gift at the altar and there remember that your brother has something against you,",
+      "tags": "sermon-on-mount,reconciliation"
+    },
+    {
+      "passage_id": "mat-5-24",
+      "reference": "Matthew 5:24",
+      "text": "leave your gift there before the altar and go. First be reconciled to your brother, and then come and offer your gift.",
+      "tags": "sermon-on-mount,reconciliation,commands"
+    },
+    {
+      "passage_id": "mat-5-25",
+      "reference": "Matthew 5:25",
+      "text": "Come to terms quickly with your accuser while you are going with him to court, lest your accuser hand you over to the judge, and the judge to the guard, and you be put in prison.",
+      "tags": "sermon-on-mount,reconciliation,commands"
+    },
+    {
+      "passage_id": "mat-5-26",
+      "reference": "Matthew 5:26",
+      "text": "Truly, I say to you, you will never get out until you have paid the last penny.",
+      "tags": "sermon-on-mount,reconciliation"
+    },
+    {
+      "passage_id": "mat-5-27",
+      "reference": "Matthew 5:27",
+      "text": "You have heard that it was said, 'You shall not commit adultery.'",
+      "tags": "sermon-on-mount,lust"
+    },
+    {
+      "passage_id": "mat-5-28",
+      "reference": "Matthew 5:28",
+      "text": "But I say to you that everyone who looks at a woman with lustful intent has already committed adultery with her in his heart.",
+      "tags": "sermon-on-mount,lust,commands"
+    },
+    {
+      "passage_id": "mat-5-29",
+      "reference": "Matthew 5:29",
+      "text": "If your right eye causes you to sin, tear it out and throw it away. For it is better that you lose one of your members than that your whole body be thrown into hell.",
+      "tags": "sermon-on-mount,sin,commands"
+    },
+    {
+      "passage_id": "mat-5-30",
+      "reference": "Matthew 5:30",
+      "text": "And if your right hand causes you to sin, cut it off and throw it away. For it is better that you lose one of your members than that your whole body go into hell.",
+      "tags": "sermon-on-mount,sin,commands"
+    },
+    {
+      "passage_id": "mat-5-31",
+      "reference": "Matthew 5:31",
+      "text": "It was also said, 'Whoever divorces his wife, let him give her a certificate of divorce.'",
+      "tags": "sermon-on-mount,divorce"
+    },
+    {
+      "passage_id": "mat-5-32",
+      "reference": "Matthew 5:32",
+      "text": "But I say to you that everyone who divorces his wife, except on the ground of sexual immorality, makes her commit adultery, and whoever marries a divorced woman commits adultery.",
+      "tags": "sermon-on-mount,divorce,commands"
+    },
+    {
+      "passage_id": "mat-5-33",
+      "reference": "Matthew 5:33",
+      "text": "Again you have heard that it was said to those of old, 'You shall not swear falsely, but shall perform to the Lord what you have sworn.'",
+      "tags": "sermon-on-mount,oaths"
+    },
+    {
+      "passage_id": "mat-5-34",
+      "reference": "Matthew 5:34",
+      "text": "But I say to you, Do not take an oath at all, either by heaven, for it is the throne of God,",
+      "tags": "sermon-on-mount,oaths,commands"
+    },
+    {
+      "passage_id": "mat-5-35",
+      "reference": "Matthew 5:35",
+      "text": "or by the earth, for it is his footstool, or by Jerusalem, for it is the city of the great King.",
+      "tags": "sermon-on-mount,oaths"
+    },
+    {
+      "passage_id": "mat-5-36",
+      "reference": "Matthew 5:36",
+      "text": "And do not take an oath by your head, for you cannot make one hair white or black.",
+      "tags": "sermon-on-mount,oaths,commands"
+    },
+    {
+      "passage_id": "mat-5-37",
+      "reference": "Matthew 5:37",
+      "text": "Let what you say be simply 'Yes' or 'No'; anything more than this comes from evil.",
+      "tags": "sermon-on-mount,oaths,commands"
+    },
+    {
+      "passage_id": "mat-5-38",
+      "reference": "Matthew 5:38",
+      "text": "You have heard that it was said, 'An eye for an eye and a tooth for a tooth.'",
+      "tags": "sermon-on-mount,retaliation"
+    },
+    {
+      "passage_id": "mat-5-39",
+      "reference": "Matthew 5:39",
+      "text": "But I say to you, Do not resist the one who is evil. But if anyone slaps you on the right cheek, turn to him the other also.",
+      "tags": "sermon-on-mount,retaliation,commands"
+    },
+    {
+      "passage_id": "mat-5-40",
+      "reference": "Matthew 5:40",
+      "text": "And if anyone would sue you and take your tunic, let him have your cloak as well.",
+      "tags": "sermon-on-mount,retaliation,commands"
+    },
+    {
+      "passage_id": "mat-5-41",
+      "reference": "Matthew 5:41",
+      "text": "And if anyone forces you to go one mile, go with him two miles.",
+      "tags": "sermon-on-mount,retaliation,commands"
+    },
+    {
+      "passage_id": "mat-5-42",
+      "reference": "Matthew 5:42",
+      "text": "Give to the one who begs from you, and do not refuse the one who would borrow from you.",
+      "tags": "sermon-on-mount,generosity,commands"
+    },
+    {
+      "passage_id": "mat-5-43",
+      "reference": "Matthew 5:43",
+      "text": "You have heard that it was said, 'You shall love your neighbor and hate your enemy.'",
+      "tags": "sermon-on-mount,love-enemies"
+    },
+    {
+      "passage_id": "mat-5-44",
+      "reference": "Matthew 5:44",
+      "text": "But I say to you, Love your enemies and pray for those who persecute you,",
+      "tags": "sermon-on-mount,love-enemies,commands"
+    },
+    {
+      "passage_id": "mat-5-45",
+      "reference": "Matthew 5:45",
+      "text": "so that you may be sons of your Father who is in heaven. For he makes his sun rise on the evil and on the good, and sends rain on the just and on the unjust.",
+      "tags": "sermon-on-mount,love-enemies"
+    },
+    {
+      "passage_id": "mat-5-46",
+      "reference": "Matthew 5:46",
+      "text": "For if you love those who love you, what reward do you have? Do not even the tax collectors do the same?",
+      "tags": "sermon-on-mount,love-enemies"
+    },
+    {
+      "passage_id": "mat-5-47",
+      "reference": "Matthew 5:47",
+      "text": "And if you greet only your brothers, what more are you doing than others? Do not even the Gentiles do the same?",
+      "tags": "sermon-on-mount,love-enemies"
+    },
+    {
+      "passage_id": "mat-5-48",
+      "reference": "Matthew 5:48",
+      "text": "You therefore must be perfect, as your heavenly Father is perfect.",
+      "tags": "sermon-on-mount,perfection,commands"
+    },
+    {
+      "passage_id": "mat-6-1",
+      "reference": "Matthew 6:1",
+      "text": "Beware of practicing your righteousness before other people in order to be seen by them, for then you will have no reward from your Father who is in heaven.",
+      "tags": "sermon-on-mount,giving,commands"
+    },
+    {
+      "passage_id": "mat-6-2",
+      "reference": "Matthew 6:2",
+      "text": "Thus, when you give to the needy, sound no trumpet before you, as the hypocrites do in the synagogues and in the streets, that they may be praised by others. Truly, I say to you, they have received their reward.",
+      "tags": "sermon-on-mount,giving,commands"
+    },
+    {
+      "passage_id": "mat-6-3",
+      "reference": "Matthew 6:3",
+      "text": "But when you give to the needy, do not let your left hand know what your right hand is doing,",
+      "tags": "sermon-on-mount,giving,commands"
+    },
+    {
+      "passage_id": "mat-6-4",
+      "reference": "Matthew 6:4",
+      "text": "so that your giving may be in secret. And your Father who sees in secret will reward you.",
+      "tags": "sermon-on-mount,giving"
+    },
+    {
+      "passage_id": "mat-6-5",
+      "reference": "Matthew 6:5",
+      "text": "And when you pray, you must not be like the hypocrites. For they love to stand and pray in the synagogues and at the street corners, that they may be seen by others. Truly, I say to you, they have received their reward.",
+      "tags": "sermon-on-mount,prayer,commands"
+    },
+    {
+      "passage_id": "mat-6-6",
+      "reference": "Matthew 6:6",
+      "text": "But when you pray, go into your room and shut the door and pray to your Father who is in secret. And your Father who sees in secret will reward you.",
+      "tags": "sermon-on-mount,prayer,commands"
+    },
+    {
+      "passage_id": "mat-6-7",
+      "reference": "Matthew 6:7",
+      "text": "And when you pray, do not heap up empty phrases as the Gentiles do, for they think that they will be heard for their many words.",
+      "tags": "sermon-on-mount,prayer,commands"
+    },
+    {
+      "passage_id": "mat-6-8",
+      "reference": "Matthew 6:8",
+      "text": "Do not be like them, for your Father knows what you need before you ask him.",
+      "tags": "sermon-on-mount,prayer,commands"
+    },
+    {
+      "passage_id": "mat-6-9",
+      "reference": "Matthew 6:9",
+      "text": "Pray then like this: Our Father in heaven, hallowed be your name.",
+      "tags": "sermon-on-mount,lords-prayer,commands"
+    },
+    {
+      "passage_id": "mat-6-10",
+      "reference": "Matthew 6:10",
+      "text": "Your kingdom come, your will be done, on earth as it is in heaven.",
+      "tags": "sermon-on-mount,lords-prayer"
+    },
+    {
+      "passage_id": "mat-6-11",
+      "reference": "Matthew 6:11",
+      "text": "Give us this day our daily bread,",
+      "tags": "sermon-on-mount,lords-prayer"
+    },
+    {
+      "passage_id": "mat-6-12",
+      "reference": "Matthew 6:12",
+      "text": "and forgive us our debts, as we also have forgiven our debtors.",
+      "tags": "sermon-on-mount,lords-prayer,forgiveness"
+    },
+    {
+      "passage_id": "mat-6-13",
+      "reference": "Matthew 6:13",
+      "text": "And lead us not into temptation, but deliver us from evil.",
+      "tags": "sermon-on-mount,lords-prayer"
+    },
+    {
+      "passage_id": "mat-6-14",
+      "reference": "Matthew 6:14",
+      "text": "For if you forgive others their trespasses, your heavenly Father will also forgive you,",
+      "tags": "sermon-on-mount,forgiveness,commands"
+    },
+    {
+      "passage_id": "mat-6-15",
+      "reference": "Matthew 6:15",
+      "text": "but if you do not forgive others their trespasses, neither will your Father forgive your trespasses.",
+      "tags": "sermon-on-mount,forgiveness,commands"
+    },
+    {
+      "passage_id": "mat-6-16",
+      "reference": "Matthew 6:16",
+      "text": "And when you fast, do not look gloomy like the hypocrites, for they disfigure their faces that their fasting may be seen by others. Truly, I say to you, they have received their reward.",
+      "tags": "sermon-on-mount,fasting,commands"
+    },
+    {
+      "passage_id": "mat-6-17",
+      "reference": "Matthew 6:17",
+      "text": "But when you fast, anoint your head and wash your face,",
+      "tags": "sermon-on-mount,fasting,commands"
+    },
+    {
+      "passage_id": "mat-6-18",
+      "reference": "Matthew 6:18",
+      "text": "that your fasting may not be seen by others but by your Father who is in secret. And your Father who sees in secret will reward you.",
+      "tags": "sermon-on-mount,fasting"
+    },
+    {
+      "passage_id": "mat-6-19",
+      "reference": "Matthew 6:19",
+      "text": "Do not lay up for yourselves treasures on earth, where moth and rust destroy and where thieves break in and steal,",
+      "tags": "sermon-on-mount,treasures,commands"
+    },
+    {
+      "passage_id": "mat-6-20",
+      "reference": "Matthew 6:20",
+      "text": "but lay up for yourselves treasures in heaven, where neither moth nor rust destroys and where thieves do not break in and steal.",
+      "tags": "sermon-on-mount,treasures,commands"
+    },
+    {
+      "passage_id": "mat-6-21",
+      "reference": "Matthew 6:21",
+      "text": "For where your treasure is, there your heart will be also.",
+      "tags": "sermon-on-mount,treasures"
+    },
+    {
+      "passage_id": "mat-6-22",
+      "reference": "Matthew 6:22",
+      "text": "The eye is the lamp of the body. So, if your eye is healthy, your whole body will be full of light,",
+      "tags": "sermon-on-mount,light"
+    },
+    {
+      "passage_id": "mat-6-23",
+      "reference": "Matthew 6:23",
+      "text": "but if your eye is bad, your whole body will be full of darkness. If then the light in you is darkness, how great is the darkness!",
+      "tags": "sermon-on-mount,light"
+    },
+    {
+      "passage_id": "mat-6-24",
+      "reference": "Matthew 6:24",
+      "text": "No one can serve two masters, for either he will hate the one and love the other, or he will be devoted to the one and despise the other. You cannot serve God and money.",
+      "tags": "sermon-on-mount,masters,commands"
+    },
+    {
+      "passage_id": "mat-6-25",
+      "reference": "Matthew 6:25",
+      "text": "Therefore I tell you, do not be anxious about your life, what you will eat or what you will drink, nor about your body, what you will put on. Is not life more than food, and the body more than clothing?",
+      "tags": "sermon-on-mount,worry,commands"
+    },
+    {
+      "passage_id": "mat-6-26",
+      "reference": "Matthew 6:26",
+      "text": "Look at the birds of the air: they neither sow nor reap nor gather into barns, and yet your heavenly Father feeds them. Are you not of more value than they?",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-27",
+      "reference": "Matthew 6:27",
+      "text": "And which of you by being anxious can add a single hour to his span of life?",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-28",
+      "reference": "Matthew 6:28",
+      "text": "And why are you anxious about clothing? Consider the lilies of the field, how they grow: they neither toil nor spin,",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-29",
+      "reference": "Matthew 6:29",
+      "text": "yet I tell you, even Solomon in all his glory was not arrayed like one of these.",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-30",
+      "reference": "Matthew 6:30",
+      "text": "But if God so clothes the grass of the field, which today is alive and tomorrow is thrown into the oven, will he not much more clothe you, O you of little faith?",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-31",
+      "reference": "Matthew 6:31",
+      "text": "Therefore do not be anxious, saying, 'What shall we eat?' or 'What shall we drink?' or 'What shall we wear?'",
+      "tags": "sermon-on-mount,worry,commands"
+    },
+    {
+      "passage_id": "mat-6-32",
+      "reference": "Matthew 6:32",
+      "text": "For the Gentiles seek after all these things, and your heavenly Father knows that you need them all.",
+      "tags": "sermon-on-mount,worry"
+    },
+    {
+      "passage_id": "mat-6-33",
+      "reference": "Matthew 6:33",
+      "text": "But seek first the kingdom of God and his righteousness, and all these things will be added to you.",
+      "tags": "sermon-on-mount,worry,commands"
+    },
+    {
+      "passage_id": "mat-6-34",
+      "reference": "Matthew 6:34",
+      "text": "Therefore do not be anxious about tomorrow, for tomorrow will be anxious for itself. Sufficient for the day is its own trouble.",
+      "tags": "sermon-on-mount,worry,commands"
+    },
+    {
+      "passage_id": "mat-7-1",
+      "reference": "Matthew 7:1",
+      "text": "Judge not, that you be not judged.",
+      "tags": "sermon-on-mount,judging,commands"
+    },
+    {
+      "passage_id": "mat-7-2",
+      "reference": "Matthew 7:2",
+      "text": "For with the judgment you pronounce you will be judged, and with the measure you use it will be measured to you.",
+      "tags": "sermon-on-mount,judging"
+    },
+    {
+      "passage_id": "mat-7-3",
+      "reference": "Matthew 7:3",
+      "text": "Why do you see the speck that is in your brother's eye, but do not notice the log that is in your own eye?",
+      "tags": "sermon-on-mount,judging"
+    },
+    {
+      "passage_id": "mat-7-4",
+      "reference": "Matthew 7:4",
+      "text": "Or how can you say to your brother, 'Let me take the speck out of your eye,' when there is the log in your own eye?",
+      "tags": "sermon-on-mount,judging"
+    },
+    {
+      "passage_id": "mat-7-5",
+      "reference": "Matthew 7:5",
+      "text": "You hypocrite, first take the log out of your own eye, and then you will see clearly to take the speck out of your brother's eye.",
+      "tags": "sermon-on-mount,judging,commands"
+    },
+    {
+      "passage_id": "mat-7-6",
+      "reference": "Matthew 7:6",
+      "text": "Do not give dogs what is holy, and do not throw your pearls before pigs, lest they trample them underfoot and turn to attack you.",
+      "tags": "sermon-on-mount,wisdom,commands"
+    },
+    {
+      "passage_id": "mat-7-7",
+      "reference": "Matthew 7:7",
+      "text": "Ask, and it will be given to you; seek, and you will find; knock, and it will be opened to you.",
+      "tags": "sermon-on-mount,prayer,commands"
+    },
+    {
+      "passage_id": "mat-7-8",
+      "reference": "Matthew 7:8",
+      "text": "For everyone who asks receives, and the one who seeks finds, and to the one who knocks it will be opened.",
+      "tags": "sermon-on-mount,prayer"
+    },
+    {
+      "passage_id": "mat-7-9",
+      "reference": "Matthew 7:9",
+      "text": "Or which one of you, if his son asks him for bread, will give him a stone?",
+      "tags": "sermon-on-mount,prayer"
+    },
+    {
+      "passage_id": "mat-7-10",
+      "reference": "Matthew 7:10",
+      "text": "Or if he asks for a fish, will give him a serpent?",
+      "tags": "sermon-on-mount,prayer"
+    },
+    {
+      "passage_id": "mat-7-11",
+      "reference": "Matthew 7:11",
+      "text": "If you then, who are evil, know how to give good gifts to your children, how much more will your Father who is in heaven give good things to those who ask him!",
+      "tags": "sermon-on-mount,prayer"
+    },
+    {
+      "passage_id": "mat-7-12",
+      "reference": "Matthew 7:12",
+      "text": "So whatever you wish that others would do to you, do also to them, for this is the Law and the Prophets.",
+      "tags": "sermon-on-mount,golden-rule,commands"
+    },
+    {
+      "passage_id": "mat-7-13",
+      "reference": "Matthew 7:13",
+      "text": "Enter by the narrow gate. For the gate is wide and the way is easy that leads to destruction, and those who enter by it are many.",
+      "tags": "sermon-on-mount,narrow-gate,commands"
+    },
+    {
+      "passage_id": "mat-7-14",
+      "reference": "Matthew 7:14",
+      "text": "For the gate is narrow and the way is hard that leads to life, and those who find it are few.",
+      "tags": "sermon-on-mount,narrow-gate"
+    },
+    {
+      "passage_id": "mat-7-15",
+      "reference": "Matthew 7:15",
+      "text": "Beware of false prophets, who come to you in sheep's clothing but inwardly are ravenous wolves.",
+      "tags": "sermon-on-mount,false-prophets,commands"
+    },
+    {
+      "passage_id": "mat-7-16",
+      "reference": "Matthew 7:16",
+      "text": "You will recognize them by their fruits. Are grapes gathered from thornbushes, or figs from thistles?",
+      "tags": "sermon-on-mount,false-prophets"
+    },
+    {
+      "passage_id": "mat-7-17",
+      "reference": "Matthew 7:17",
+      "text": "So, every healthy tree bears good fruit, but the diseased tree bears bad fruit.",
+      "tags": "sermon-on-mount,false-prophets"
+    },
+    {
+      "passage_id": "mat-7-18",
+      "reference": "Matthew 7:18",
+      "text": "A healthy tree cannot bear bad fruit, nor can a diseased tree bear good fruit.",
+      "tags": "sermon-on-mount,false-prophets"
+    },
+    {
+      "passage_id": "mat-7-19",
+      "reference": "Matthew 7:19",
+      "text": "Every tree that does not bear good fruit is cut down and thrown into the fire.",
+      "tags": "sermon-on-mount,false-prophets"
+    },
+    {
+      "passage_id": "mat-7-20",
+      "reference": "Matthew 7:20",
+      "text": "Thus you will recognize them by their fruits.",
+      "tags": "sermon-on-mount,false-prophets"
+    },
+    {
+      "passage_id": "mat-7-21",
+      "reference": "Matthew 7:21",
+      "text": "Not everyone who says to me, 'Lord, Lord,' will enter the kingdom of heaven, but the one who does the will of my Father who is in heaven.",
+      "tags": "sermon-on-mount,obedience"
+    },
+    {
+      "passage_id": "mat-7-22",
+      "reference": "Matthew 7:22",
+      "text": "On that day many will say to me, 'Lord, Lord, did we not prophesy in your name, and cast out demons in your name, and do many mighty works in your name?'",
+      "tags": "sermon-on-mount,obedience"
+    },
+    {
+      "passage_id": "mat-7-23",
+      "reference": "Matthew 7:23",
+      "text": "And then will I declare to them, 'I never knew you; depart from me, you workers of lawlessness.'",
+      "tags": "sermon-on-mount,obedience"
+    },
+    {
+      "passage_id": "mat-7-24",
+      "reference": "Matthew 7:24",
+      "text": "Everyone then who hears these words of mine and does them will be like a wise man who built his house on the rock.",
+      "tags": "sermon-on-mount,wise-foolish-builders"
+    },
+    {
+      "passage_id": "mat-7-25",
+      "reference": "Matthew 7:25",
+      "text": "And the rain fell, and the floods came, and the winds blew and beat on that house, but it did not fall, because it had been founded on the rock.",
+      "tags": "sermon-on-mount,wise-foolish-builders"
+    },
+    {
+      "passage_id": "mat-7-26",
+      "reference": "Matthew 7:26",
+      "text": "And everyone who hears these words of mine and does not do them will be like a foolish man who built his house on the sand.",
+      "tags": "sermon-on-mount,wise-foolish-builders"
+    },
+    {
+      "passage_id": "mat-7-27",
+      "reference": "Matthew 7:27",
+      "text": "And the rain fell, and the floods came, and the winds blew and beat against that house, and it fell, and great was the fall of it.",
+      "tags": "sermon-on-mount,wise-foolish-builders"
+    },
+    {
+      "passage_id": "mat-7-28",
+      "reference": "Matthew 7:28",
+      "text": "And when Jesus finished these sayings, the crowds were astonished at his teaching,",
+      "tags": "sermon-on-mount,conclusion"
+    },
+    {
+      "passage_id": "mat-7-29",
+      "reference": "Matthew 7:29",
+      "text": "for he was teaching them as one who had authority, and not as their scribes.",
+      "tags": "sermon-on-mount,conclusion"
+    }
+  ]
+}
