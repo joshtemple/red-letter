@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:red_letter/mixins/typing_practice_mixin.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/passage_validator.dart';
+import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/practice_footer.dart';
+import 'package:red_letter/widgets/inline_passage_view.dart';
 
 class PromptedScreen extends StatefulWidget {
   final PracticeState state;
@@ -21,60 +24,57 @@ class PromptedScreen extends StatefulWidget {
   State<PromptedScreen> createState() => _PromptedScreenState();
 }
 
-class _PromptedScreenState extends State<PromptedScreen> {
-  late TextEditingController _controller;
-  String _userInput = '';
-  bool _isValid = true;
+class _PromptedScreenState extends State<PromptedScreen>
+    with TickerProviderStateMixin, TypingPracticeMixin {
+  late WordOcclusion _occlusion;
+  int? _hintedIndex;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleInputChange(String input) {
-    final isValid = PassageValidator.isValidPrefix(
-      widget.state.currentPassage.text,
-      input,
+    // Prompted mode: all words are hidden initially
+    final allIndices = Set<int>.from(
+      List.generate(widget.state.currentPassage.words.length, (i) => i),
     );
-    setState(() {
-      _userInput = input;
-      _isValid = isValid;
-    });
+    _occlusion = WordOcclusion.manual(
+      passage: widget.state.currentPassage,
+      hiddenIndices: allIndices,
+    );
+  }
+
+  void _onInputChange(String input) {
+    handleInputChange(
+      input: input,
+      currentOcclusion: _occlusion,
+      passage: widget.state.currentPassage,
+      onWordMatched: (next) {
+        setState(() {
+          _occlusion = next;
+          _hintedIndex = null; // Clear hint when word is matched
+        });
+      },
+      onComplete: widget.onContinue,
+      onStateChanged: () => setState(() {}),
+    );
   }
 
   void _showHint() {
-    final hint = PassageValidator.getNextHint(
-      widget.state.currentPassage.text,
-      _userInput,
-    );
+    setState(() {
+      _hintedIndex = _occlusion.firstHiddenIndex;
+    });
 
-    if (hint.isEmpty) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Hint: $hint'),
-        duration: const Duration(milliseconds: 1500),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    // Return focus to the input immediately so typing can continue
+    focusNode.requestFocus();
   }
 
   bool get _isComplete {
-    return PassageValidator.isLenientMatch(
-      widget.state.currentPassage.text,
-      _userInput,
-    );
+    return _occlusion.visibleRatio >= 1.0;
   }
 
   @override
   Widget build(BuildContext context) {
+    final activeIndex = _occlusion.firstHiddenIndex;
+
     return Scaffold(
       backgroundColor: RedLetterColors.background,
       appBar: AppBar(
@@ -87,57 +87,77 @@ class _PromptedScreenState extends State<PromptedScreen> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
-                      Text(
-                        'Type the passage from memory:',
-                        style: RedLetterTypography.promptText,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 48),
-                      TextField(
-                        controller: _controller,
-                        onChanged: _handleInputChange,
-                        maxLines: null,
-                        style: _isValid
-                            ? RedLetterTypography.userInputText
-                            : RedLetterTypography.userInputText.copyWith(
-                                color: RedLetterColors.error,
-                              ),
-                        decoration: InputDecoration(
-                          hintText: 'Start typing...',
-                          hintStyle: RedLetterTypography.hintText,
-                          border: InputBorder.none,
-                          suffixIcon: IconButton(
-                            icon: const Icon(
-                              Icons.lightbulb_outline,
-                              color: RedLetterColors.accent,
+        child: GestureDetector(
+          onTap: () {
+            if (!focusNode.hasFocus) {
+              focusNode.requestFocus();
+            }
+          },
+          behavior: HitTestBehavior.translucent,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 72),
+                        // Hidden input field
+                        SizedBox(
+                          width: 1,
+                          height: 1,
+                          child: TextField(
+                            controller: inputController,
+                            focusNode: focusNode,
+                            onChanged: _onInputChange,
+                            autofocus: true,
+                            readOnly: isProcessingError,
+                            autocorrect: false,
+                            enableSuggestions: false,
+                            showCursor: false,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                            ],
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              counterText: '',
                             ),
-                            onPressed: _showHint,
-                            tooltip: 'Get a hint',
+                            style: const TextStyle(color: Colors.transparent),
                           ),
                         ),
-                        autofocus: true,
-                        enableSuggestions: false,
-                        autocorrect: false,
-                      ),
-                    ],
+                        AnimatedBuilder(
+                          animation: pulseController,
+                          builder: (context, _) {
+                            return InlinePassageView(
+                              passage: widget.state.currentPassage,
+                              occlusion: _occlusion,
+                              activeIndex: activeIndex,
+                              currentInput: inputController.text,
+                              isInputValid: isInputValid(
+                                _occlusion,
+                                widget.state.currentPassage,
+                              ),
+                              pulseAnimation: pulseAnimation,
+                              originallyHiddenIndices: const {},
+                              hintedIndex: _hintedIndex,
+                              showUnderlines: false,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              PracticeFooter(
-                onReset: widget.onReset,
-                onContinue: widget.onContinue,
-                continueEnabled: _isComplete,
-              ),
-            ],
+                PracticeFooter(
+                  onReset: widget.onReset,
+                  onContinue: widget.onContinue,
+                  onHint: _showHint,
+                  continueEnabled: _isComplete,
+                ),
+              ],
+            ),
           ),
         ),
       ),

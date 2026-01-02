@@ -19,7 +19,7 @@ void main() {
       state = PracticeState.initial(passage);
     });
 
-    testWidgets('should render reference and input field', (tester) async {
+    testWidgets('should render reference and passage view', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
@@ -27,11 +27,11 @@ void main() {
       );
 
       expect(find.text('John 11:35'), findsOneWidget);
-      expect(find.text('Type the passage from memory:'), findsOneWidget);
+      expect(find.byKey(const Key('passage_text')), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
 
-    testWidgets('should enable continue button when input matches', (
+    testWidgets('should auto-advance when passage is typed correctly', (
       tester,
     ) async {
       bool continued = false;
@@ -45,83 +45,65 @@ void main() {
         ),
       );
 
-      // Initial state: continue disabled
-      // Note: ElevatedButton doesn't have an 'enabled' property on the widget itself,
-      // but we can check if onPressed is null.
-      final button = find.widgetWithText(ElevatedButton, 'Continue');
-      expect(tester.widget<ElevatedButton>(button).onPressed, isNull);
-
-      // Enter partial text
+      // Type "Jesus"
       await tester.enterText(find.byType(TextField), 'Jesus');
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(button).onPressed, isNull);
+      expect(continued, isFalse);
 
-      // Enter correct text
-      await tester.enterText(find.byType(TextField), 'Jesus wept');
+      // Type "wept"
+      await tester.enterText(find.byType(TextField), 'wept');
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(button).onPressed, isNotNull);
 
-      // Tap continue
-      await tester.tap(button);
-      await tester.pump();
+      // Should auto-advance
       expect(continued, isTrue);
     });
 
-    testWidgets('should show validation error for incorrect input', (
-      tester,
-    ) async {
+    testWidgets('should show error state for incorrect input', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 
-      // Enter incorrect text
-      await tester.enterText(find.byType(TextField), 'Jesus x');
+      // Enter incorrect text (full word length to trigger check)
+      await tester.enterText(find.byType(TextField), 'Wrong');
       await tester.pump();
 
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      final style = textField.style;
-      expect(style?.color, RedLetterColors.error);
+      // Should show error color (this might be hard to test directly on the InlinePassageView,
+      // but we can check the text color of the typed text)
+      expect(find.byKey(const Key('typed_text')), findsOneWidget);
+      final textWidget = tester.widget<Text>(
+        find.byKey(const Key('typed_text')),
+      );
+      expect(textWidget.style?.color, RedLetterColors.error);
+
+      // Clean up timer
+      await tester.pump(const Duration(milliseconds: 400));
     });
 
-    testWidgets('should show normal text color for correct prefix', (
-      tester,
-    ) async {
+    testWidgets('should show hint inline when requested', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 
-      // Enter correct prefix
-      await tester.enterText(find.byType(TextField), 'Jesus');
-      await tester.pump();
+      // Initially hint should not be there
+      expect(find.byKey(const Key('hint_text')), findsNothing);
 
-      // Check color is NOT error
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      final style = textField.style;
-      expect(style?.color, isNot(RedLetterColors.error));
-    });
-
-    testWidgets('should show hint when requested', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
-        ),
-      );
-
-      await tester.enterText(find.byType(TextField), 'Jesus');
-      await tester.pump();
-
-      // Tap hint icon
+      // Tap hint icon (represented by the lightbulb in PracticeFooter)
       await tester.tap(find.byIcon(Icons.lightbulb_outline));
       await tester.pump(); // Start animation
-      await tester.pump(
-        const Duration(milliseconds: 500),
-      ); // Wait for animation
+      await tester.pump(const Duration(milliseconds: 500)); // Wait for fade
 
-      expect(find.text('Hint: wept'), findsOneWidget);
+      // Now "Jesus" (the first word) should be visible as a hint
+      expect(find.byKey(const Key('hint_text')), findsOneWidget);
+
+      final hintText = tester.widget<Text>(find.byKey(const Key('hint_text')));
+      expect(
+        hintText.style?.color?.opacity,
+        lessThan(1.0),
+      ); // Lighter contrast (0.3 in impl)
     });
   });
 }
