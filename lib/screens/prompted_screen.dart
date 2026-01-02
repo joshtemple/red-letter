@@ -21,6 +21,7 @@ class PromptedScreen extends StatefulWidget {
 class _PromptedScreenState extends State<PromptedScreen> {
   late TextEditingController _controller;
   String _userInput = '';
+  bool _isValid = true;
 
   @override
   void initState() {
@@ -35,9 +36,31 @@ class _PromptedScreenState extends State<PromptedScreen> {
   }
 
   void _handleInputChange(String input) {
+    final isValid = PassageValidator.isValidPrefix(
+      widget.state.currentPassage.text,
+      input,
+    );
     setState(() {
       _userInput = input;
+      _isValid = isValid;
     });
+  }
+
+  void _showHint() {
+    final hint = PassageValidator.getNextHint(
+      widget.state.currentPassage.text,
+      _userInput,
+    );
+
+    if (hint.isEmpty) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Hint: $hint'),
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   bool get _isComplete {
@@ -83,12 +106,23 @@ class _PromptedScreenState extends State<PromptedScreen> {
                         controller: _controller,
                         onChanged: _handleInputChange,
                         maxLines: null,
-                        style: RedLetterTypography.userInputText,
+                        style: _isValid
+                            ? RedLetterTypography.userInputText
+                            : RedLetterTypography.userInputText.copyWith(
+                                color: RedLetterColors.error,
+                              ),
                         decoration: InputDecoration(
                           hintText: 'Start typing...',
                           hintStyle: RedLetterTypography.hintText,
                           border: InputBorder.none,
-                          // Optional: visual feedback
+                          suffixIcon: IconButton(
+                            icon: const Icon(
+                              Icons.lightbulb_outline,
+                              color: RedLetterColors.accent,
+                            ),
+                            onPressed: _showHint,
+                            tooltip: 'Get a hint',
+                          ),
                         ),
                         autofocus: true,
                         enableSuggestions: false,

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/prompted_screen.dart';
+import 'package:red_letter/theme/colors.dart';
 
 void main() {
   group('PromptedScreen', () {
@@ -44,23 +45,82 @@ void main() {
       );
 
       // Initial state: continue disabled
+      // Note: ElevatedButton doesn't have an 'enabled' property on the widget itself,
+      // but we can check if onPressed is null.
       final button = find.widgetWithText(ElevatedButton, 'Continue');
-      expect(tester.widget<ElevatedButton>(button).enabled, isFalse);
+      expect(tester.widget<ElevatedButton>(button).onPressed, isNull);
 
       // Enter partial text
       await tester.enterText(find.byType(TextField), 'Jesus');
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(button).enabled, isFalse);
+      expect(tester.widget<ElevatedButton>(button).onPressed, isNull);
 
       // Enter correct text
       await tester.enterText(find.byType(TextField), 'Jesus wept');
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(button).enabled, isTrue);
+      expect(tester.widget<ElevatedButton>(button).onPressed, isNotNull);
 
       // Tap continue
       await tester.tap(button);
       await tester.pump();
       expect(continued, isTrue);
+    });
+
+    testWidgets('should show validation error for incorrect input', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PromptedScreen(state: state, onContinue: () {}),
+        ),
+      );
+
+      // Enter incorrect text
+      await tester.enterText(find.byType(TextField), 'Jesus x');
+      await tester.pump();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      final style = textField.style;
+      expect(style?.color, RedLetterColors.error);
+    });
+
+    testWidgets('should show normal text color for correct prefix', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PromptedScreen(state: state, onContinue: () {}),
+        ),
+      );
+
+      // Enter correct prefix
+      await tester.enterText(find.byType(TextField), 'Jesus');
+      await tester.pump();
+
+      // Check color is NOT error
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      final style = textField.style;
+      expect(style?.color, isNot(RedLetterColors.error));
+    });
+
+    testWidgets('should show hint when requested', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PromptedScreen(state: state, onContinue: () {}),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField), 'Jesus');
+      await tester.pump();
+
+      // Tap hint icon
+      await tester.tap(find.byIcon(Icons.lightbulb_outline));
+      await tester.pump(); // Start animation
+      await tester.pump(
+        const Duration(milliseconds: 500),
+      ); // Wait for animation
+
+      expect(find.text('Hint: wept'), findsOneWidget);
     });
   });
 }
