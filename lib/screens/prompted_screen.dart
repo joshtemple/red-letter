@@ -40,6 +40,13 @@ class _PromptedScreenState extends State<PromptedScreen>
       passage: widget.state.currentPassage,
       hiddenIndices: allIndices,
     );
+
+    // Ensure input is focused immediately after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        focusNode.requestFocus();
+      }
+    });
   }
 
   void _onInputChange(String input) {
