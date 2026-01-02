@@ -27,11 +27,12 @@ void main() {
           home: ImpressionScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
 
-      expect(find.text('Impression'), findsOneWidget);
+      expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
     testWidgets('should display passage text', (WidgetTester tester) async {
@@ -40,6 +41,7 @@ void main() {
           home: ImpressionScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
@@ -48,13 +50,15 @@ void main() {
       expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
-    testWidgets('should display PassageText widget',
-        (WidgetTester tester) async {
+    testWidgets('should display PassageText widget', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ImpressionScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
@@ -63,31 +67,17 @@ void main() {
       final passageText = tester.widget<PassageText>(find.byType(PassageText));
       expect(passageText.passage, testState.currentPassage);
       expect(passageText.textAlign, TextAlign.center);
-      expect(passageText.showReference, true);
+      expect(passageText.showReference, false);
       expect(passageText.enableShadow, true);
     });
 
-    testWidgets('should display mnemonic placeholder',
-        (WidgetTester tester) async {
+    testWidgets('should display continue button', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ImpressionScreen(
             state: testState,
             onContinue: () {},
-          ),
-        ),
-      );
-
-      expect(find.byIcon(Icons.image_outlined), findsOneWidget);
-    });
-
-    testWidgets('should display continue button',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
@@ -96,13 +86,15 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('should call onContinue when button pressed',
-        (WidgetTester tester) async {
+    testWidgets('should call onContinue when button pressed', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ImpressionScreen(
             state: testState,
             onContinue: () => continuePressed = true,
+            onReset: () {},
           ),
         ),
       );
@@ -115,8 +107,9 @@ void main() {
       expect(continuePressed, true);
     });
 
-    testWidgets('should be scrollable for long passages',
-        (WidgetTester tester) async {
+    testWidgets('should be scrollable for long passages', (
+      WidgetTester tester,
+    ) async {
       final longPassage = Passage.fromText(
         id: 'long',
         text: 'This is a very long passage ' * 50,
@@ -129,6 +122,7 @@ void main() {
           home: ImpressionScreen(
             state: longState,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
@@ -136,13 +130,15 @@ void main() {
       expect(find.byType(SingleChildScrollView), findsOneWidget);
     });
 
-    testWidgets('should have proper layout structure',
-        (WidgetTester tester) async {
+    testWidgets('should have proper layout structure', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: ImpressionScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );
@@ -152,8 +148,9 @@ void main() {
       expect(find.byType(SafeArea), findsWidgets);
     });
 
-    testWidgets('should work with different passages',
-        (WidgetTester tester) async {
+    testWidgets('should work with different passages', (
+      WidgetTester tester,
+    ) async {
       final passage2 = Passage.fromText(
         id: 'john-3-16',
         text: 'For God so loved the world',
@@ -166,6 +163,7 @@ void main() {
           home: ImpressionScreen(
             state: state2,
             onContinue: () {},
+            onReset: () {},
           ),
         ),
       );

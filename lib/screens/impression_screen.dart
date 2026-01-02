@@ -3,15 +3,18 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/passage_text.dart';
+import 'package:red_letter/widgets/practice_footer.dart';
 
 class ImpressionScreen extends StatelessWidget {
   final PracticeState state;
   final VoidCallback onContinue;
+  final VoidCallback onReset;
 
   const ImpressionScreen({
     super.key,
     required this.state,
     required this.onContinue,
+    required this.onReset,
   });
 
   @override
@@ -21,7 +24,10 @@ class ImpressionScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Impression', style: RedLetterTypography.modeTitle),
+        title: Text(
+          state.currentPassage.reference,
+          style: RedLetterTypography.passageReference,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -39,7 +45,7 @@ class ImpressionScreen extends StatelessWidget {
                         PassageText(
                           passage: state.currentPassage,
                           textAlign: TextAlign.center,
-                          showReference: true,
+                          showReference: false, // Moved to AppBar
                           enableShadow: true,
                         ),
                       ],
@@ -47,43 +53,8 @@ class ImpressionScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
-                child: _ContinueButton(onPressed: onContinue),
-              ),
+              PracticeFooter(onReset: onReset, onContinue: onContinue),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-
-  const _ContinueButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: RedLetterColors.accent,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Text(
-          'Continue',
-          style: RedLetterTypography.modeTitle.copyWith(
-            color: Colors.white,
-            letterSpacing: 1.0,
           ),
         ),
       ),

@@ -26,6 +26,7 @@ void main() {
           home: ReflectionScreen(
             state: testState,
             onContinue: (reflection) => submittedReflection = reflection,
+            onReset: () {},
           ),
         ),
       );
@@ -34,7 +35,7 @@ void main() {
     testWidgets('should display title and prompt', (tester) async {
       await pumpScreen(tester);
 
-      expect(find.text('Reflection'), findsOneWidget);
+      expect(find.text(testState.currentPassage.reference), findsOneWidget);
       expect(find.text('What does this command mean to you?'), findsOneWidget);
     });
 

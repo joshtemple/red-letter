@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
+import 'package:red_letter/widgets/practice_footer.dart';
 
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
+  final VoidCallback onReset;
   final WordOcclusion? occlusion; // Optional for testing
 
   const ScaffoldingScreen({
     super.key,
     required this.state,
     required this.onContinue,
+    required this.onReset,
     this.occlusion,
   });
 
@@ -21,10 +23,15 @@ class ScaffoldingScreen extends StatefulWidget {
   State<ScaffoldingScreen> createState() => _ScaffoldingScreenState();
 }
 
-class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
+class _ScaffoldingScreenState extends State<ScaffoldingScreen>
+    with TickerProviderStateMixin {
   late WordOcclusion _occlusion;
+  late Set<int> _originallyHiddenIndices;
   final TextEditingController _inputController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -32,18 +39,38 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
     _occlusion =
         widget.occlusion ??
         WordOcclusion.generate(passage: widget.state.currentPassage);
+    _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _inputController.dispose();
     _focusNode.dispose();
+    _pulseController.dispose();
     super.dispose();
+  }
+
+  bool get _isInputValid {
+    final input = _inputController.text;
+    if (input.isEmpty) return true;
+    final targetIndex = _occlusion.firstHiddenIndex;
+    if (targetIndex == null) return true;
+    final targetWord = widget.state.currentPassage.words[targetIndex];
+    return targetWord.toLowerCase().startsWith(input.toLowerCase());
   }
 
   void _handleInputChange(String input) {
     if (input.isEmpty) {
-      setState(() {}); // Update to show empty cursor
+      setState(() {});
       return;
     }
 
@@ -62,7 +89,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
           widget.onContinue();
         }
       } else {
-        // No match, just update state to show typing
+        // Just update state to show typing (valid or invalid)
         setState(() {});
       }
     }
@@ -82,7 +109,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Scaffolding', style: RedLetterTypography.modeTitle),
+        title: Text(
+          widget.state.currentPassage.reference,
+          style: RedLetterTypography.passageReference,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -125,22 +155,15 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
                           ),
                         ),
                         _buildInlinePassage(activeIndex),
-                        const SizedBox(height: 24),
-                        Text(
-                          widget.state.currentPassage.reference,
-                          textAlign: TextAlign.center,
-                          style: RedLetterTypography.passageReference,
-                        ),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
-                  child: _ContinueButton(
-                    onPressed: widget.onContinue,
-                    enabled: _isComplete,
-                  ),
+                PracticeFooter(
+                  onReset: widget.onReset,
+                  onContinue: widget.onContinue,
+                  continueEnabled: _isComplete,
                 ),
               ],
             ),
@@ -151,101 +174,95 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
   }
 
   Widget _buildInlinePassage(int? activeIndex) {
-    final words = widget.state.currentPassage.words;
-    final spans = <InlineSpan>[];
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        final words = widget.state.currentPassage.words;
+        final spans = <InlineSpan>[];
 
-    for (int i = 0; i < words.length; i++) {
-      final isHidden = _occlusion.isWordHidden(i);
-      final isLast = i == words.length - 1;
+        for (int i = 0; i < words.length; i++) {
+          final isHidden = _occlusion.isWordHidden(i);
+          final isLast = i == words.length - 1;
 
-      if (isHidden) {
-        if (i == activeIndex) {
-          // Active word being typed
-          final targetWordLength = words[i].length;
-          final currentInput = _inputController.text;
+          if (isHidden) {
+            final isIndexActive = i == activeIndex;
+            final targetWord = words[i];
 
-          // Ensure we don't overflow if the user somehow types more than the word
-          // though checkWord would usually clear it or ignore it.
-          final displayText = currentInput.length >= targetWordLength
-              ? currentInput
-              : currentInput.padRight(targetWordLength, '_');
-
-          spans.add(
-            TextSpan(
-              text: displayText,
-              style: RedLetterTypography.passageBody.copyWith(
-                color: RedLetterColors.accent,
-                decoration: TextDecoration.underline,
-                decorationColor: RedLetterColors.accent.withOpacity(0.5),
+            spans.add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    // Reserve EXACT space of the target word
+                    Text(
+                      targetWord,
+                      style: RedLetterTypography.passageBody.copyWith(
+                        color: Colors.transparent,
+                      ),
+                    ),
+                    // Drawn line at the bottom
+                    Positioned(
+                      bottom: 2,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 2.0,
+                        decoration: BoxDecoration(
+                          color: isIndexActive
+                              ? (_isInputValid
+                                    ? RedLetterColors.accent.withOpacity(
+                                        _pulseAnimation.value,
+                                      )
+                                    : RedLetterColors.error)
+                              : RedLetterColors.divider.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                    ),
+                    // Currently typed text for active word
+                    if (isIndexActive)
+                      Text(
+                        _inputController.text,
+                        style: RedLetterTypography.passageBody.copyWith(
+                          color: _isInputValid
+                              ? RedLetterColors.accent
+                              : RedLetterColors.error,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          );
-        } else {
-          // Future hidden word
-          spans.add(
-            TextSpan(
-              text: '_' * words[i].length,
-              style: RedLetterTypography.passageBody.copyWith(
-                color: RedLetterColors.divider, // Faded for future words?
+            );
+          } else {
+            // Visible (revealed or originally visible)
+            final wasHidden = _originallyHiddenIndices.contains(i);
+            spans.add(
+              TextSpan(
+                text: words[i],
+                style: RedLetterTypography.passageBody.copyWith(
+                  color: wasHidden ? RedLetterColors.correct : null,
+                ),
               ),
-            ),
-          );
+            );
+          }
+
+          // Add space if not last
+          if (!isLast) {
+            spans.add(const TextSpan(text: ' '));
+          }
         }
-      } else {
-        // Visible (revealed or originally visible)
-        spans.add(
-          TextSpan(text: words[i], style: RedLetterTypography.passageBody),
+
+        return RichText(
+          key: const Key('passage_text'),
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: RedLetterTypography.passageBody, // Default style
+            children: spans,
+          ),
         );
-      }
-
-      // Add space if not last
-      if (!isLast) {
-        spans.add(const TextSpan(text: ' '));
-      }
-    }
-
-    return RichText(
-      key: const Key('passage_text'),
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: RedLetterTypography.passageBody, // Default style
-        children: spans,
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool enabled;
-
-  const _ContinueButton({required this.onPressed, required this.enabled});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: enabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: RedLetterColors.accent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: RedLetterColors.divider,
-          disabledForegroundColor: RedLetterColors.tertiaryText,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Text(
-          'Continue',
-          style: RedLetterTypography.modeTitle.copyWith(
-            color: enabled ? Colors.white : RedLetterColors.tertiaryText,
-            letterSpacing: 1.0,
-          ),
-        ),
-      ),
+      },
     );
   }
 }

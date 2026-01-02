@@ -22,7 +22,7 @@ void main() {
     testWidgets('should render reference and input field', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}),
+          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 
@@ -40,6 +40,7 @@ void main() {
           home: PromptedScreen(
             state: state,
             onContinue: () => continued = true,
+            onReset: () {},
           ),
         ),
       );
@@ -71,7 +72,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}),
+          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 
@@ -89,7 +90,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}),
+          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 
@@ -106,7 +107,7 @@ void main() {
     testWidgets('should show hint when requested', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}),
+          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
         ),
       );
 

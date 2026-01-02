@@ -84,95 +84,47 @@ class _RedLetterDemoState extends State<RedLetterDemo> {
             currentScreen = ImpressionScreen(
               state: state,
               onContinue: () => _handleContinue(),
+              onReset: _resetDemo,
             );
             break;
           case PracticeMode.reflection:
             currentScreen = ReflectionScreen(
               state: state,
               onContinue: (text) => _handleContinue(text),
+              onReset: _resetDemo,
             );
             break;
           case PracticeMode.scaffolding:
             currentScreen = ScaffoldingScreen(
               state: state,
               onContinue: () => _handleContinue(),
+              onReset: _resetDemo,
             );
             break;
           case PracticeMode.prompted:
             currentScreen = PromptedScreen(
               state: state,
               onContinue: () => _handleContinue(),
+              onReset: _resetDemo,
             );
             break;
           case PracticeMode.reconstruction:
             currentScreen = ReconstructionScreen(
               state: state,
               onContinue: () => _handleContinue(),
+              onReset: _resetDemo,
             );
             break;
         }
 
-        return Stack(
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 600),
-              switchInCurve: Curves.easeInOut,
-              switchOutCurve: Curves.easeInOut,
-              child: KeyedSubtree(
-                key: ValueKey(state.currentMode),
-                child: currentScreen,
-              ),
-            ),
-            // Debug overlay showing current mode
-            Positioned(
-              top: 50,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Mode: ${state.currentMode.displayName}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                    Text(
-                      'Completed: ${state.completedModes.length}/5',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                        decoration: TextDecoration.none,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    GestureDetector(
-                      onTap: _resetDemo,
-                      child: const Text(
-                        'Reset',
-                        style: TextStyle(
-                          color: Colors.blue,
-                          fontSize: 10,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        return AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          switchInCurve: Curves.easeInOut,
+          switchOutCurve: Curves.easeInOut,
+          child: KeyedSubtree(
+            key: ValueKey(state.currentMode),
+            child: currentScreen,
+          ),
         );
       },
     );

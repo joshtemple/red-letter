@@ -3,15 +3,18 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/passage_validator.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
+import 'package:red_letter/widgets/practice_footer.dart';
 
 class PromptedScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
+  final VoidCallback onReset;
 
   const PromptedScreen({
     super.key,
     required this.state,
     required this.onContinue,
+    required this.onReset,
   });
 
   @override
@@ -77,7 +80,10 @@ class _PromptedScreenState extends State<PromptedScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Prompted', style: RedLetterTypography.modeTitle),
+        title: Text(
+          widget.state.currentPassage.reference,
+          style: RedLetterTypography.passageReference,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -93,12 +99,6 @@ class _PromptedScreenState extends State<PromptedScreen> {
                       Text(
                         'Type the passage from memory:',
                         style: RedLetterTypography.promptText,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.state.currentPassage.reference,
-                        style: RedLetterTypography.passageReference,
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
@@ -132,49 +132,12 @@ class _PromptedScreenState extends State<PromptedScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
-                child: _ContinueButton(
-                  onPressed: widget.onContinue,
-                  enabled: _isComplete,
-                ),
+              PracticeFooter(
+                onReset: widget.onReset,
+                onContinue: widget.onContinue,
+                continueEnabled: _isComplete,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool enabled;
-
-  const _ContinueButton({required this.onPressed, required this.enabled});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: enabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: RedLetterColors.accent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: RedLetterColors.divider,
-          disabledForegroundColor: RedLetterColors.tertiaryText,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Text(
-          'Continue',
-          style: RedLetterTypography.modeTitle.copyWith(
-            color: enabled ? Colors.white : RedLetterColors.tertiaryText,
-            letterSpacing: 1.0,
           ),
         ),
       ),

@@ -3,15 +3,18 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/passage_text.dart';
+import 'package:red_letter/widgets/practice_footer.dart';
 
 class ReflectionScreen extends StatefulWidget {
   final PracticeState state;
   final ValueChanged<String> onContinue;
+  final VoidCallback onReset;
 
   const ReflectionScreen({
     super.key,
     required this.state,
     required this.onContinue,
+    required this.onReset,
   });
 
   @override
@@ -48,7 +51,10 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Reflection', style: RedLetterTypography.modeTitle),
+        title: Text(
+          widget.state.currentPassage.reference,
+          style: RedLetterTypography.passageReference,
+        ),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -66,7 +72,7 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                       PassageText(
                         passage: widget.state.currentPassage,
                         textAlign: TextAlign.start,
-                        showReference: true,
+                        showReference: false, // Moved to AppBar
                         enableShadow: false,
                       ),
                       const SizedBox(height: 48),
@@ -94,34 +100,10 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32.0, top: 16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _canContinue
-                        ? () => widget.onContinue(_controller.text)
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: RedLetterColors.accent,
-                      disabledBackgroundColor: RedLetterColors.accent
-                          .withOpacity(0.3),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      'Continue',
-                      style: RedLetterTypography.modeTitle.copyWith(
-                        color: Colors.white,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ),
-                ),
+              PracticeFooter(
+                onReset: widget.onReset,
+                onContinue: () => widget.onContinue(_controller.text),
+                continueEnabled: _canContinue,
               ),
             ],
           ),

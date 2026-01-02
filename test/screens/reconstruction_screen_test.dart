@@ -21,7 +21,11 @@ void main() {
     testWidgets('should render reference and input field', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ReconstructionScreen(state: state, onContinue: () {}),
+          home: ReconstructionScreen(
+            state: state,
+            onContinue: () {},
+            onReset: () {},
+          ),
         ),
       );
 
@@ -39,6 +43,7 @@ void main() {
           home: ReconstructionScreen(
             state: state,
             onContinue: () => continued = true,
+            onReset: () {},
           ),
         ),
       );

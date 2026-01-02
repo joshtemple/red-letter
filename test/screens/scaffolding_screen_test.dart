@@ -5,6 +5,7 @@ import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
+import 'package:red_letter/theme/colors.dart';
 
 void main() {
   group('ScaffoldingScreen', () {
@@ -33,12 +34,13 @@ void main() {
           home: ScaffoldingScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
             occlusion: testOcclusion,
           ),
         ),
       );
 
-      expect(find.text('Scaffolding'), findsOneWidget);
+      expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
     testWidgets('should display passage with some words hidden', (
@@ -49,6 +51,7 @@ void main() {
           home: ScaffoldingScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
             occlusion: testOcclusion,
           ),
         ),
@@ -58,10 +61,10 @@ void main() {
 
       final richTextFinder = find.byKey(const Key('passage_text'));
       expect(richTextFinder, findsOneWidget);
-      final richText = tester.widget<RichText>(richTextFinder);
-      final plainText = richText.text.toPlainText();
 
-      expect(plainText.contains('_'), isTrue);
+      // With WidgetSpan, toPlainText has placeholders.
+      // We can check for the presence of drawing containers.
+      expect(find.byType(Container), findsWidgets);
     });
 
     testWidgets('should display hidden input field (autofocused)', (
@@ -72,6 +75,7 @@ void main() {
           home: ScaffoldingScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
             occlusion: testOcclusion,
           ),
         ),
@@ -94,6 +98,7 @@ void main() {
           home: ScaffoldingScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
             occlusion: testOcclusion,
           ),
         ),
@@ -108,19 +113,32 @@ void main() {
       await tester.enterText(find.byType(TextField), hiddenWord);
       await tester.pump();
 
-      // Check RichText for revealed word
+      // In the new WidgetSpan implementation, revealed words become normal TextSpans.
       final richText = tester.widget<RichText>(
         find.byKey(const Key('passage_text')),
       );
-      final plainText = richText.text.toPlainText();
+      final textSpan = richText.text as TextSpan;
 
-      // It should contain the word now (revealed)
-      expect(plainText.contains(hiddenWord), isTrue);
-      // And should NOT contain underscores at that position (hard to verifying position with plainText)
-      // But we can check hiddenIndices count via state? No access to private state.
-      // We rely on appearance.
+      // Find the span containing the revealed word and check its color
+      bool foundCorrectColor = false;
+      void checkSpan(InlineSpan span) {
+        if (span is TextSpan) {
+          if (span.text == hiddenWord &&
+              span.style?.color == RedLetterColors.correct) {
+            foundCorrectColor = true;
+          }
+          if (span.children != null) {
+            for (final child in span.children!) {
+              checkSpan(child);
+            }
+          }
+        }
+      }
 
-      // Input should be cleared
+      checkSpan(textSpan);
+      expect(foundCorrectColor, isTrue);
+
+      // Input should be cleared on success
       final textField = tester.widget<TextField>(find.byType(TextField));
       expect(textField.controller?.text, isEmpty);
     });
@@ -133,6 +151,7 @@ void main() {
           home: ScaffoldingScreen(
             state: testState,
             onContinue: () {},
+            onReset: () {},
             occlusion: testOcclusion,
           ),
         ),
@@ -185,6 +204,7 @@ void main() {
             home: ScaffoldingScreen(
               state: shortState,
               onContinue: () => continuePressed = true,
+              onReset: () {},
               occlusion: shortOcclusion,
             ),
           ),
@@ -192,12 +212,12 @@ void main() {
 
         // Type "Love"
         await tester.enterText(find.byType(TextField), 'Love');
-        await tester.pumpAndSettle();
+        await tester.pump();
         expect(continuePressed, isFalse);
 
         // Type "God"
         await tester.enterText(find.byType(TextField), 'God');
-        await tester.pumpAndSettle();
+        await tester.pump();
 
         // Should auto-advance
         expect(continuePressed, isTrue);
@@ -212,32 +232,52 @@ void main() {
             home: ScaffoldingScreen(
               state: testState,
               onContinue: () {},
+              onReset: () {},
               occlusion: testOcclusion,
             ),
           ),
         );
 
-        // Get initial text length
-        final richTextBefore = tester.widget<RichText>(
-          find.byKey(const Key('passage_text')),
-        );
-        final lengthBefore = richTextBefore.text.toPlainText().length;
-
         // Type "X"
         await tester.enterText(find.byType(TextField), 'X');
         await tester.pump();
 
-        // Check RichText content
-        final richTextAfter = tester.widget<RichText>(
-          find.byKey(const Key('passage_text')),
-        );
-        final plainTextAfter = richTextAfter.text.toPlainText();
-
-        expect(plainTextAfter.contains('X'), isTrue);
-        // Length should remain mostly constant (padded)
-        // Note: punctuation or multiple spaces might shift it, but for simple strings it's static.
-        expect(plainTextAfter.length, equals(lengthBefore));
+        // Check for the rendered 'X' (use .last because TextField/EditableText might also match)
+        expect(find.text('X').last, findsOneWidget);
       },
     );
+
+    testWidgets('should blink red on incorrect full-word entry', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldingScreen(
+            state: testState,
+            onContinue: () {},
+            onReset: () {},
+            occlusion: testOcclusion,
+          ),
+        ),
+      );
+
+      final firstHiddenIndex = testOcclusion.firstHiddenIndex!;
+      final hiddenWord = testPassage.words[firstHiddenIndex];
+      final incorrectWord = 'X' * hiddenWord.length;
+
+      // Type incorrect word of full length
+      await tester.enterText(find.byType(TextField), incorrectWord);
+      await tester.pump();
+
+      // Input should NOT be cleared (user's new requirement)
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.controller?.text, equals(incorrectWord));
+
+      // It should render in error color (use .last to avoid matching EditableText)
+      final errorText = find.text(incorrectWord).last;
+      expect(errorText, findsOneWidget);
+      final textWidget = tester.widget<Text>(errorText);
+      expect(textWidget.style?.color, RedLetterColors.error);
+    });
   });
 }

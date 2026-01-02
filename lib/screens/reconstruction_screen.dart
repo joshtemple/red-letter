@@ -3,15 +3,18 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/passage_validator.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
+import 'package:red_letter/widgets/practice_footer.dart';
 
 class ReconstructionScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
+  final VoidCallback onReset;
 
   const ReconstructionScreen({
     super.key,
     required this.state,
     required this.onContinue,
+    required this.onReset,
   });
 
   @override
@@ -54,7 +57,10 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Reconstruction', style: RedLetterTypography.modeTitle),
+        title: Text(
+          widget.state.currentPassage.reference,
+          style: RedLetterTypography.passageReference,
+        ),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -66,20 +72,13 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.state.currentPassage.reference,
-                        style: RedLetterTypography.passageReference,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 72),
                       TextField(
                         controller: _controller,
                         onChanged: _handleInputChange,
                         maxLines: null,
                         style: RedLetterTypography.userInputText,
-                        textAlign: TextAlign
-                            .center, // Center align for "Mastery" feel?
+                        textAlign: TextAlign.center,
                         decoration: InputDecoration(
                           hintText: 'Type the passage...',
                           hintStyle: RedLetterTypography.hintText,
@@ -93,49 +92,12 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
-                child: _ContinueButton(
-                  onPressed: widget.onContinue,
-                  enabled: _isComplete,
-                ),
+              PracticeFooter(
+                onReset: widget.onReset,
+                onContinue: widget.onContinue,
+                continueEnabled: _isComplete,
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContinueButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool enabled;
-
-  const _ContinueButton({required this.onPressed, required this.enabled});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: enabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: RedLetterColors.accent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: RedLetterColors.divider,
-          disabledForegroundColor: RedLetterColors.tertiaryText,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Text(
-          'Continue',
-          style: RedLetterTypography.modeTitle.copyWith(
-            color: enabled ? Colors.white : RedLetterColors.tertiaryText,
-            letterSpacing: 1.0,
           ),
         ),
       ),
