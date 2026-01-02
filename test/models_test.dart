@@ -18,15 +18,11 @@ void main() {
 
   group('PracticeState Tests', () {
     test('should progress through modes', () {
-      final p = Passage.fromText(
-        id: '1',
-        text: 'Test',
-        reference: 'Ref',
-      );
+      final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
       var state = PracticeState.initial(p);
 
       expect(state.currentMode, PracticeMode.impression);
-      
+
       // Advance to Reflection
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.reflection);
@@ -36,30 +32,48 @@ void main() {
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.scaffolding);
 
-       // Advance to Prompted
+      // Advance to Prompted
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.prompted);
 
-       // Advance to Reconstruction
+      // Advance to Reconstruction
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.reconstruction);
 
-       // Finish
+      // Finish
       state = state.advanceMode();
-      
+
       expect(state.currentMode, PracticeMode.reconstruction);
       expect(state.completedModes.length, 5);
       expect(state.completedModes, containsAll(PracticeMode.values));
     });
 
     test('reset should return to initial state', () {
-       final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
-       var state = PracticeState.initial(p);
-       state = state.advanceMode(); // Reflection
-       
-       state = state.reset();
-       expect(state.currentMode, PracticeMode.impression);
-       expect(state.completedModes, isEmpty);
+      final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
+      var state = PracticeState.initial(p);
+      state = state.advanceMode(); // Reflection
+
+      state = state.reset();
+      expect(state.currentMode, PracticeMode.impression);
+      expect(state.completedModes, isEmpty);
+    });
+
+    test('should allow custom initial mode and reset to it', () {
+      final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
+      var state = PracticeState.initial(
+        p,
+        initialMode: PracticeMode.scaffolding,
+      );
+
+      expect(state.currentMode, PracticeMode.scaffolding);
+      expect(state.sessionStartMode, PracticeMode.scaffolding);
+
+      state = state.advanceMode(); // Prompted
+      expect(state.currentMode, PracticeMode.prompted);
+
+      state = state.reset();
+      expect(state.currentMode, PracticeMode.scaffolding);
+      expect(state.sessionStartMode, PracticeMode.scaffolding);
     });
   });
 }

@@ -4,6 +4,7 @@ import 'practice_mode.dart';
 class PracticeState {
   final Passage currentPassage;
   final PracticeMode currentMode;
+  final PracticeMode sessionStartMode;
   final String userInput;
   final DateTime startTime;
   final Set<PracticeMode> completedModes;
@@ -11,33 +12,22 @@ class PracticeState {
   const PracticeState({
     required this.currentPassage,
     this.currentMode = PracticeMode.impression,
+    this.sessionStartMode = PracticeMode.impression,
     this.userInput = '',
     required this.startTime,
     this.completedModes = const {},
   });
 
   /// Creates an initial state for a passage
-  factory PracticeState.initial(Passage passage) {
-    return PracticeState(
-      currentPassage: passage,
-      currentMode: PracticeMode.impression,
-      startTime: DateTime.now(),
-    );
-  }
-
-  PracticeState copyWith({
-    Passage? currentPassage,
-    PracticeMode? currentMode,
-    String? userInput,
-    DateTime? startTime,
-    Set<PracticeMode>? completedModes,
+  factory PracticeState.initial(
+    Passage passage, {
+    PracticeMode initialMode = PracticeMode.impression,
   }) {
     return PracticeState(
-      currentPassage: currentPassage ?? this.currentPassage,
-      currentMode: currentMode ?? this.currentMode,
-      userInput: userInput ?? this.userInput,
-      startTime: startTime ?? this.startTime,
-      completedModes: completedModes ?? this.completedModes,
+      currentPassage: passage,
+      currentMode: initialMode,
+      sessionStartMode: initialMode,
+      startTime: DateTime.now(),
     );
   }
 
@@ -47,9 +37,10 @@ class PracticeState {
   /// Logic can be refined to handle "finished" state explicitly if needed.
   PracticeState advanceMode() {
     final nextMode = currentMode.next;
-    
+
     // Mark current mode as completed
-    final newCompleted = Set<PracticeMode>.from(completedModes)..add(currentMode);
+    final newCompleted = Set<PracticeMode>.from(completedModes)
+      ..add(currentMode);
 
     if (nextMode != null) {
       return copyWith(
@@ -59,15 +50,32 @@ class PracticeState {
       );
     } else {
       // Finished all modes
-      return copyWith(
-        completedModes: newCompleted,
-      );
+      return copyWith(completedModes: newCompleted);
     }
   }
 
   /// Resets the practice session for the current passage
   PracticeState reset() {
-    return PracticeState.initial(currentPassage);
+    return PracticeState.initial(currentPassage, initialMode: sessionStartMode);
+  }
+
+  /// Updates the user input for the current mode
+  PracticeState copyWith({
+    Passage? currentPassage,
+    PracticeMode? currentMode,
+    PracticeMode? sessionStartMode,
+    String? userInput,
+    DateTime? startTime,
+    Set<PracticeMode>? completedModes,
+  }) {
+    return PracticeState(
+      currentPassage: currentPassage ?? this.currentPassage,
+      currentMode: currentMode ?? this.currentMode,
+      sessionStartMode: sessionStartMode ?? this.sessionStartMode,
+      userInput: userInput ?? this.userInput,
+      startTime: startTime ?? this.startTime,
+      completedModes: completedModes ?? this.completedModes,
+    );
   }
 
   /// Updates the user input for the current mode
@@ -92,6 +100,7 @@ class PracticeState {
     return other is PracticeState &&
         other.currentPassage == currentPassage &&
         other.currentMode == currentMode &&
+        other.sessionStartMode == sessionStartMode &&
         other.userInput == userInput &&
         other.startTime == startTime &&
         _setEquals(other.completedModes, completedModes);
@@ -102,6 +111,7 @@ class PracticeState {
     return Object.hash(
       currentPassage,
       currentMode,
+      sessionStartMode,
       userInput,
       startTime,
       Object.hashAllUnordered(completedModes),
@@ -115,6 +125,6 @@ class PracticeState {
 
   @override
   String toString() {
-    return 'PracticeState(mode: ${currentMode.name}, input: "$userInput", completed: ${completedModes.length})';
+    return 'PracticeState(mode: ${currentMode.name}, start: ${sessionStartMode.name}, input: "$userInput", completed: ${completedModes.length})';
   }
 }

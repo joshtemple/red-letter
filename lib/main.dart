@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_mode.dart';
@@ -55,7 +56,19 @@ class _RedLetterDemoState extends State<RedLetterDemo> {
       reference: 'Matthew 5:44',
     );
 
-    _controller = PracticeController(passage);
+    // Allows starting at a specific mode for development
+    // Usage: flutter run --dart-define=START_MODE=scaffolding
+    const startModeName = String.fromEnvironment('START_MODE');
+    final initialMode = PracticeMode.values.firstWhere(
+      (m) => m.name.toLowerCase() == startModeName.toLowerCase(),
+      orElse: () => PracticeMode.impression,
+    );
+
+    _controller = PracticeController(passage, initialMode: initialMode);
+
+    if (kDebugMode && startModeName.isNotEmpty) {
+      debugPrint('Red Letter: Starting in mode: ${initialMode.name}');
+    }
   }
 
   @override
