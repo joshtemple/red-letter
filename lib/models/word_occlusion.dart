@@ -53,6 +53,64 @@ class WordOcclusion {
     );
   }
 
+  /// Creates a specific occlusion pattern (useful for testing or state restoration)
+  factory WordOcclusion.manual({
+    required Passage passage,
+    required Set<int> hiddenIndices,
+    double occlusionRatio = 0.5,
+  }) {
+    return WordOcclusion._(
+      passage: passage,
+      hiddenIndices: hiddenIndices,
+      occlusionRatio: occlusionRatio,
+    );
+  }
+
+  /// Creates a copy of this occlusion with specific indices unhidden
+  WordOcclusion revealIndices(Set<int> indicesToReveal) {
+    if (indicesToReveal.isEmpty) return this;
+
+    final newHidden = Set<int>.from(hiddenIndices)..removeAll(indicesToReveal);
+
+    return WordOcclusion._(
+      passage: passage,
+      hiddenIndices: newHidden,
+      occlusionRatio: occlusionRatio,
+    );
+  }
+
+  /// Processes user input and reveals matching hidden words.
+  /// Returns a new instance with revealed words unhidden.
+  WordOcclusion checkInput(String input) {
+    if (input.isEmpty) return this;
+
+    final tokens = input.toLowerCase().split(RegExp(r'\s+'));
+    final indicesToReveal = <int>{};
+
+    for (final index in hiddenIndices) {
+      final hiddenWord = _cleanWord(passage.words[index]);
+
+      // If the word is just punctuation (e.g. "-"), matching it might be tricky.
+      // But usually we hide actual words.
+      if (hiddenWord.isEmpty) continue;
+
+      for (final token in tokens) {
+        if (_cleanWord(token) == hiddenWord) {
+          indicesToReveal.add(index);
+          break; // Found a match for this hidden word
+        }
+      }
+    }
+
+    return revealIndices(indicesToReveal);
+  }
+
+  String _cleanWord(String word) {
+    // Remove punctuation, keep alphanumeric.
+    // This is a simple implementation; might need refinement for non-English.
+    return word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
+  }
+
   /// Returns true if the word at [index] should be hidden.
   bool isWordHidden(int index) {
     return hiddenIndices.contains(index);
@@ -64,7 +122,9 @@ class WordOcclusion {
   /// Otherwise, returns the actual word.
   String getDisplayWord(int index) {
     if (index < 0 || index >= passage.words.length) {
-      throw RangeError('Index $index out of range for passage with ${passage.words.length} words');
+      throw RangeError(
+        'Index $index out of range for passage with ${passage.words.length} words',
+      );
     }
 
     if (isWordHidden(index)) {
@@ -93,6 +153,11 @@ class WordOcclusion {
   /// Returns the number of words that are currently visible.
   int get visibleWordCount => totalWordCount - hiddenWordCount;
 
+  /// Returns the percentage of words that are visible (0.0 to 1.0).
+  /// 1.0 means all words are visible (complete).
+  double get visibleRatio =>
+      totalWordCount == 0 ? 1.0 : visibleWordCount / totalWordCount;
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -105,10 +170,6 @@ class WordOcclusion {
 
   @override
   int get hashCode {
-    return Object.hash(
-      passage,
-      hiddenIndices.length,
-      occlusionRatio,
-    );
+    return Object.hash(passage, hiddenIndices.length, occlusionRatio);
   }
 }
