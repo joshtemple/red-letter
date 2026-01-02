@@ -5,6 +5,7 @@ import 'package:red_letter/theme/typography.dart';
 class PracticeFooter extends StatelessWidget {
   final VoidCallback onReset;
   final VoidCallback? onContinue;
+  final VoidCallback? onHint;
   final bool continueEnabled;
   final String continueLabel;
 
@@ -12,6 +13,7 @@ class PracticeFooter extends StatelessWidget {
     super.key,
     required this.onReset,
     this.onContinue,
+    this.onHint,
     this.continueEnabled = true,
     this.continueLabel = 'Continue',
   });
@@ -68,6 +70,27 @@ class PracticeFooter extends StatelessWidget {
                       letterSpacing: 1.0,
                     ),
                   ),
+                ),
+              ),
+            ),
+          ],
+          if (onHint != null) ...[
+            const SizedBox(width: 12),
+            // Hint Button
+            Expanded(
+              flex: 1,
+              child: SizedBox(
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: onHint,
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: RedLetterColors.divider),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    foregroundColor: RedLetterColors.accent,
+                  ),
+                  child: const Icon(Icons.lightbulb_outline),
                 ),
               ),
             ),
