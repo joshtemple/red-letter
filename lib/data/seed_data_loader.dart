@@ -9,22 +9,84 @@ class PassageSeedData {
   final String text;
   final String tags;
   final String? mnemonicUrl;
+  final String book;
+  final int chapter;
+  final int startVerse;
+  final int endVerse;
 
   const PassageSeedData({
     required this.passageId,
     required this.reference,
     required this.text,
     required this.tags,
+    required this.book,
+    required this.chapter,
+    required this.startVerse,
+    required this.endVerse,
     this.mnemonicUrl,
   });
 
   factory PassageSeedData.fromJson(Map<String, dynamic> json) {
+    // Check if JSON has the new fields
+    String? book = json['book'] as String?;
+    int? chapter = json['chapter'] as int?;
+    int? startVerse = json['start_verse'] as int?;
+    int? endVerse = json['end_verse'] as int?;
+
+    if (book == null ||
+        chapter == null ||
+        startVerse == null ||
+        endVerse == null) {
+      // Parse from reference string "Matthew 5:3" or "Matthew 5:3-10"
+      // or "1 John 1:9"
+      final ref = json['reference'] as String;
+
+      try {
+        // Last part is verse range
+        final colonIndex = ref.lastIndexOf(':');
+        if (colonIndex != -1) {
+          final chapterStart = ref.lastIndexOf(' ', colonIndex);
+          final chapterNum = int.parse(
+            ref.substring(chapterStart + 1, colonIndex),
+          );
+          book = ref.substring(0, chapterStart);
+          chapter = chapterNum;
+
+          final versePart = ref.substring(colonIndex + 1);
+          if (versePart.contains('-')) {
+            final verses = versePart.split('-');
+            startVerse = int.parse(verses[0]);
+            endVerse = int.parse(verses[1]);
+          } else {
+            startVerse = int.parse(versePart);
+            endVerse = startVerse;
+          }
+        } else {
+          // Fallback for weird formats, though standard format is expected
+          book = "";
+          chapter = 0;
+          startVerse = 0;
+          endVerse = 0;
+        }
+      } catch (e) {
+        // Parsing failed
+        book = "";
+        chapter = 0;
+        startVerse = 0;
+        endVerse = 0;
+      }
+    }
+
     return PassageSeedData(
       passageId: json['passage_id'] as String,
       reference: json['reference'] as String,
       text: json['text'] as String,
       tags: json['tags'] as String? ?? '',
       mnemonicUrl: json['mnemonic_url'] as String?,
+      book: book,
+      chapter: chapter,
+      startVerse: startVerse,
+      endVerse: endVerse,
     );
   }
 
@@ -36,6 +98,10 @@ class PassageSeedData {
       passageText: Value(text),
       tags: Value(tags),
       mnemonicUrl: Value(mnemonicUrl),
+      book: Value(book),
+      chapter: Value(chapter),
+      startVerse: Value(startVerse),
+      endVerse: Value(endVerse),
     );
   }
 }

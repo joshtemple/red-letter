@@ -12,6 +12,7 @@ import 'package:red_letter/screens/scaffolding_screen.dart';
 import 'package:red_letter/screens/prompted_screen.dart';
 import 'package:red_letter/screens/reconstruction_screen.dart';
 import 'package:red_letter/controllers/practice_controller.dart';
+import 'package:red_letter/screens/passage_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,8 @@ class RedLetterApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: RedLetterDemo(repository: repository),
+      // Set PassageListScreen as the home screen
+      home: PassageListScreen(repository: repository),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -47,8 +49,15 @@ class RedLetterApp extends StatelessWidget {
 
 class RedLetterDemo extends StatefulWidget {
   final PassageRepository repository;
+  final Passage? initialPassage;
+  final PracticeMode? initialMode;
 
-  const RedLetterDemo({super.key, required this.repository});
+  const RedLetterDemo({
+    super.key,
+    required this.repository,
+    this.initialPassage,
+    this.initialMode,
+  });
 
   @override
   State<RedLetterDemo> createState() => _RedLetterDemoState();
@@ -67,54 +76,49 @@ class _RedLetterDemoState extends State<RedLetterDemo> {
 
   Future<void> _loadPassage() async {
     try {
-      // Demo passage - Matthew 5:44
-      const demoPassageId = 'mat-5-44';
+      Passage domainPassage;
 
-      // Try to get passage with progress from DB
-      var passageWithProgress = await widget.repository.getPassageWithProgress(
-        demoPassageId,
-      );
+      if (widget.initialPassage != null) {
+        domainPassage = widget.initialPassage!;
+      } else {
+        // Fallback for direct testing or dev:
+        // Try to load a default if none passed (e.g. for e2e test if we revert to demo)
+        const demoPassageId = 'mat-5-44';
+        var pwp = await widget.repository.getPassageWithProgress(demoPassageId);
 
-      // If not found, it might be that seeding hasn't finished or failed (though migration should handle it).
-      // Or we can try to wait/retry? For now, we assume seeding works.
-      if (passageWithProgress == null) {
-        // Fallback: Check if we can get just the passage (maybe no progress yet, but getPassageWithProgress handles that)
-        // If null, it means the passage ID doesn't exist in DB.
+        if (pwp == null) throw Exception('Default passage not found');
 
-        // FOR DEV: If database is empty (e.g. running tests with empty db), we might need to wait or it's a critical error.
-        // Assuming database seeder runs on creation.
-
-        throw Exception('Passage not found: $demoPassageId');
+        domainPassage = Passage.fromText(
+          id: pwp.passageId,
+          text: pwp.passage.passageText,
+          reference: pwp.passage.reference,
+        );
       }
 
-      // Convert Drift passage to Domain Passage
-      final domainPassage = Passage.fromText(
-        id: passageWithProgress.passageId,
-        text: passageWithProgress.passage.passageText,
-        reference: passageWithProgress.passage.reference,
-      );
+      // Allow override from environment or widget param, defaulting to Impression
+      PracticeMode startMode = widget.initialMode ?? PracticeMode.impression;
 
-      // Allows starting at a specific mode for development
-      // Usage: flutter run --dart-define=START_MODE=scaffolding
-      const startModeName = String.fromEnvironment('START_MODE');
-      final initialMode = PracticeMode.values.firstWhere(
-        (m) => m.name.toLowerCase() == startModeName.toLowerCase(),
-        orElse: () => PracticeMode.impression,
-      );
+      const envMode = String.fromEnvironment('START_MODE');
+      if (envMode.isNotEmpty) {
+        startMode = PracticeMode.values.firstWhere(
+          (m) => m.name.toLowerCase() == envMode.toLowerCase(),
+          orElse: () => startMode,
+        );
+      }
 
       if (mounted) {
         setState(() {
           _controller = PracticeController(
             domainPassage,
             repository: widget.repository,
-            initialMode: initialMode,
+            initialMode: startMode,
           );
           _isLoading = false;
         });
       }
 
-      if (kDebugMode && startModeName.isNotEmpty) {
-        debugPrint('Red Letter: Starting in mode: ${initialMode.name}');
+      if (kDebugMode && envMode.isNotEmpty) {
+        debugPrint('Red Letter: Starting in mode: ${startMode.name}');
       }
     } catch (e) {
       if (mounted) {

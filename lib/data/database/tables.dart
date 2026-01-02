@@ -19,6 +19,18 @@ class Passages extends Table {
   /// The actual scripture text to memorize
   TextColumn get passageText => text().named('text')();
 
+  /// Book name (e.g., "Matthew")
+  TextColumn get book => text()();
+
+  /// Chapter number
+  IntColumn get chapter => integer()();
+
+  /// Start verse number
+  IntColumn get startVerse => integer()();
+
+  /// End verse number (same as startVerse if single verse)
+  IntColumn get endVerse => integer()();
+
   /// Optional URL to visual mnemonic aid (nullable)
   TextColumn get mnemonicUrl => text().nullable()();
 
@@ -39,7 +51,9 @@ class UserProgressTable extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   /// Foreign key reference to Passages.passageId
-  TextColumn get passageId => text().customConstraint('NOT NULL UNIQUE REFERENCES passages(passage_id) ON DELETE CASCADE')();
+  TextColumn get passageId => text().customConstraint(
+    'NOT NULL UNIQUE REFERENCES passages(passage_id) ON DELETE CASCADE',
+  )();
 
   /// Current mastery level (0-4: new, learning, familiar, mastered, locked-in)
   IntColumn get masteryLevel => integer().withDefault(const Constant(0))();

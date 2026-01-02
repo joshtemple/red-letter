@@ -58,7 +58,9 @@ class DatabaseSeeder {
     required Future<List<PassagesCompanion>> Function() loader,
   }) async {
     // Check if translation already seeded
-    final existingCount = await _passageDAO.getPassageCountByTranslation(translationId);
+    final existingCount = await _passageDAO.getPassageCountByTranslation(
+      translationId,
+    );
 
     if (existingCount > 0) {
       // Translation already seeded, skip
@@ -100,5 +102,17 @@ class DatabaseSeeder {
       default:
         throw ArgumentError('Unknown translation ID: $translationId');
     }
+  }
+
+  /// Updates metadata for existing passages (e.g., during migration).
+  ///
+  /// Uses upsert (insertOrUpdate) to update fields like book, chapter, verse
+  /// without deleting the row (which would cascade delete user progress).
+  Future<int> updatePassageMetadata() async {
+    // Load fresh data
+    final companions = await SeedDataLoader.loadESVCompanions();
+
+    // Upsert batch
+    return _passageDAO.upsertPassageBatch(companions);
   }
 }

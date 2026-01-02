@@ -97,17 +97,29 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   /// Get all passages decorated with user progress.
   ///
   /// Performs client-side join for all passages. Ordered by passageId.
-  /// Passages without progress will have null progress field.
+  /// Passages without progress will  /// Get all passages with their progress.
   Future<List<PassageWithProgress>> getAllPassagesWithProgress() async {
     final query = select(passages).join([
       leftOuterJoin(
         userProgressTable,
         userProgressTable.passageId.equalsExp(passages.passageId),
       ),
-    ])..orderBy([OrderingTerm.asc(passages.passageId)]);
+    ]);
 
-    final results = await query.get();
-    return results.map((row) {
+    // Order by book, chapter, startVerse
+    // Note: Book ordering by text is alphabetical (Acts, Matthew, etc.)
+    // For canonical ordering we'd need a book_order index, but alphabetical
+    // or seed order id better than random.
+    // Ideally we add 'bookOrder' or similar.
+    query.orderBy([
+      OrderingTerm(expression: passages.book),
+      OrderingTerm(expression: passages.chapter),
+      OrderingTerm(expression: passages.startVerse),
+    ]);
+
+    final rows = await query.get();
+
+    return rows.map((row) {
       return PassageWithProgress(
         passage: row.readTable(passages),
         progress: row.readTableOrNull(userProgressTable),

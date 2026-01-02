@@ -52,6 +52,48 @@ class $PassagesTable extends Passages with TableInfo<$PassagesTable, Passage> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _bookMeta = const VerificationMeta('book');
+  @override
+  late final GeneratedColumn<String> book = GeneratedColumn<String>(
+    'book',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _chapterMeta = const VerificationMeta(
+    'chapter',
+  );
+  @override
+  late final GeneratedColumn<int> chapter = GeneratedColumn<int>(
+    'chapter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startVerseMeta = const VerificationMeta(
+    'startVerse',
+  );
+  @override
+  late final GeneratedColumn<int> startVerse = GeneratedColumn<int>(
+    'start_verse',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endVerseMeta = const VerificationMeta(
+    'endVerse',
+  );
+  @override
+  late final GeneratedColumn<int> endVerse = GeneratedColumn<int>(
+    'end_verse',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _mnemonicUrlMeta = const VerificationMeta(
     'mnemonicUrl',
   );
@@ -79,6 +121,10 @@ class $PassagesTable extends Passages with TableInfo<$PassagesTable, Passage> {
     translationId,
     reference,
     passageText,
+    book,
+    chapter,
+    startVerse,
+    endVerse,
     mnemonicUrl,
     tags,
   ];
@@ -129,6 +175,38 @@ class $PassagesTable extends Passages with TableInfo<$PassagesTable, Passage> {
     } else if (isInserting) {
       context.missing(_passageTextMeta);
     }
+    if (data.containsKey('book')) {
+      context.handle(
+        _bookMeta,
+        book.isAcceptableOrUnknown(data['book']!, _bookMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bookMeta);
+    }
+    if (data.containsKey('chapter')) {
+      context.handle(
+        _chapterMeta,
+        chapter.isAcceptableOrUnknown(data['chapter']!, _chapterMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_chapterMeta);
+    }
+    if (data.containsKey('start_verse')) {
+      context.handle(
+        _startVerseMeta,
+        startVerse.isAcceptableOrUnknown(data['start_verse']!, _startVerseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startVerseMeta);
+    }
+    if (data.containsKey('end_verse')) {
+      context.handle(
+        _endVerseMeta,
+        endVerse.isAcceptableOrUnknown(data['end_verse']!, _endVerseMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endVerseMeta);
+    }
     if (data.containsKey('mnemonic_url')) {
       context.handle(
         _mnemonicUrlMeta,
@@ -169,6 +247,22 @@ class $PassagesTable extends Passages with TableInfo<$PassagesTable, Passage> {
         DriftSqlType.string,
         data['${effectivePrefix}text'],
       )!,
+      book: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}book'],
+      )!,
+      chapter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}chapter'],
+      )!,
+      startVerse: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}start_verse'],
+      )!,
+      endVerse: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}end_verse'],
+      )!,
       mnemonicUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}mnemonic_url'],
@@ -199,6 +293,18 @@ class Passage extends DataClass implements Insertable<Passage> {
   /// The actual scripture text to memorize
   final String passageText;
 
+  /// Book name (e.g., "Matthew")
+  final String book;
+
+  /// Chapter number
+  final int chapter;
+
+  /// Start verse number
+  final int startVerse;
+
+  /// End verse number (same as startVerse if single verse)
+  final int endVerse;
+
   /// Optional URL to visual mnemonic aid (nullable)
   final String? mnemonicUrl;
 
@@ -209,6 +315,10 @@ class Passage extends DataClass implements Insertable<Passage> {
     required this.translationId,
     required this.reference,
     required this.passageText,
+    required this.book,
+    required this.chapter,
+    required this.startVerse,
+    required this.endVerse,
     this.mnemonicUrl,
     required this.tags,
   });
@@ -219,6 +329,10 @@ class Passage extends DataClass implements Insertable<Passage> {
     map['translation_id'] = Variable<String>(translationId);
     map['reference'] = Variable<String>(reference);
     map['text'] = Variable<String>(passageText);
+    map['book'] = Variable<String>(book);
+    map['chapter'] = Variable<int>(chapter);
+    map['start_verse'] = Variable<int>(startVerse);
+    map['end_verse'] = Variable<int>(endVerse);
     if (!nullToAbsent || mnemonicUrl != null) {
       map['mnemonic_url'] = Variable<String>(mnemonicUrl);
     }
@@ -232,6 +346,10 @@ class Passage extends DataClass implements Insertable<Passage> {
       translationId: Value(translationId),
       reference: Value(reference),
       passageText: Value(passageText),
+      book: Value(book),
+      chapter: Value(chapter),
+      startVerse: Value(startVerse),
+      endVerse: Value(endVerse),
       mnemonicUrl: mnemonicUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mnemonicUrl),
@@ -249,6 +367,10 @@ class Passage extends DataClass implements Insertable<Passage> {
       translationId: serializer.fromJson<String>(json['translation_id']),
       reference: serializer.fromJson<String>(json['reference']),
       passageText: serializer.fromJson<String>(json['text']),
+      book: serializer.fromJson<String>(json['book']),
+      chapter: serializer.fromJson<int>(json['chapter']),
+      startVerse: serializer.fromJson<int>(json['start_verse']),
+      endVerse: serializer.fromJson<int>(json['end_verse']),
       mnemonicUrl: serializer.fromJson<String?>(json['mnemonic_url']),
       tags: serializer.fromJson<String>(json['tags']),
     );
@@ -261,6 +383,10 @@ class Passage extends DataClass implements Insertable<Passage> {
       'translation_id': serializer.toJson<String>(translationId),
       'reference': serializer.toJson<String>(reference),
       'text': serializer.toJson<String>(passageText),
+      'book': serializer.toJson<String>(book),
+      'chapter': serializer.toJson<int>(chapter),
+      'start_verse': serializer.toJson<int>(startVerse),
+      'end_verse': serializer.toJson<int>(endVerse),
       'mnemonic_url': serializer.toJson<String?>(mnemonicUrl),
       'tags': serializer.toJson<String>(tags),
     };
@@ -271,6 +397,10 @@ class Passage extends DataClass implements Insertable<Passage> {
     String? translationId,
     String? reference,
     String? passageText,
+    String? book,
+    int? chapter,
+    int? startVerse,
+    int? endVerse,
     Value<String?> mnemonicUrl = const Value.absent(),
     String? tags,
   }) => Passage(
@@ -278,6 +408,10 @@ class Passage extends DataClass implements Insertable<Passage> {
     translationId: translationId ?? this.translationId,
     reference: reference ?? this.reference,
     passageText: passageText ?? this.passageText,
+    book: book ?? this.book,
+    chapter: chapter ?? this.chapter,
+    startVerse: startVerse ?? this.startVerse,
+    endVerse: endVerse ?? this.endVerse,
     mnemonicUrl: mnemonicUrl.present ? mnemonicUrl.value : this.mnemonicUrl,
     tags: tags ?? this.tags,
   );
@@ -291,6 +425,12 @@ class Passage extends DataClass implements Insertable<Passage> {
       passageText: data.passageText.present
           ? data.passageText.value
           : this.passageText,
+      book: data.book.present ? data.book.value : this.book,
+      chapter: data.chapter.present ? data.chapter.value : this.chapter,
+      startVerse: data.startVerse.present
+          ? data.startVerse.value
+          : this.startVerse,
+      endVerse: data.endVerse.present ? data.endVerse.value : this.endVerse,
       mnemonicUrl: data.mnemonicUrl.present
           ? data.mnemonicUrl.value
           : this.mnemonicUrl,
@@ -305,6 +445,10 @@ class Passage extends DataClass implements Insertable<Passage> {
           ..write('translationId: $translationId, ')
           ..write('reference: $reference, ')
           ..write('passageText: $passageText, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('startVerse: $startVerse, ')
+          ..write('endVerse: $endVerse, ')
           ..write('mnemonicUrl: $mnemonicUrl, ')
           ..write('tags: $tags')
           ..write(')'))
@@ -317,6 +461,10 @@ class Passage extends DataClass implements Insertable<Passage> {
     translationId,
     reference,
     passageText,
+    book,
+    chapter,
+    startVerse,
+    endVerse,
     mnemonicUrl,
     tags,
   );
@@ -328,6 +476,10 @@ class Passage extends DataClass implements Insertable<Passage> {
           other.translationId == this.translationId &&
           other.reference == this.reference &&
           other.passageText == this.passageText &&
+          other.book == this.book &&
+          other.chapter == this.chapter &&
+          other.startVerse == this.startVerse &&
+          other.endVerse == this.endVerse &&
           other.mnemonicUrl == this.mnemonicUrl &&
           other.tags == this.tags);
 }
@@ -337,6 +489,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
   final Value<String> translationId;
   final Value<String> reference;
   final Value<String> passageText;
+  final Value<String> book;
+  final Value<int> chapter;
+  final Value<int> startVerse;
+  final Value<int> endVerse;
   final Value<String?> mnemonicUrl;
   final Value<String> tags;
   final Value<int> rowid;
@@ -345,6 +501,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
     this.translationId = const Value.absent(),
     this.reference = const Value.absent(),
     this.passageText = const Value.absent(),
+    this.book = const Value.absent(),
+    this.chapter = const Value.absent(),
+    this.startVerse = const Value.absent(),
+    this.endVerse = const Value.absent(),
     this.mnemonicUrl = const Value.absent(),
     this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -354,18 +514,30 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
     required String translationId,
     required String reference,
     required String passageText,
+    required String book,
+    required int chapter,
+    required int startVerse,
+    required int endVerse,
     this.mnemonicUrl = const Value.absent(),
     this.tags = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : passageId = Value(passageId),
        translationId = Value(translationId),
        reference = Value(reference),
-       passageText = Value(passageText);
+       passageText = Value(passageText),
+       book = Value(book),
+       chapter = Value(chapter),
+       startVerse = Value(startVerse),
+       endVerse = Value(endVerse);
   static Insertable<Passage> custom({
     Expression<String>? passageId,
     Expression<String>? translationId,
     Expression<String>? reference,
     Expression<String>? passageText,
+    Expression<String>? book,
+    Expression<int>? chapter,
+    Expression<int>? startVerse,
+    Expression<int>? endVerse,
     Expression<String>? mnemonicUrl,
     Expression<String>? tags,
     Expression<int>? rowid,
@@ -375,6 +547,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
       if (translationId != null) 'translation_id': translationId,
       if (reference != null) 'reference': reference,
       if (passageText != null) 'text': passageText,
+      if (book != null) 'book': book,
+      if (chapter != null) 'chapter': chapter,
+      if (startVerse != null) 'start_verse': startVerse,
+      if (endVerse != null) 'end_verse': endVerse,
       if (mnemonicUrl != null) 'mnemonic_url': mnemonicUrl,
       if (tags != null) 'tags': tags,
       if (rowid != null) 'rowid': rowid,
@@ -386,6 +562,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
     Value<String>? translationId,
     Value<String>? reference,
     Value<String>? passageText,
+    Value<String>? book,
+    Value<int>? chapter,
+    Value<int>? startVerse,
+    Value<int>? endVerse,
     Value<String?>? mnemonicUrl,
     Value<String>? tags,
     Value<int>? rowid,
@@ -395,6 +575,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
       translationId: translationId ?? this.translationId,
       reference: reference ?? this.reference,
       passageText: passageText ?? this.passageText,
+      book: book ?? this.book,
+      chapter: chapter ?? this.chapter,
+      startVerse: startVerse ?? this.startVerse,
+      endVerse: endVerse ?? this.endVerse,
       mnemonicUrl: mnemonicUrl ?? this.mnemonicUrl,
       tags: tags ?? this.tags,
       rowid: rowid ?? this.rowid,
@@ -416,6 +600,18 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
     if (passageText.present) {
       map['text'] = Variable<String>(passageText.value);
     }
+    if (book.present) {
+      map['book'] = Variable<String>(book.value);
+    }
+    if (chapter.present) {
+      map['chapter'] = Variable<int>(chapter.value);
+    }
+    if (startVerse.present) {
+      map['start_verse'] = Variable<int>(startVerse.value);
+    }
+    if (endVerse.present) {
+      map['end_verse'] = Variable<int>(endVerse.value);
+    }
     if (mnemonicUrl.present) {
       map['mnemonic_url'] = Variable<String>(mnemonicUrl.value);
     }
@@ -435,6 +631,10 @@ class PassagesCompanion extends UpdateCompanion<Passage> {
           ..write('translationId: $translationId, ')
           ..write('reference: $reference, ')
           ..write('passageText: $passageText, ')
+          ..write('book: $book, ')
+          ..write('chapter: $chapter, ')
+          ..write('startVerse: $startVerse, ')
+          ..write('endVerse: $endVerse, ')
           ..write('mnemonicUrl: $mnemonicUrl, ')
           ..write('tags: $tags, ')
           ..write('rowid: $rowid')
@@ -1118,6 +1318,10 @@ typedef $$PassagesTableCreateCompanionBuilder =
       required String translationId,
       required String reference,
       required String passageText,
+      required String book,
+      required int chapter,
+      required int startVerse,
+      required int endVerse,
       Value<String?> mnemonicUrl,
       Value<String> tags,
       Value<int> rowid,
@@ -1128,6 +1332,10 @@ typedef $$PassagesTableUpdateCompanionBuilder =
       Value<String> translationId,
       Value<String> reference,
       Value<String> passageText,
+      Value<String> book,
+      Value<int> chapter,
+      Value<int> startVerse,
+      Value<int> endVerse,
       Value<String?> mnemonicUrl,
       Value<String> tags,
       Value<int> rowid,
@@ -1196,6 +1404,26 @@ class $$PassagesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get startVerse => $composableBuilder(
+    column: $table.startVerse,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get endVerse => $composableBuilder(
+    column: $table.endVerse,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get mnemonicUrl => $composableBuilder(
     column: $table.mnemonicUrl,
     builder: (column) => ColumnFilters(column),
@@ -1261,6 +1489,26 @@ class $$PassagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get book => $composableBuilder(
+    column: $table.book,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get chapter => $composableBuilder(
+    column: $table.chapter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get startVerse => $composableBuilder(
+    column: $table.startVerse,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get endVerse => $composableBuilder(
+    column: $table.endVerse,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get mnemonicUrl => $composableBuilder(
     column: $table.mnemonicUrl,
     builder: (column) => ColumnOrderings(column),
@@ -1296,6 +1544,20 @@ class $$PassagesTableAnnotationComposer
     column: $table.passageText,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get book =>
+      $composableBuilder(column: $table.book, builder: (column) => column);
+
+  GeneratedColumn<int> get chapter =>
+      $composableBuilder(column: $table.chapter, builder: (column) => column);
+
+  GeneratedColumn<int> get startVerse => $composableBuilder(
+    column: $table.startVerse,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get endVerse =>
+      $composableBuilder(column: $table.endVerse, builder: (column) => column);
 
   GeneratedColumn<String> get mnemonicUrl => $composableBuilder(
     column: $table.mnemonicUrl,
@@ -1364,6 +1626,10 @@ class $$PassagesTableTableManager
                 Value<String> translationId = const Value.absent(),
                 Value<String> reference = const Value.absent(),
                 Value<String> passageText = const Value.absent(),
+                Value<String> book = const Value.absent(),
+                Value<int> chapter = const Value.absent(),
+                Value<int> startVerse = const Value.absent(),
+                Value<int> endVerse = const Value.absent(),
                 Value<String?> mnemonicUrl = const Value.absent(),
                 Value<String> tags = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1372,6 +1638,10 @@ class $$PassagesTableTableManager
                 translationId: translationId,
                 reference: reference,
                 passageText: passageText,
+                book: book,
+                chapter: chapter,
+                startVerse: startVerse,
+                endVerse: endVerse,
                 mnemonicUrl: mnemonicUrl,
                 tags: tags,
                 rowid: rowid,
@@ -1382,6 +1652,10 @@ class $$PassagesTableTableManager
                 required String translationId,
                 required String reference,
                 required String passageText,
+                required String book,
+                required int chapter,
+                required int startVerse,
+                required int endVerse,
                 Value<String?> mnemonicUrl = const Value.absent(),
                 Value<String> tags = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1390,6 +1664,10 @@ class $$PassagesTableTableManager
                 translationId: translationId,
                 reference: reference,
                 passageText: passageText,
+                book: book,
+                chapter: chapter,
+                startVerse: startVerse,
+                endVerse: endVerse,
                 mnemonicUrl: mnemonicUrl,
                 tags: tags,
                 rowid: rowid,

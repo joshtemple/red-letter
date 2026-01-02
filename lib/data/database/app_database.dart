@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration {
@@ -55,8 +55,27 @@ class AppDatabase extends _$AppDatabase {
         );
       },
       onUpgrade: (Migrator m, int from, int to) async {
-        // Future migrations will go here
-        // Example: if (from < 2) { await m.addColumn(...); }
+        if (from < 2) {
+          // Add newly added columns.
+          // Since tables.dart defines them as non-nullable without default in Dart,
+          // we must provide a default at the SQL level for existing rows.
+          await customStatement(
+            "ALTER TABLE passages ADD COLUMN book TEXT NOT NULL DEFAULT ''",
+          );
+          await customStatement(
+            "ALTER TABLE passages ADD COLUMN chapter INTEGER NOT NULL DEFAULT 0",
+          );
+          await customStatement(
+            "ALTER TABLE passages ADD COLUMN start_verse INTEGER NOT NULL DEFAULT 0",
+          );
+          await customStatement(
+            "ALTER TABLE passages ADD COLUMN end_verse INTEGER NOT NULL DEFAULT 0",
+          );
+
+          // Populate the new columns from seed data
+          final seeder = DatabaseSeeder(this);
+          await seeder.updatePassageMetadata();
+        }
       },
       beforeOpen: (details) async {
         // Enable foreign key constraints
