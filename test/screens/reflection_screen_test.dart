@@ -48,8 +48,9 @@ void main() {
 
     testWidgets('should focus input automatically', (tester) async {
       await pumpScreen(tester);
+      await tester.pumpAndSettle();
       final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.autofocus, isTrue);
+      expect(textField.focusNode?.hasFocus, isTrue);
     });
 
     testWidgets('should validate input before enabling continue', (

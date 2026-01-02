@@ -23,17 +23,23 @@ class ReconstructionScreen extends StatefulWidget {
 
 class _ReconstructionScreenState extends State<ReconstructionScreen> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   String _userInput = '';
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _focusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -75,6 +81,7 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                       const SizedBox(height: 72),
                       TextField(
                         controller: _controller,
+                        focusNode: _focusNode,
                         onChanged: _handleInputChange,
                         maxLines: null,
                         style: RedLetterTypography.userInputText,

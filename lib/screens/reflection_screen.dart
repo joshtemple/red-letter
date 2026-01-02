@@ -23,17 +23,23 @@ class ReflectionScreen extends StatefulWidget {
 
 class _ReflectionScreenState extends State<ReflectionScreen> {
   late TextEditingController _controller;
+  late FocusNode _focusNode;
   bool _canContinue = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController();
+    _focusNode = FocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -90,9 +96,9 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                         ),
                         child: PassageInput(
                           controller: _controller,
+                          focusNode: _focusNode,
                           hintText: 'Type your reflection here...',
                           onChanged: _updateState,
-                          autofocus: true,
                         ),
                       ),
                       const SizedBox(height: 32),

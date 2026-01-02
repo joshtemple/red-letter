@@ -38,6 +38,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
         widget.occlusion ??
         WordOcclusion.generate(passage: widget.state.currentPassage);
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusNode.requestFocus();
+    });
   }
 
   void _onInputChange(String input) {

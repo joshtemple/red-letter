@@ -81,10 +81,14 @@ void main() {
         ),
       );
 
+      await tester.pump(
+        const Duration(milliseconds: 100),
+      ); // Allow post-frame callback to fire
+
       final textFieldFinder = find.byType(TextField);
       expect(textFieldFinder, findsOneWidget);
       final textField = tester.widget<TextField>(textFieldFinder);
-      expect(textField.autofocus, isTrue);
+      expect(textField.focusNode?.hasFocus, isTrue);
 
       // Verify transparency/hidden nature?
       // style color is transparent.
