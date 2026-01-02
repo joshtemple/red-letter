@@ -21,8 +21,8 @@ class PassageRepository {
   PassageRepository({
     required PassageDAO passageDAO,
     required UserProgressDAO progressDAO,
-  })  : _passageDAO = passageDAO,
-        _progressDAO = progressDAO;
+  }) : _passageDAO = passageDAO,
+       _progressDAO = progressDAO;
 
   /// Convenience factory that creates a repository from a database instance.
   ///
@@ -78,7 +78,8 @@ class PassageRepository {
   ///
   /// Ideal for building "The Living List" filtered to a Bible version.
   Future<List<PassageWithProgress>> getPassagesWithProgressByTranslation(
-      String translationId) {
+    String translationId,
+  ) {
     return _passageDAO.getPassagesWithProgressByTranslation(translationId);
   }
 
@@ -86,8 +87,34 @@ class PassageRepository {
   ///
   /// Only returns passages that have progress. Useful for practice queue filtering.
   Future<List<PassageWithProgress>> getPassagesWithProgressByMasteryLevel(
-      int masteryLevel) {
+    int masteryLevel,
+  ) {
     return _passageDAO.getPassagesWithProgressByMasteryLevel(masteryLevel);
+  }
+
+  // ========== Reactive Stream Methods ==========
+
+  /// Watch a single passage decorated with user progress.
+  ///
+  /// Emits a new value whenever the passage or its progress changes.
+  Stream<PassageWithProgress?> watchPassageWithProgress(String passageId) {
+    return _passageDAO.watchPassageWithProgressById(passageId);
+  }
+
+  /// Watch all passages decorated with user progress.
+  ///
+  /// This is the primary stream for "The Living List" UI.
+  Stream<List<PassageWithProgress>> watchAllPassagesWithProgress() {
+    return _passageDAO.watchAllPassagesWithProgress();
+  }
+
+  /// Watch passages with progress for a specific translation.
+  ///
+  /// Ideal for building a reactive "Living List" filtered to a Bible version.
+  Stream<List<PassageWithProgress>> watchPassagesWithProgressByTranslation(
+    String translationId,
+  ) {
+    return _passageDAO.watchPassagesWithProgressByTranslation(translationId);
   }
 
   // ========== Progress Query Methods ==========

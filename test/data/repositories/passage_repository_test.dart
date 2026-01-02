@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/data/database/app_database.dart';
+import 'package:red_letter/data/models/passage_with_progress.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 
 void main() {
@@ -177,33 +178,37 @@ void main() {
       expect(withProgress.hasProgress, isTrue);
       expect(withProgress.masteryLevel, equals(2));
 
-      final withoutProgress = results.firstWhere((p) => p.passageId == 'jhn-3-16');
+      final withoutProgress = results.firstWhere(
+        (p) => p.passageId == 'jhn-3-16',
+      );
       expect(withoutProgress.hasProgress, isFalse);
     });
 
-    test('getPassagesWithProgressByTranslation filters by translation',
-        () async {
-      await repository.insertPassageBatch([
-        PassagesCompanion.insert(
-          passageId: 'mat-5-44-niv',
-          translationId: 'niv',
-          reference: 'Matthew 5:44',
-          passageText: 'Love your enemies',
-        ),
-        PassagesCompanion.insert(
-          passageId: 'mat-5-44-esv',
-          translationId: 'esv',
-          reference: 'Matthew 5:44',
-          passageText: 'Love your enemies',
-        ),
-      ]);
+    test(
+      'getPassagesWithProgressByTranslation filters by translation',
+      () async {
+        await repository.insertPassageBatch([
+          PassagesCompanion.insert(
+            passageId: 'mat-5-44-niv',
+            translationId: 'niv',
+            reference: 'Matthew 5:44',
+            passageText: 'Love your enemies',
+          ),
+          PassagesCompanion.insert(
+            passageId: 'mat-5-44-esv',
+            translationId: 'esv',
+            reference: 'Matthew 5:44',
+            passageText: 'Love your enemies',
+          ),
+        ]);
 
-      final nivResults =
-          await repository.getPassagesWithProgressByTranslation('niv');
+        final nivResults = await repository
+            .getPassagesWithProgressByTranslation('niv');
 
-      expect(nivResults, hasLength(1));
-      expect(nivResults.first.passage.translationId, equals('niv'));
-    });
+        expect(nivResults, hasLength(1));
+        expect(nivResults.first.passage.translationId, equals('niv'));
+      },
+    );
 
     test('getPassagesWithProgressByMasteryLevel filters by level', () async {
       await repository.insertPassageBatch([
@@ -227,8 +232,7 @@ void main() {
       await repository.createProgress('test-2');
       await repository.updateMasteryLevel('test-2', 3);
 
-      final level2 =
-          await repository.getPassagesWithProgressByMasteryLevel(2);
+      final level2 = await repository.getPassagesWithProgressByMasteryLevel(2);
 
       expect(level2, hasLength(1));
       expect(level2.first.masteryLevel, equals(2));
@@ -507,5 +511,73 @@ void main() {
       final allPassages = await repository.getPassagesByTranslation('niv');
       expect(allPassages, hasLength(3));
     });
+  });
+
+  group('PassageRepository - Reactive Streams', () {
+    test(
+      'watchPassageWithProgress emits updates when progress changes',
+      () async {
+        await repository.insertPassage(
+          PassagesCompanion.insert(
+            passageId: 'mat-5-44',
+            translationId: 'niv',
+            reference: 'Matthew 5:44',
+            passageText: 'Love your enemies',
+          ),
+        );
+
+        // Create stream
+        final stream = repository.watchPassageWithProgress('mat-5-44');
+
+        // Expect first event (passage without progress)
+        expect(
+          stream,
+          emitsInOrder([
+            isNotNull, // Initial state
+            predicate<PassageWithProgress?>(
+              (p) => p != null && p.hasProgress,
+            ), // After update
+          ]),
+        );
+
+        // Trigger update
+        await Future.delayed(const Duration(milliseconds: 50));
+        await repository.createProgress('mat-5-44');
+      },
+    );
+
+    test(
+      'watchAllPassagesWithProgress emits updates when new progress added',
+      () async {
+        await repository.insertPassageBatch([
+          PassagesCompanion.insert(
+            passageId: 'p1',
+            translationId: 'niv',
+            reference: 'Ref 1',
+            passageText: 'Text 1',
+          ),
+          PassagesCompanion.insert(
+            passageId: 'p2',
+            translationId: 'niv',
+            reference: 'Ref 2',
+            passageText: 'Text 2',
+          ),
+        ]);
+
+        final stream = repository.watchAllPassagesWithProgress();
+
+        expect(
+          stream,
+          emitsInOrder([
+            hasLength(2), // Initial state
+            hasLength(2), // After update (still 2 items, but content changed)
+          ]),
+        );
+
+        // Trigger update
+        await Future.delayed(const Duration(milliseconds: 50));
+        await repository.createProgress('p1');
+      },
+    );
   });
 }

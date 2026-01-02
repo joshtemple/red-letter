@@ -20,8 +20,9 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   ///
   /// Returns null if no passage with the given ID exists.
   Future<Passage?> getPassageById(String passageId) {
-    return (select(passages)..where((p) => p.passageId.equals(passageId)))
-        .getSingleOrNull();
+    return (select(
+      passages,
+    )..where((p) => p.passageId.equals(passageId))).getSingleOrNull();
   }
 
   /// Get all passages for a specific translation.
@@ -49,8 +50,9 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   ///
   /// Ordered by passageId for consistent listing.
   Future<List<Passage>> getAllPassages() {
-    return (select(passages)..orderBy([(p) => OrderingTerm.asc(p.passageId)]))
-        .get();
+    return (select(
+      passages,
+    )..orderBy([(p) => OrderingTerm.asc(p.passageId)])).get();
   }
 
   /// Get count of passages for a translation.
@@ -74,14 +76,14 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   /// Returns null if the passage doesn't exist.
   /// Progress will be null if the user hasn't started this passage yet.
   Future<PassageWithProgress?> getPassageWithProgressById(
-      String passageId) async {
+    String passageId,
+  ) async {
     final query = select(passages).join([
       leftOuterJoin(
         userProgressTable,
         userProgressTable.passageId.equalsExp(passages.passageId),
       ),
-    ])
-      ..where(passages.passageId.equals(passageId));
+    ])..where(passages.passageId.equals(passageId));
 
     final result = await query.getSingleOrNull();
     if (result == null) return null;
@@ -102,8 +104,7 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
         userProgressTable,
         userProgressTable.passageId.equalsExp(passages.passageId),
       ),
-    ])
-      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+    ])..orderBy([OrderingTerm.asc(passages.passageId)]);
 
     final results = await query.get();
     return results.map((row) {
@@ -119,15 +120,17 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   /// Performs client-side join filtered by translation.
   /// Useful for building "The Living List" UI for a specific Bible version.
   Future<List<PassageWithProgress>> getPassagesWithProgressByTranslation(
-      String translationId) async {
-    final query = select(passages).join([
-      leftOuterJoin(
-        userProgressTable,
-        userProgressTable.passageId.equalsExp(passages.passageId),
-      ),
-    ])
-      ..where(passages.translationId.equals(translationId))
-      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+    String translationId,
+  ) async {
+    final query =
+        select(passages).join([
+            leftOuterJoin(
+              userProgressTable,
+              userProgressTable.passageId.equalsExp(passages.passageId),
+            ),
+          ])
+          ..where(passages.translationId.equals(translationId))
+          ..orderBy([OrderingTerm.asc(passages.passageId)]);
 
     final results = await query.get();
     return results.map((row) {
@@ -144,15 +147,17 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   /// Note: This excludes passages with no progress (use getAllPassagesWithProgress
   /// and filter client-side if you need masteryLevel=0 including unpracticed).
   Future<List<PassageWithProgress>> getPassagesWithProgressByMasteryLevel(
-      int masteryLevel) async {
-    final query = select(passages).join([
-      innerJoin(
-        userProgressTable,
-        userProgressTable.passageId.equalsExp(passages.passageId),
-      ),
-    ])
-      ..where(userProgressTable.masteryLevel.equals(masteryLevel))
-      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+    int masteryLevel,
+  ) async {
+    final query =
+        select(passages).join([
+            innerJoin(
+              userProgressTable,
+              userProgressTable.passageId.equalsExp(passages.passageId),
+            ),
+          ])
+          ..where(userProgressTable.masteryLevel.equals(masteryLevel))
+          ..orderBy([OrderingTerm.asc(passages.passageId)]);
 
     final results = await query.get();
     return results.map((row) {
@@ -161,6 +166,75 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
         progress: row.readTable(userProgressTable),
       );
     }).toList();
+  }
+
+  // ========== Reactive Watch Methods ==========
+
+  /// Watch a single passage with progress.
+  ///
+  /// Emits a new value whenever the passage or its progress changes.
+  Stream<PassageWithProgress?> watchPassageWithProgressById(String passageId) {
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])..where(passages.passageId.equals(passageId));
+
+    return query.watchSingleOrNull().map((row) {
+      if (row == null) return null;
+      return PassageWithProgress(
+        passage: row.readTable(passages),
+        progress: row.readTableOrNull(userProgressTable),
+      );
+    });
+  }
+
+  /// Watch all passages with progress.
+  ///
+  /// Emits a new list whenever any passage or progress changes.
+  Stream<List<PassageWithProgress>> watchAllPassagesWithProgress() {
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])..orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return PassageWithProgress(
+          passage: row.readTable(passages),
+          progress: row.readTableOrNull(userProgressTable),
+        );
+      }).toList();
+    });
+  }
+
+  /// Watch passages with progress for a specific translation.
+  ///
+  /// Emits a new list whenever relevant data changes.
+  Stream<List<PassageWithProgress>> watchPassagesWithProgressByTranslation(
+    String translationId,
+  ) {
+    final query =
+        select(passages).join([
+            leftOuterJoin(
+              userProgressTable,
+              userProgressTable.passageId.equalsExp(passages.passageId),
+            ),
+          ])
+          ..where(passages.translationId.equals(translationId))
+          ..orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return PassageWithProgress(
+          passage: row.readTable(passages),
+          progress: row.readTableOrNull(userProgressTable),
+        );
+      }).toList();
+    });
   }
 
   // ========== Insert Methods ==========
@@ -223,8 +297,9 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   ///
   /// Use with caution - this will cascade delete all user progress.
   Future<int> deletePassagesByTranslation(String translationId) {
-    return (delete(passages)..where((p) => p.translationId.equals(translationId)))
-        .go();
+    return (delete(
+      passages,
+    )..where((p) => p.translationId.equals(translationId))).go();
   }
 
   /// Delete all passages.
