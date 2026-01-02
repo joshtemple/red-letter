@@ -17,7 +17,7 @@ class Passages extends Table {
   TextColumn get reference => text()();
 
   /// The actual scripture text to memorize
-  TextColumn get text => text()();
+  TextColumn get passageText => text().named('text')();
 
   /// Optional URL to visual mnemonic aid (nullable)
   TextColumn get mnemonicUrl => text().nullable()();
@@ -27,14 +27,6 @@ class Passages extends Table {
 
   @override
   Set<Column> get primaryKey => {passageId};
-
-  @override
-  List<String> get customConstraints => [
-    // Index for fast translation-based queries
-    'CREATE INDEX IF NOT EXISTS idx_passages_translation ON passages(translation_id)',
-    // Index for tag-based filtering (useful for future features)
-    'CREATE INDEX IF NOT EXISTS idx_passages_tags ON passages(tags)',
-  ];
 }
 
 /// User-specific progress tracking table.
@@ -47,7 +39,7 @@ class UserProgressTable extends Table {
   IntColumn get id => integer().autoIncrement()();
 
   /// Foreign key reference to Passages.passageId
-  TextColumn get passageId => text()();
+  TextColumn get passageId => text().customConstraint('NOT NULL REFERENCES passages(passage_id) ON DELETE CASCADE')();
 
   /// Current mastery level (0-4: new, learning, familiar, mastered, locked-in)
   IntColumn get masteryLevel => integer().withDefault(const Constant(0))();
@@ -72,16 +64,4 @@ class UserProgressTable extends Table {
 
   /// Timestamp of last cloud sync (Unix epoch seconds, nullable for offline-only users)
   DateTimeColumn get lastSync => dateTime().nullable()();
-
-  @override
-  List<String> get customConstraints => [
-    // Foreign key constraint to Passages table
-    'FOREIGN KEY (passage_id) REFERENCES passages(passage_id) ON DELETE CASCADE',
-    // Index for fast passageId lookups (used in client-side joins)
-    'CREATE INDEX IF NOT EXISTS idx_user_progress_passage ON user_progress_table(passage_id)',
-    // Index for SRS review queue queries (find passages due for review)
-    'CREATE INDEX IF NOT EXISTS idx_user_progress_next_review ON user_progress_table(next_review)',
-    // Index for mastery level filtering
-    'CREATE INDEX IF NOT EXISTS idx_user_progress_mastery ON user_progress_table(mastery_level)',
-  ];
 }

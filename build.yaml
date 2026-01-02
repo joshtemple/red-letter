@@ -3,7 +3,6 @@ targets:
     builders:
       drift_dev:
         options:
-          compact_query_methods: true
           skip_verification_code: false
           use_sql_column_name_as_json_key: true
           generate_values_in_copy_with: true
