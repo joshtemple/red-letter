@@ -53,7 +53,7 @@ See [IMPELLER.md](IMPELLER.md) for detailed Impeller configuration and verificat
 ### Practice Engine Modes (Sequential)
 
 1. **Impression Mode** - Full text + visual mnemonic display
-2. **Semantic Mode** - Mandatory reflection prompt
+2. **Reflection Mode** - Mandatory reflection prompt
 3. **Scaffolding Mode** - Variable ratio occlusion
 4. **Prompted Mode** - Blank input with sparse prompting
 5. **Reconstruction Mode** - Total independent recall

@@ -42,9 +42,9 @@ The core interaction loop consists of five progressive modes that "fade" assista
 
 1. **Impression Mode:**  
    * **Interaction:** The full text is displayed in beautiful typography alongside its unique **Visual Mnemonic**. The user reads the text and observes the image, allowing the "Dual Coding" to begin.  
-2. **Semantic Mode (The Meaning):**  
-   * **Mandatory Gateway:** This mode is a mandatory prompt that appears after the initial impression but *before* any rote practice begins.  
-   * **Prompt:** *"In your own words, what does this command require of you?"*  
+2. **Reflection Mode (The Meaning):**
+   * **Mandatory Gateway:** This mode is a mandatory prompt that appears after the initial impression but *before* any rote practice begins.
+   * **Prompt:** *"In your own words, what does this command require of you?"*
    * **Goal:** The user types a brief summary or reflection. This forces **Semantic Encoding**, ensuring the user constructs a robust mental model of the command's intent. This prevents the brain from treating the text as a meaningless string of characters.  
 3. **Scaffolding Mode (The Cloze):**  
    * **Interaction:** **Variable Ratio Occlusion**. Random words are hidden each visit. The user types only the missing words. This ensures the entire sentence structure is encoded rather than just specific segments.  
@@ -57,7 +57,7 @@ The core interaction loop consists of five progressive modes that "fade" assista
 
 ### **C. The Scheduling Engine**
 
-A silent orchestrator that determines which command the user sees next based on the SRS model. It determines when a user is ready to move from "Semantic" to "Reconstruction" based on speed and accuracy.
+A silent orchestrator that determines which command the user sees next based on the SRS model. It determines when a user is ready to move from "Reflection" to "Reconstruction" based on speed and accuracy.
 
 ## **6\. Aesthetic Direction**
 

@@ -36,7 +36,7 @@ The system uses a bifurcated data model to minimize storage and maximize scalabi
 The core learning loop consists of 5 progressive modes that fade assistance:
 
 1. **Impression Mode** - Full text + visual mnemonic display
-2. **Semantic Mode** - Mandatory reflection prompt (forces semantic encoding before rote practice)
+2. **Reflection Mode** - Mandatory reflection prompt (forces semantic encoding before rote practice)
 3. **Scaffolding Mode** - Variable ratio occlusion (random words hidden each visit)
 4. **Prompted Mode** - Blank input with sparse prompting (avoids static cues that create false competence)
 5. **Reconstruction Mode** - Total independent recall
