@@ -473,7 +473,7 @@ class $UserProgressTableTable extends UserProgressTable
     type: DriftSqlType.string,
     requiredDuringInsert: true,
     $customConstraints:
-        'NOT NULL REFERENCES passages(passage_id) ON DELETE CASCADE',
+        'NOT NULL UNIQUE REFERENCES passages(passage_id) ON DELETE CASCADE',
   );
   static const VerificationMeta _masteryLevelMeta = const VerificationMeta(
     'masteryLevel',
