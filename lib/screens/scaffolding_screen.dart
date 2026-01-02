@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:red_letter/models/passage.dart';
+
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/word_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
@@ -24,7 +24,7 @@ class ScaffoldingScreen extends StatefulWidget {
 
 class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
   late WordOcclusion _occlusion;
-  late int _initialHiddenCount;
+  final TextEditingController _inputController = TextEditingController();
 
   @override
   void initState() {
@@ -32,17 +32,24 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
     _occlusion =
         widget.occlusion ??
         WordOcclusion.generate(passage: widget.state.currentPassage);
-    _initialHiddenCount = _occlusion.hiddenWordCount;
+  }
+
+  @override
+  void dispose() {
+    _inputController.dispose();
+    super.dispose();
   }
 
   void _handleInputChange(String input) {
+    if (input.isEmpty) return;
+
     final newOcclusion = _occlusion.checkInput(input);
     if (newOcclusion != _occlusion) {
       setState(() {
         _occlusion = newOcclusion;
       });
-    } else {
-      debugPrint('Optimization: Skipped rebuild for input "$input"');
+      // Clear input on successful match (active tracking)
+      _inputController.clear();
     }
   }
 
@@ -74,13 +81,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 24),
-                      _ProgressIndicator(
-                        revealed:
-                            _initialHiddenCount - _occlusion.hiddenWordCount,
-                        total: _initialHiddenCount,
-                      ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 72),
                       Text(
                         _getDisplayText(),
                         textAlign: TextAlign.center,
@@ -94,6 +95,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
                       ),
                       const SizedBox(height: 48),
                       PassageInput(
+                        controller: _inputController,
                         hintText: 'Type the missing words...',
                         onChanged: _handleInputChange,
                       ),
@@ -112,48 +114,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ProgressIndicator extends StatelessWidget {
-  final int revealed;
-  final int total;
-
-  const _ProgressIndicator({required this.revealed, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = total > 0 ? revealed / total : 0.0;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: RedLetterColors.divider,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    RedLetterColors.accent,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '$revealed / $total words revealed',
-          style: RedLetterTypography.passageReference.copyWith(
-            fontSize: 14,
-            color: RedLetterColors.secondaryText,
-          ),
-        ),
-      ],
     );
   }
 }
