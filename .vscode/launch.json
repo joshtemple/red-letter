@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "red_letter (Debug - Impeller)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--enable-impeller"
+      ]
+    },
+    {
+      "name": "red_letter (Profile - Impeller)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "program": "lib/main.dart",
+      "args": [
+        "--enable-impeller"
+      ]
+    },
+    {
+      "name": "red_letter (Release - Impeller)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "program": "lib/main.dart",
+      "args": [
+        "--enable-impeller"
+      ]
+    }
+  ]
+}

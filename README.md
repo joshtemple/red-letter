@@ -41,10 +41,12 @@ lib/
    ```bash
    flutter pub get
    ```
-3. Run the app:
+3. Run the app with Impeller rendering:
    ```bash
-   flutter run
+   flutter run --enable-impeller
    ```
+
+See [IMPELLER.md](IMPELLER.md) for detailed Impeller configuration and verification.
 
 ## Core Features
 
@@ -75,6 +77,7 @@ This app processes Special Category Data (religious beliefs) under GDPR Article 
 - [DESIGN.md](DESIGN.md) - Detailed design philosophy and architecture
 - [MILESTONES.md](MILESTONES.md) - Development milestones and critical path
 - [OVERVIEW.md](OVERVIEW.md) - Project overview
+- [IMPELLER.md](IMPELLER.md) - Impeller rendering configuration and verification
 - [CLAUDE.md](CLAUDE.md) - AI assistant guidelines
 
 ## License
