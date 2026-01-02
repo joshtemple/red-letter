@@ -36,7 +36,8 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
 
   void _updateState(String text) {
     setState(() {
-      _canContinue = text.trim().length >= 20;
+      // Character minimum disabled for testing
+      _canContinue = text.trim().isNotEmpty;
     });
   }
 
@@ -85,6 +86,7 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                           controller: _controller,
                           hintText: 'Type your reflection here...',
                           onChanged: _updateState,
+                          autofocus: true,
                         ),
                       ),
                       const SizedBox(height: 32),

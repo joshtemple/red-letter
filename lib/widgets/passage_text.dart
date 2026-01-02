@@ -51,6 +51,7 @@ class PassageInput extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final String? hintText;
   final bool useMonospace;
+  final bool autofocus;
 
   const PassageInput({
     super.key,
@@ -60,6 +61,7 @@ class PassageInput extends StatelessWidget {
     this.onChanged,
     this.hintText,
     this.useMonospace = false,
+    this.autofocus = false,
   });
 
   @override
@@ -69,6 +71,7 @@ class PassageInput extends StatelessWidget {
         controller: controller,
         focusNode: focusNode,
         onChanged: onChanged,
+        autofocus: autofocus,
         style: useMonospace
             ? RedLetterTypography.userInputTextMonospace
             : RedLetterTypography.userInputText,

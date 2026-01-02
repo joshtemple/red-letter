@@ -45,6 +45,12 @@ void main() {
       expect(find.text('Love your enemies'), findsOneWidget);
     });
 
+    testWidgets('should focus input automatically', (tester) async {
+      await pumpScreen(tester);
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.autofocus, isTrue);
+    });
+
     testWidgets('should validate input before enabling continue', (
       tester,
     ) async {
@@ -55,16 +61,8 @@ void main() {
       // Initially disabled
       expect(tester.widget<ElevatedButton>(continueButton).onPressed, isNull);
 
-      // Enter short text (< 20 chars)
-      await tester.enterText(find.byType(TextField), 'Too short');
-      await tester.pump();
-      expect(tester.widget<ElevatedButton>(continueButton).onPressed, isNull);
-
-      // Enter valid long text (>= 20 chars)
-      await tester.enterText(
-        find.byType(TextField),
-        'This is a sufficient reflection.',
-      );
+      // Enter text (any length allowed now)
+      await tester.enterText(find.byType(TextField), 'Short');
       await tester.pump();
       expect(
         tester.widget<ElevatedButton>(continueButton).onPressed,
