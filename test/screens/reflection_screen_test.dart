@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/screens/semantic_screen.dart';
+import 'package:red_letter/screens/reflection_screen.dart';
 import 'package:red_letter/widgets/passage_text.dart';
 
 void main() {
-  group('SemanticScreen', () {
+  group('ReflectionScreen', () {
     late PracticeState testState;
     late String? submittedReflection;
 
@@ -23,7 +23,7 @@ void main() {
     Future<void> pumpScreen(WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: SemanticScreen(
+          home: ReflectionScreen(
             state: testState,
             onContinue: (reflection) => submittedReflection = reflection,
           ),
@@ -45,11 +45,13 @@ void main() {
       expect(find.text('Love your enemies'), findsOneWidget);
     });
 
-    testWidgets('should validate input before enabling continue', (tester) async {
+    testWidgets('should validate input before enabling continue', (
+      tester,
+    ) async {
       await pumpScreen(tester);
 
       final continueButton = find.widgetWithText(ElevatedButton, 'Continue');
-      
+
       // Initially disabled
       expect(tester.widget<ElevatedButton>(continueButton).onPressed, isNull);
 
@@ -59,18 +61,25 @@ void main() {
       expect(tester.widget<ElevatedButton>(continueButton).onPressed, isNull);
 
       // Enter valid long text (>= 20 chars)
-      await tester.enterText(find.byType(TextField), 'This is a sufficient reflection.');
+      await tester.enterText(
+        find.byType(TextField),
+        'This is a sufficient reflection.',
+      );
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(continueButton).onPressed, isNotNull);
+      expect(
+        tester.widget<ElevatedButton>(continueButton).onPressed,
+        isNotNull,
+      );
     });
 
     testWidgets('should return reflection text on continue', (tester) async {
       await pumpScreen(tester);
 
-      const validReflection = 'This reflection is definitely long enough to be valid.';
+      const validReflection =
+          'This reflection is definitely long enough to be valid.';
       await tester.enterText(find.byType(TextField), validReflection);
       await tester.pump();
-      
+
       await tester.tap(find.text('Continue'));
       expect(submittedReflection, validReflection);
     });

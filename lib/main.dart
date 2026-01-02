@@ -3,7 +3,7 @@ import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/impression_screen.dart';
-import 'package:red_letter/screens/semantic_screen.dart';
+import 'package:red_letter/screens/reflection_screen.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
 import 'package:red_letter/screens/prompted_screen.dart';
 import 'package:red_letter/screens/reconstruction_screen.dart';
@@ -87,7 +87,7 @@ class _RedLetterDemoState extends State<RedLetterDemo> {
             );
             break;
           case PracticeMode.reflection:
-            currentScreen = SemanticScreen(
+            currentScreen = ReflectionScreen(
               state: state,
               onContinue: (text) => _handleContinue(text),
             );

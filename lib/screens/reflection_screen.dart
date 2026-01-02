@@ -4,21 +4,21 @@ import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/passage_text.dart';
 
-class SemanticScreen extends StatefulWidget {
+class ReflectionScreen extends StatefulWidget {
   final PracticeState state;
   final ValueChanged<String> onContinue;
 
-  const SemanticScreen({
+  const ReflectionScreen({
     super.key,
     required this.state,
     required this.onContinue,
   });
 
   @override
-  State<SemanticScreen> createState() => _SemanticScreenState();
+  State<ReflectionScreen> createState() => _ReflectionScreenState();
 }
 
-class _SemanticScreenState extends State<SemanticScreen> {
+class _ReflectionScreenState extends State<ReflectionScreen> {
   late TextEditingController _controller;
   bool _canContinue = false;
 
@@ -47,12 +47,9 @@ class _SemanticScreenState extends State<SemanticScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'Reflection',
-          style: RedLetterTypography.modeTitle,
-        ),
+        title: Text('Reflection', style: RedLetterTypography.modeTitle),
         centerTitle: true,
-        automaticallyImplyLeading: false, 
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Padding(
@@ -98,15 +95,16 @@ class _SemanticScreenState extends State<SemanticScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 32.0, top: 16.0),
                 child: SizedBox(
-                   width: double.infinity,
-                   height: 56,
-                   child: ElevatedButton(
-                    onPressed: _canContinue 
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _canContinue
                         ? () => widget.onContinue(_controller.text)
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: RedLetterColors.accent,
-                      disabledBackgroundColor: RedLetterColors.accent.withOpacity(0.3),
+                      disabledBackgroundColor: RedLetterColors.accent
+                          .withOpacity(0.3),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
