@@ -173,13 +173,21 @@ void main() {
       if (secondHiddenIndex != null) {
         final hiddenWord = testPassage.words[secondHiddenIndex];
 
-        // Type it
+        // Type it. Note: under the new "Delayed Feedback" logic,
+        // it only clears if input.length >= targetWord.length and prefix is wrong.
+        // Or if length exceeds target.
         await tester.enterText(find.byType(TextField), hiddenWord);
         await tester.pump();
 
         final textField = tester.widget<TextField>(find.byType(TextField));
-        // Input NOT cleared
-        expect(textField.controller?.text, equals(hiddenWord));
+        final targetWord = testPassage.words[firstHiddenIndex];
+
+        if (hiddenWord.length >= targetWord.length) {
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(textField.controller?.text, isEmpty);
+        } else {
+          expect(textField.controller?.text, equals(hiddenWord));
+        }
       }
     });
 
@@ -227,27 +235,43 @@ void main() {
     testWidgets(
       'should preserve fixed length underline when typing partial word',
       (WidgetTester tester) async {
+        final passage = Passage.fromText(
+          id: 'test',
+          text: 'Love God',
+          reference: 'Test 1:1',
+        );
+        final occlusion = WordOcclusion.manual(
+          passage: passage,
+          hiddenIndices: {0},
+        );
+        final state = PracticeState.initial(
+          passage,
+        ).copyWith(currentMode: PracticeMode.scaffolding);
+
         await tester.pumpWidget(
           MaterialApp(
             home: ScaffoldingScreen(
-              state: testState,
+              state: state,
               onContinue: () {},
               onReset: () {},
-              occlusion: testOcclusion,
+              occlusion: occlusion,
             ),
           ),
         );
 
-        // Type "X"
-        await tester.enterText(find.byType(TextField), 'X');
+        // Type "L" (correct first char of "Love")
+        await tester.enterText(find.byType(TextField), 'L');
         await tester.pump();
 
-        // Check for the rendered 'X' (use .last because TextField/EditableText might also match)
-        expect(find.text('X').last, findsOneWidget);
+        // Check for the rendered 'L'
+        final typedTextFinder = find.byKey(const Key('typed_text'));
+        expect(typedTextFinder, findsOneWidget);
+        final textWidget = tester.widget<Text>(typedTextFinder);
+        expect(textWidget.data, equals('L'));
       },
     );
 
-    testWidgets('should blink red on incorrect full-word entry', (
+    testWidgets('should handle error feedback and clearing logic', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -262,22 +286,82 @@ void main() {
       );
 
       final firstHiddenIndex = testOcclusion.firstHiddenIndex!;
-      final hiddenWord = testPassage.words[firstHiddenIndex];
-      final incorrectWord = 'X' * hiddenWord.length;
+      final hiddenWord =
+          testPassage.words[firstHiddenIndex]; // e.g. "Love" or "enemies"
 
-      // Type incorrect word of full length
-      await tester.enterText(find.byType(TextField), incorrectWord);
+      // 1. Type incorrect character -> Should NOT clear and should stay accent color
+      await tester.enterText(find.byType(TextField), 'X');
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        equals('X'),
+      );
+      final textWidget1 = tester.widget<Text>(
+        find.byKey(const Key('typed_text')),
+      );
+      expect(textWidget1.style?.color, RedLetterColors.accent);
+
+      // 2. Type deep error at full length -> Should turn red, then clear after delay
+      String deepError = 'X' * hiddenWord.length;
+      await tester.enterText(find.byType(TextField), deepError);
       await tester.pump();
 
-      // Input should NOT be cleared (user's new requirement)
-      final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.controller?.text, equals(incorrectWord));
+      // Should show the error text in red initially
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        equals(deepError),
+      );
+      final errorWidget = tester.widget<Text>(
+        find.byKey(const Key('typed_text')),
+      );
+      expect(errorWidget.style?.color, RedLetterColors.error);
 
-      // It should render in error color (use .last to avoid matching EditableText)
-      final errorText = find.text(incorrectWord).last;
-      expect(errorText, findsOneWidget);
-      final textWidget = tester.widget<Text>(errorText);
-      expect(textWidget.style?.color, RedLetterColors.error);
+      // Advance time to trigger the clear
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        isEmpty,
+      );
+
+      // 3. Type correct prefix then incorrect final character -> Should keep and turn red
+      final correctPrefix = hiddenWord.substring(0, hiddenWord.length - 1);
+      final incorrectChar = 'Z';
+      await tester.enterText(
+        find.byType(TextField),
+        correctPrefix + incorrectChar,
+      );
+      await tester.pump();
+
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.controller?.text, equals(correctPrefix + incorrectChar));
+
+      // Now it should be red because it's full length and incorrect
+      final textWidget2 = tester.widget<Text>(
+        find.byKey(const Key('typed_text')),
+      );
+      expect(textWidget2.style?.color, RedLetterColors.error);
+      // And it should NOT clear (it's a 1-char typo)
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        equals(correctPrefix + incorrectChar),
+      );
+
+      // 4. Type past the length -> Should turn red then clear after delay
+      await tester.enterText(
+        find.byType(TextField),
+        correctPrefix + incorrectChar + 'Y',
+      );
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        contains('Y'),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller?.text,
+        isEmpty,
+      );
     });
   });
 }
