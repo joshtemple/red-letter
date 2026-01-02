@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:drift/drift.dart';
-import 'package:red_letter/data/database/tables.dart';
+import 'package:red_letter/data/database/app_database.dart';
 
 class PassageSeedData {
   final String passageId;
