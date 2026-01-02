@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RedLetterTypography {
   RedLetterTypography._();
 
-  static const String _serifFontFamily = 'Georgia';
   static const String _sansFontFamily = 'SF Pro Text';
   static const String _monoFontFamily = 'SF Mono';
 
@@ -11,8 +11,7 @@ class RedLetterTypography {
   static const Color _secondaryTextColor = Color(0xFF666666);
   static const Color _inputTextColor = Color(0xFF2C2C2C);
 
-  static const TextStyle passageBody = TextStyle(
-    fontFamily: _serifFontFamily,
+  static final TextStyle passageBody = GoogleFonts.literata(
     fontSize: 22,
     height: 1.6,
     letterSpacing: 0.15,
@@ -31,8 +30,7 @@ class RedLetterTypography {
     decoration: TextDecoration.none,
   );
 
-  static const TextStyle userInputText = TextStyle(
-    fontFamily: _serifFontFamily,
+  static final TextStyle userInputText = GoogleFonts.literata(
     fontSize: 22,
     height: 1.6,
     letterSpacing: 0.15,
@@ -83,12 +81,8 @@ class RedLetterTypography {
   );
 
   static TextStyle get passageBodyWithShadow => passageBody.copyWith(
-        shadows: const [
-          Shadow(
-            color: Color(0x08000000),
-            offset: Offset(0, 1),
-            blurRadius: 2,
-          ),
-        ],
-      );
+    shadows: const [
+      Shadow(color: Color(0x08000000), offset: Offset(0, 1), blurRadius: 2),
+    ],
+  );
 }
