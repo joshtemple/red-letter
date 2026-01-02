@@ -4,8 +4,11 @@ import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/impression_screen.dart';
 import 'package:red_letter/screens/semantic_screen.dart';
+import 'package:red_letter/screens/scaffolding_screen.dart';
+import 'package:red_letter/screens/prompted_screen.dart';
+import 'package:red_letter/screens/reconstruction_screen.dart';
+import 'package:red_letter/controllers/practice_controller.dart';
 import 'package:red_letter/theme/colors.dart';
-import 'package:red_letter/theme/typography.dart';
 
 void main() {
   runApp(const RedLetterApp());
@@ -39,7 +42,7 @@ class RedLetterDemo extends StatefulWidget {
 }
 
 class _RedLetterDemoState extends State<RedLetterDemo> {
-  late PracticeState _state;
+  late PracticeController _controller;
 
   @override
   void initState() {
@@ -52,124 +55,126 @@ class _RedLetterDemoState extends State<RedLetterDemo> {
       reference: 'Matthew 5:44',
     );
 
-    _state = PracticeState.initial(passage);
+    _controller = PracticeController(passage);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   void _handleContinue([String? input]) {
-    setState(() {
-      if (input != null) {
-        debugPrint('User Input in ${_state.currentMode}: $input');
-      }
-      _state = _state.advanceMode();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Advanced to ${_state.currentMode.displayName} mode'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    _controller.advance(input);
   }
 
   void _resetDemo() {
-    setState(() {
-      _state = _state.reset();
-    });
+    _controller.reset();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget currentScreen;
+    return ValueListenableBuilder<PracticeState>(
+      valueListenable: _controller,
+      builder: (context, state, child) {
+        Widget currentScreen;
 
-    switch (_state.currentMode) {
-      case PracticeMode.impression:
-        currentScreen = ImpressionScreen(
-          state: _state,
-          onContinue: () => _handleContinue(),
-        );
-        break;
-      case PracticeMode.reflection:
-        currentScreen = SemanticScreen(
-          state: _state,
-          onContinue: (text) => _handleContinue(text),
-        );
-        break;
-      default:
-        // Placeholder for other modes
-        currentScreen = Scaffold(
-          backgroundColor: RedLetterColors.background,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${_state.currentMode.displayName} Mode',
-                  textAlign: TextAlign.center,
-                  style: RedLetterTypography.modeTitle,
-                ),
-                const SizedBox(height: 16),
-                const Text('(Coming Soon)'),
-              ],
-            ),
-          ),
-          floatingActionButton: FloatingActionButton(
-             onPressed: () => _handleContinue(),
-             backgroundColor: RedLetterColors.accent,
-             child: const Icon(Icons.arrow_forward),
-          ),
-        );
-    }
+        switch (state.currentMode) {
+          case PracticeMode.impression:
+            currentScreen = ImpressionScreen(
+              state: state,
+              onContinue: () => _handleContinue(),
+            );
+            break;
+          case PracticeMode.reflection:
+            currentScreen = SemanticScreen(
+              state: state,
+              onContinue: (text) => _handleContinue(text),
+            );
+            break;
+          case PracticeMode.scaffolding:
+            currentScreen = ScaffoldingScreen(
+              state: state,
+              onContinue: () => _handleContinue(),
+            );
+            break;
+          case PracticeMode.prompted:
+            currentScreen = PromptedScreen(
+              state: state,
+              onContinue: () => _handleContinue(),
+            );
+            break;
+          case PracticeMode.reconstruction:
+            currentScreen = ReconstructionScreen(
+              state: state,
+              onContinue: () => _handleContinue(),
+            );
+            break;
+        }
 
-    return Stack(
-      children: [
-        currentScreen,
-        // Debug overlay showing current mode
-        Positioned(
-          top: 50,
-          right: 16,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(8),
+        return Stack(
+          children: [
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 600),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              child: KeyedSubtree(
+                key: ValueKey(state.currentMode),
+                child: currentScreen,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  'Mode: ${_state.currentMode.displayName}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    decoration: TextDecoration.none, 
-                  ),
+            // Debug overlay showing current mode
+            Positioned(
+              top: 50,
+              right: 16,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-                Text(
-                  'Completed: ${_state.completedModes.length}/5',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 10,
-                    decoration: TextDecoration.none,
-                  ),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap: _resetDemo,
-                  child: const Text(
-                    'Reset',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 10,
-                      decoration: TextDecoration.underline,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Mode: ${state.currentMode.displayName}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.none,
+                      ),
                     ),
-                  ),
+                    Text(
+                      'Completed: ${state.completedModes.length}/5',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: _resetDemo,
+                      child: const Text(
+                        'Reset',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 10,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

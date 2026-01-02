@@ -1,57 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/passage_validator.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
-import 'package:red_letter/widgets/passage_text.dart';
 
-class ScaffoldingScreen extends StatefulWidget {
+class PromptedScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
-  final WordOcclusion? occlusion; // Optional for testing
 
-  const ScaffoldingScreen({
+  const PromptedScreen({
     super.key,
     required this.state,
     required this.onContinue,
-    this.occlusion,
   });
 
   @override
-  State<ScaffoldingScreen> createState() => _ScaffoldingScreenState();
+  State<PromptedScreen> createState() => _PromptedScreenState();
 }
 
-class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
-  late WordOcclusion _occlusion;
-  late int _initialHiddenCount;
+class _PromptedScreenState extends State<PromptedScreen> {
+  late TextEditingController _controller;
+  String _userInput = '';
 
   @override
   void initState() {
     super.initState();
-    _occlusion =
-        widget.occlusion ??
-        WordOcclusion.generate(passage: widget.state.currentPassage);
-    _initialHiddenCount = _occlusion.hiddenWordCount;
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   void _handleInputChange(String input) {
-    final newOcclusion = _occlusion.checkInput(input);
-    if (newOcclusion != _occlusion) {
-      setState(() {
-        _occlusion = newOcclusion;
-      });
-    } else {
-      debugPrint('Optimization: Skipped rebuild for input "$input"');
-    }
+    setState(() {
+      _userInput = input;
+    });
   }
 
   bool get _isComplete {
-    return _occlusion.visibleRatio >= 1.0;
-  }
-
-  String _getDisplayText() {
-    return _occlusion.getDisplayText();
+    return PassageValidator.isLenientMatch(
+      widget.state.currentPassage.text,
+      _userInput,
+    );
   }
 
   @override
@@ -61,7 +54,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text('Scaffolding', style: RedLetterTypography.modeTitle),
+        title: Text('Prompted', style: RedLetterTypography.modeTitle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -72,30 +65,34 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 24),
-                      _ProgressIndicator(
-                        revealed:
-                            _initialHiddenCount - _occlusion.hiddenWordCount,
-                        total: _initialHiddenCount,
-                      ),
-                      const SizedBox(height: 48),
                       Text(
-                        _getDisplayText(),
+                        'Type the passage from memory:',
+                        style: RedLetterTypography.promptText,
                         textAlign: TextAlign.center,
-                        style: RedLetterTypography.passageBody,
                       ),
                       const SizedBox(height: 24),
                       Text(
                         widget.state.currentPassage.reference,
-                        textAlign: TextAlign.center,
                         style: RedLetterTypography.passageReference,
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 48),
-                      PassageInput(
-                        hintText: 'Type the missing words...',
+                      TextField(
+                        controller: _controller,
                         onChanged: _handleInputChange,
+                        maxLines: null,
+                        style: RedLetterTypography.userInputText,
+                        decoration: InputDecoration(
+                          hintText: 'Start typing...',
+                          hintStyle: RedLetterTypography.hintText,
+                          border: InputBorder.none,
+                          // Optional: visual feedback
+                        ),
+                        autofocus: true,
+                        enableSuggestions: false,
+                        autocorrect: false,
                       ),
                     ],
                   ),
@@ -112,48 +109,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ProgressIndicator extends StatelessWidget {
-  final int revealed;
-  final int total;
-
-  const _ProgressIndicator({required this.revealed, required this.total});
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = total > 0 ? revealed / total : 0.0;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: RedLetterColors.divider,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    RedLetterColors.accent,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '$revealed / $total words revealed',
-          style: RedLetterTypography.passageReference.copyWith(
-            fontSize: 14,
-            color: RedLetterColors.secondaryText,
-          ),
-        ),
-      ],
     );
   }
 }
