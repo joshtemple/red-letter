@@ -21,6 +21,10 @@ void main() {
           reference: const Value('Matthew 5:44'),
           passageText: const Value('Text'),
           translationId: const Value('esv'),
+          book: const Value('Matthew'),
+          chapter: const Value(5),
+          startVerse: const Value(44),
+          endVerse: const Value(44),
         ),
       );
 
@@ -56,6 +60,10 @@ void main() {
           reference: const Value('Ref'),
           passageText: const Value('Text'),
           translationId: const Value('esv'),
+          book: const Value('Book'),
+          chapter: const Value(1),
+          startVerse: const Value(1),
+          endVerse: const Value(1),
         ),
       );
 
