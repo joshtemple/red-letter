@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 import 'tables.dart';
+import 'database_seeder.dart';
 
 part 'app_database.g.dart';
 
@@ -18,10 +19,14 @@ part 'app_database.g.dart';
 /// Uses client-side joins to decorate passages with user progress.
 @DriftDatabase(tables: [Passages, UserProgressTable])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  /// Whether to skip seeding data (used in tests)
+  final bool skipSeeding;
+
+  AppDatabase() : skipSeeding = false, super(_openConnection());
 
   /// Constructor for testing with custom QueryExecutor
-  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+  AppDatabase.forTesting(QueryExecutor executor, {this.skipSeeding = true})
+      : super(executor);
 
   @override
   int get schemaVersion => 1;
@@ -57,9 +62,10 @@ class AppDatabase extends _$AppDatabase {
         // Enable foreign key constraints
         await customStatement('PRAGMA foreign_keys = ON');
 
-        if (details.wasCreated) {
-          // Database was just created, optionally seed initial data here
-          // (though seeding logic will be in a separate seeder class)
+        if (details.wasCreated && !skipSeeding) {
+          // Database was just created, seed initial data
+          final seeder = DatabaseSeeder(this);
+          await seeder.seedAllTranslations();
         }
       },
     );

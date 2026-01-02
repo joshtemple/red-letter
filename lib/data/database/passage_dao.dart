@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:red_letter/data/database/app_database.dart';
 import 'package:red_letter/data/database/tables.dart';
+import 'package:red_letter/data/models/passage_with_progress.dart';
 
 part 'passage_dao.g.dart';
 
@@ -8,7 +9,8 @@ part 'passage_dao.g.dart';
 ///
 /// Optimized for read-heavy workload with efficient batch inserts
 /// and indexed queries by ID, translation, and tags.
-@DriftAccessor(tables: [Passages])
+/// Includes client-side join queries to decorate passages with user progress.
+@DriftAccessor(tables: [Passages, UserProgressTable])
 class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
   PassageDAO(super.db);
 
@@ -62,6 +64,103 @@ class PassageDAO extends DatabaseAccessor<AppDatabase> with _$PassageDAOMixin {
 
     final result = await query.getSingle();
     return result.read(count) ?? 0;
+  }
+
+  // ========== Client-Side Join Methods ==========
+
+  /// Get a passage decorated with user progress.
+  ///
+  /// Performs client-side join between static passage and user progress.
+  /// Returns null if the passage doesn't exist.
+  /// Progress will be null if the user hasn't started this passage yet.
+  Future<PassageWithProgress?> getPassageWithProgressById(
+      String passageId) async {
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])
+      ..where(passages.passageId.equals(passageId));
+
+    final result = await query.getSingleOrNull();
+    if (result == null) return null;
+
+    return PassageWithProgress(
+      passage: result.readTable(passages),
+      progress: result.readTableOrNull(userProgressTable),
+    );
+  }
+
+  /// Get all passages decorated with user progress.
+  ///
+  /// Performs client-side join for all passages. Ordered by passageId.
+  /// Passages without progress will have null progress field.
+  Future<List<PassageWithProgress>> getAllPassagesWithProgress() async {
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])
+      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    final results = await query.get();
+    return results.map((row) {
+      return PassageWithProgress(
+        passage: row.readTable(passages),
+        progress: row.readTableOrNull(userProgressTable),
+      );
+    }).toList();
+  }
+
+  /// Get passages with progress for a specific translation.
+  ///
+  /// Performs client-side join filtered by translation.
+  /// Useful for building "The Living List" UI for a specific Bible version.
+  Future<List<PassageWithProgress>> getPassagesWithProgressByTranslation(
+      String translationId) async {
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])
+      ..where(passages.translationId.equals(translationId))
+      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    final results = await query.get();
+    return results.map((row) {
+      return PassageWithProgress(
+        passage: row.readTable(passages),
+        progress: row.readTableOrNull(userProgressTable),
+      );
+    }).toList();
+  }
+
+  /// Get passages with progress filtered by mastery level.
+  ///
+  /// Returns only passages that have progress at the specified mastery level.
+  /// Note: This excludes passages with no progress (use getAllPassagesWithProgress
+  /// and filter client-side if you need masteryLevel=0 including unpracticed).
+  Future<List<PassageWithProgress>> getPassagesWithProgressByMasteryLevel(
+      int masteryLevel) async {
+    final query = select(passages).join([
+      innerJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ])
+      ..where(userProgressTable.masteryLevel.equals(masteryLevel))
+      ..orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    final results = await query.get();
+    return results.map((row) {
+      return PassageWithProgress(
+        passage: row.readTable(passages),
+        progress: row.readTable(userProgressTable),
+      );
+    }).toList();
   }
 
   // ========== Insert Methods ==========

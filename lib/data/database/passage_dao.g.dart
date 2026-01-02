@@ -5,4 +5,6 @@ part of 'passage_dao.dart';
 // ignore_for_file: type=lint
 mixin _$PassageDAOMixin on DatabaseAccessor<AppDatabase> {
   $PassagesTable get passages => attachedDatabase.passages;
+  $UserProgressTableTable get userProgressTable =>
+      attachedDatabase.userProgressTable;
 }
