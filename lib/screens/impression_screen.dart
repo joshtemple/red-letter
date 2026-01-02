@@ -21,10 +21,7 @@ class ImpressionScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'Impression',
-          style: RedLetterTypography.modeTitle,
-        ),
+        title: Text('Impression', style: RedLetterTypography.modeTitle),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -39,8 +36,6 @@ class ImpressionScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        _MnemonicPlaceholder(),
-                        const SizedBox(height: 48),
                         PassageText(
                           passage: state.currentPassage,
                           textAlign: TextAlign.center,
@@ -59,29 +54,6 @@ class ImpressionScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _MnemonicPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      height: 120,
-      decoration: BoxDecoration(
-        color: RedLetterColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: RedLetterColors.divider,
-          width: 1,
-        ),
-      ),
-      child: Icon(
-        Icons.image_outlined,
-        size: 48,
-        color: RedLetterColors.tertiaryText,
       ),
     );
   }
