@@ -78,6 +78,7 @@ This app processes Special Category Data (religious beliefs) under GDPR Article 
 - [MILESTONES.md](MILESTONES.md) - Development milestones and critical path
 - [OVERVIEW.md](OVERVIEW.md) - Project overview
 - [IMPELLER.md](IMPELLER.md) - Impeller rendering configuration and verification
+- [TYPOGRAPHY.md](TYPOGRAPHY.md) - Typography system and performance optimizations
 - [CLAUDE.md](CLAUDE.md) - AI assistant guidelines
 
 ## License
