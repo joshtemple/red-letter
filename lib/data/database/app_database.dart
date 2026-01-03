@@ -77,7 +77,9 @@ class AppDatabase extends _$AppDatabase {
 
         if (from < 3) {
           // Migration from SM-2 to FSRS (schema v3)
-          // Replace SM-2 fields (interval, repetitionCount, easeFactor) with FSRS fields
+          // Per user request: Truncate existing progress to start fresh with FSRS.
+          // This avoids complex backward compatibility logic for SM-2 conversion.
+          await customStatement('DELETE FROM user_progress_table');
 
           // Add new FSRS columns
           await customStatement(
@@ -93,9 +95,9 @@ class AppDatabase extends _$AppDatabase {
             "ALTER TABLE user_progress_table ADD COLUMN state INTEGER NOT NULL DEFAULT 0",
           );
 
-          // Note: Old SM-2 columns (interval, repetitionCount, easeFactor) will be
-          // removed in a future migration after data is migrated to FSRS format.
-          // For now, both exist to enable gradual migration.
+          // Note: Old SM-2 columns (interval, repetitionCount, easeFactor) are
+          // effectively deprecated and hidden from the Dart model.
+          // They persist in SQLite until a future destructive migration drops them.
         }
       },
       beforeOpen: (details) async {
