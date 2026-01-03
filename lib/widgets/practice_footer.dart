@@ -30,6 +30,7 @@ class PracticeFooter extends StatelessWidget {
             child: SizedBox(
               height: 56,
               child: OutlinedButton(
+                key: const Key('reset_button'),
                 onPressed: onReset,
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: RedLetterColors.divider),
@@ -50,6 +51,7 @@ class PracticeFooter extends StatelessWidget {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
+                  key: const Key('continue_button'),
                   onPressed: continueEnabled ? onContinue : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: RedLetterColors.accent,

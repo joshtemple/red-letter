@@ -99,6 +99,7 @@ class PassageListScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final pwp = passages[index];
                   return PassageListItem(
+                    key: ValueKey(pwp.passageId),
                     passageWithProgress: pwp,
                     onTap: () => _startPractice(context, pwp),
                   );
