@@ -108,6 +108,7 @@ class _PromptedScreenState extends State<PromptedScreen>
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 72),
                         // Hidden input field

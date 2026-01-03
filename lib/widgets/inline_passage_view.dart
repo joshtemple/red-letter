@@ -129,7 +129,7 @@ class InlinePassageView extends StatelessWidget {
 
     return RichText(
       key: const Key('passage_text'),
-      textAlign: TextAlign.center,
+      textAlign: TextAlign.start,
       text: TextSpan(style: RedLetterTypography.passageBody, children: spans),
     );
   }

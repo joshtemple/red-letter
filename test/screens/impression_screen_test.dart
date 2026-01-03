@@ -82,7 +82,7 @@ void main() {
       expect(find.byType(PassageText), findsOneWidget);
       final passageText = tester.widget<PassageText>(find.byType(PassageText));
       expect(passageText.passage, testState.currentPassage);
-      expect(passageText.textAlign, TextAlign.center);
+      expect(passageText.textAlign, TextAlign.start);
       expect(passageText.showReference, false);
       expect(passageText.enableShadow, true);
     });

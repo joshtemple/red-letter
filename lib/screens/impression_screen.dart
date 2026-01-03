@@ -40,7 +40,7 @@ class ImpressionScreen extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Read this passage aloud twice',
@@ -49,12 +49,12 @@ class ImpressionScreen extends StatelessWidget {
                             fontStyle: FontStyle.italic,
                             color: RedLetterColors.secondaryText,
                           ),
-                          textAlign: TextAlign.center,
+                          textAlign: TextAlign.start,
                         ),
                         const SizedBox(height: 32),
                         PassageText(
                           passage: state.currentPassage,
-                          textAlign: TextAlign.center,
+                          textAlign: TextAlign.start,
                           showReference: false, // Moved to AppBar
                           enableShadow: true,
                         ),

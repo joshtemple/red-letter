@@ -77,6 +77,7 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 72),
                       TextField(
@@ -85,7 +86,7 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                         onChanged: _handleInputChange,
                         maxLines: null,
                         style: RedLetterTypography.userInputText,
-                        textAlign: TextAlign.center,
+                        textAlign: TextAlign.start,
                         decoration: InputDecoration(
                           hintText: 'Type the passage...',
                           hintStyle: RedLetterTypography.hintText,
