@@ -31,7 +31,7 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     return select(userProgressTable).get();
   }
 
-  /// Get passages due for review.
+  /// Get passages due for review (all states).
   ///
   /// Returns progress entries where nextReview is null or in the past.
   /// Ordered by nextReview (oldest first) for SRS queue priority.
@@ -41,6 +41,132 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
           ..where((p) => p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now))
           ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
         .get();
+  }
+
+  /// Get new cards (never reviewed or in initial learning state).
+  ///
+  /// Returns cards with state=0 (learning) and step=null/0.
+  /// These are candidates for initial acquisition sessions.
+  /// Ordered by passage ID for deterministic ordering.
+  ///
+  /// Use [limit] to control working set size (e.g., 5 new cards per day).
+  Future<List<UserProgress>> getNewCards({int? limit}) {
+    final query = select(userProgressTable)
+      ..where((p) =>
+          p.state.equals(0) & // Learning state
+          (p.step.isNull() | p.step.equals(0)) & // Initial step
+          p.lastReviewed.isNull()) // Never reviewed
+      ..orderBy([(p) => OrderingTerm.asc(p.passageId)]);
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    return query.get();
+  }
+
+  /// Get cards due for review (review state only).
+  ///
+  /// Returns cards in review state (1) where nextReview is in the past.
+  /// Ordered by nextReview ascending (most overdue first) for optimal retention.
+  ///
+  /// Use [limit] to cap daily review load.
+  Future<List<UserProgress>> getDueReviewCards({int? limit}) {
+    final now = DateTime.now();
+    final query = select(userProgressTable)
+      ..where((p) =>
+          p.state.equals(1) & // Review state
+          p.nextReview.isSmallerThanValue(now))
+      ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]);
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    return query.get();
+  }
+
+  /// Get cards in learning state with upcoming or due reviews.
+  ///
+  /// Returns cards in learning state (0) that have been reviewed at least once.
+  /// These are cards progressing through initial learning steps.
+  /// Ordered by nextReview (soonest first).
+  Future<List<UserProgress>> getLearningCards() {
+    final now = DateTime.now();
+    return (select(userProgressTable)
+          ..where((p) =>
+              p.state.equals(0) & // Learning state
+              p.lastReviewed.isNotNull() & // Has been reviewed
+              (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)))
+          ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
+        .get();
+  }
+
+  /// Get cards in relearning state (failed reviews).
+  ///
+  /// Returns cards in relearning state (2) where nextReview is due or null.
+  /// These are priority cards that need immediate attention.
+  /// Ordered by nextReview (most urgent first).
+  Future<List<UserProgress>> getRelearningCards() {
+    final now = DateTime.now();
+    return (select(userProgressTable)
+          ..where((p) =>
+              p.state.equals(2) & // Relearning state
+              (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)))
+          ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
+        .get();
+  }
+
+  /// Get combined review queue (relearning + review + learning).
+  ///
+  /// Returns all due cards across all states, prioritized by urgency:
+  /// 1. Relearning cards (failed reviews - highest priority)
+  /// 2. Review cards (graduated cards)
+  /// 3. Learning cards (in acquisition)
+  ///
+  /// Use [limit] to cap total queue size.
+  Future<List<UserProgress>> getReviewQueue({int? limit}) async {
+    final now = DateTime.now();
+
+    // Get all due cards with state-based priority ordering
+    final query = select(userProgressTable)
+      ..where((p) =>
+          (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)) &
+          p.lastReviewed.isNotNull()) // Exclude brand new cards
+      ..orderBy([
+        // Priority: relearning (2) > review (1) > learning (0)
+        (p) => OrderingTerm.desc(p.state),
+        // Within same state, oldest due first
+        (p) => OrderingTerm.asc(p.nextReview),
+      ]);
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    return query.get();
+  }
+
+  /// Get count of cards by FSRS state.
+  ///
+  /// Returns map of state -> count:
+  /// - 0: Learning
+  /// - 1: Review
+  /// - 2: Relearning
+  Future<Map<int, int>> getCardCountsByState() async {
+    final query = selectOnly(userProgressTable)
+      ..addColumns([
+        userProgressTable.state,
+        userProgressTable.id.count(),
+      ])
+      ..groupBy([userProgressTable.state]);
+
+    final results = await query.get();
+    return {
+      for (final row in results)
+        row.read(userProgressTable.state)!:
+            row.read(userProgressTable.id.count())!
+    };
   }
 
   /// Get passages by mastery level.
@@ -107,25 +233,30 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     ));
   }
 
-  /// Update SRS scheduling data after a review.
+  /// Update FSRS scheduling data after a review.
   ///
-  /// Updates interval, repetitionCount, easeFactor, lastReviewed, and nextReview.
-  /// Uses transaction to ensure atomic update of all SRS fields.
-  Future<void> updateSRSData({
+  /// Updates stability, difficulty, step, state, lastReviewed, and nextReview.
+  /// Uses transaction to ensure atomic update of all FSRS fields.
+  ///
+  /// Note: Prefer using FSRSSchedulerService.reviewPassage() which returns
+  /// a companion that can be passed to upsertProgress().
+  Future<void> updateFSRSData({
     required String passageId,
-    required int interval,
-    required int repetitionCount,
-    required int easeFactor,
+    required double stability,
+    required double difficulty,
+    required int? step,
+    required int state,
     required DateTime lastReviewed,
-    required DateTime nextReview,
+    required DateTime? nextReview,
   }) async {
     await transaction(() async {
       await (update(userProgressTable)
             ..where((p) => p.passageId.equals(passageId)))
           .write(UserProgressTableCompanion(
-        interval: Value(interval),
-        repetitionCount: Value(repetitionCount),
-        easeFactor: Value(easeFactor),
+        stability: Value(stability),
+        difficulty: Value(difficulty),
+        step: Value(step),
+        state: Value(state),
         lastReviewed: Value(lastReviewed),
         nextReview: Value(nextReview),
       ));
@@ -144,26 +275,31 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     ));
   }
 
-  /// Record a review event with updated SRS and mastery data.
+  /// Record a review event with updated FSRS and mastery data.
   ///
-  /// Combines mastery level update with SRS scheduling in a single transaction.
+  /// Combines mastery level update with FSRS scheduling in a single transaction.
+  ///
+  /// Note: Prefer using FSRSSchedulerService.reviewPassage() which returns
+  /// a companion that can be passed to upsertProgress() directly.
   Future<void> recordReview({
     required String passageId,
     required int masteryLevel,
-    required int interval,
-    required int repetitionCount,
-    required int easeFactor,
+    required double stability,
+    required double difficulty,
+    required int? step,
+    required int state,
     required DateTime lastReviewed,
-    required DateTime nextReview,
+    required DateTime? nextReview,
   }) async {
     await transaction(() async {
       await (update(userProgressTable)
             ..where((p) => p.passageId.equals(passageId)))
           .write(UserProgressTableCompanion(
         masteryLevel: Value(masteryLevel),
-        interval: Value(interval),
-        repetitionCount: Value(repetitionCount),
-        easeFactor: Value(easeFactor),
+        stability: Value(stability),
+        difficulty: Value(difficulty),
+        step: Value(step),
+        state: Value(state),
         lastReviewed: Value(lastReviewed),
         nextReview: Value(nextReview),
       ));

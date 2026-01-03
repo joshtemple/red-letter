@@ -49,10 +49,11 @@ class MockPassageRepository extends Fake implements PassageRepository {
         id: 1, // AutoIncrement
         passageId: passageId,
         masteryLevel: 0,
-        repetitionCount: 0, // was reviews
-        easeFactor: 250, // int, was 2.5
-        interval: 0,
-        semanticReflection: null, // was lastReflected
+        stability: 0.0,
+        difficulty: 5.0,
+        step: null,
+        state: 0, // Learning state
+        semanticReflection: null,
         lastReviewed: null,
         nextReview: null,
         lastSync: null,
@@ -112,9 +113,10 @@ void main() {
             id: 2,
             passageId: '2',
             masteryLevel: 5,
-            repetitionCount: 10,
-            easeFactor: 250,
-            interval: 10,
+            stability: 10.0,
+            difficulty: 4.0,
+            step: null,
+            state: 1, // Review state
             semanticReflection: null,
             lastReviewed: null,
             nextReview: null,
@@ -156,9 +158,10 @@ void main() {
             id: 1,
             passageId: '1',
             masteryLevel: 1,
-            repetitionCount: 0,
-            easeFactor: 250,
-            interval: 0,
+            stability: 0.0,
+            difficulty: 5.0,
+            step: null,
+            state: 0, // Learning state
             semanticReflection: null,
             lastReviewed: null,
             nextReview: null,

@@ -48,6 +48,10 @@ void main() {
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test passage text',
+          book: 'TestBook',
+          chapter: 1,
+          startVerse: 1,
+          endVerse: 1,
         ),
       );
 
@@ -65,6 +69,10 @@ void main() {
           translationId: 'niv',
           reference: 'Test 2:1',
           passageText: 'Test passage text 2',
+          book: 'TestBook',
+          chapter: 2,
+          startVerse: 1,
+          endVerse: 1,
         ),
       );
 
@@ -89,6 +97,10 @@ void main() {
           translationId: 'niv',
           reference: 'Test 3:1',
           passageText: 'Test passage text 3',
+          book: 'TestBook',
+          chapter: 3,
+          startVerse: 1,
+          endVerse: 1,
         ),
       );
 

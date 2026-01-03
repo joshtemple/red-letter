@@ -5,6 +5,27 @@ import 'package:red_letter/data/database/app_database.dart';
 import 'package:red_letter/data/models/passage_with_progress.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 
+/// Helper to create a test passage companion
+PassagesCompanion createTestPassage({
+  required String passageId,
+  required String translationId,
+  required String reference,
+  required String passageText,
+  Value<String> tags = const Value.absent(),
+}) {
+  return PassagesCompanion.insert(
+    passageId: passageId,
+    translationId: translationId,
+    reference: reference,
+    passageText: passageText,
+    book: 'TestBook',
+    chapter: 1,
+    startVerse: 1,
+    endVerse: 1,
+    tags: tags,
+  );
+}
+
 void main() {
   late AppDatabase database;
   late PassageRepository repository;
@@ -21,7 +42,7 @@ void main() {
   group('PassageRepository - Passage Queries', () {
     test('getPassage returns passage when it exists', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44',
           translationId: 'niv',
           reference: 'Matthew 5:44',
@@ -43,13 +64,13 @@ void main() {
 
     test('getPassagesByTranslation filters by translation', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44-niv',
           translationId: 'niv',
           reference: 'Matthew 5:44',
           passageText: 'Love your enemies',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44-esv',
           translationId: 'esv',
           reference: 'Matthew 5:44',
@@ -69,14 +90,14 @@ void main() {
 
     test('getPassagesByTag returns passages containing tag', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44',
           translationId: 'niv',
           reference: 'Matthew 5:44',
           passageText: 'Love your enemies',
           tags: const Value('sermon-on-mount,commands'),
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'jhn-3-16',
           translationId: 'niv',
           reference: 'John 3:16',
@@ -93,13 +114,13 @@ void main() {
 
     test('getPassageCount returns correct count', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
@@ -115,7 +136,7 @@ void main() {
   group('PassageRepository - Passage with Progress Queries', () {
     test('getPassageWithProgress returns passage with null progress', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44',
           translationId: 'niv',
           reference: 'Matthew 5:44',
@@ -133,7 +154,7 @@ void main() {
 
     test('getPassageWithProgress returns passage with progress', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44',
           translationId: 'niv',
           reference: 'Matthew 5:44',
@@ -153,13 +174,13 @@ void main() {
 
     test('getAllPassagesWithProgress returns all passages', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'mat-5-44',
           translationId: 'niv',
           reference: 'Matthew 5:44',
           passageText: 'Love your enemies',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'jhn-3-16',
           translationId: 'niv',
           reference: 'John 3:16',
@@ -188,13 +209,13 @@ void main() {
       'getPassagesWithProgressByTranslation filters by translation',
       () async {
         await repository.insertPassageBatch([
-          PassagesCompanion.insert(
+          createTestPassage(
             passageId: 'mat-5-44-niv',
             translationId: 'niv',
             reference: 'Matthew 5:44',
             passageText: 'Love your enemies',
           ),
-          PassagesCompanion.insert(
+          createTestPassage(
             passageId: 'mat-5-44-esv',
             translationId: 'esv',
             reference: 'Matthew 5:44',
@@ -212,13 +233,13 @@ void main() {
 
     test('getPassagesWithProgressByMasteryLevel filters by level', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
@@ -242,7 +263,7 @@ void main() {
   group('PassageRepository - Progress Queries', () {
     test('getProgress returns progress when it exists', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
@@ -266,13 +287,13 @@ void main() {
 
     test('getDueForReview returns passages due for review', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
@@ -287,9 +308,10 @@ void main() {
       await repository.recordReview(
         passageId: 'test-1',
         masteryLevel: 1,
-        interval: 1,
-        repetitionCount: 1,
-        easeFactor: 250,
+        stability: 1.0,
+        difficulty: 5.0,
+        step: null,
+        state: 1, // Review state
         lastReviewed: past,
         nextReview: past, // Due in the past
       );
@@ -302,19 +324,19 @@ void main() {
 
     test('getMasteryLevelCounts returns count map', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
           passageText: 'Test 2',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-3',
           translationId: 'niv',
           reference: 'Test 1:3',
@@ -339,13 +361,13 @@ void main() {
 
     test('getAllProgress returns all progress entries', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
@@ -365,7 +387,7 @@ void main() {
   group('PassageRepository - Progress Mutations', () {
     test('createProgress creates entry with default values', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
@@ -379,14 +401,14 @@ void main() {
 
       expect(progress, isNotNull);
       expect(progress!.masteryLevel, equals(0));
-      expect(progress.interval, equals(0));
-      expect(progress.repetitionCount, equals(0));
-      expect(progress.easeFactor, equals(250));
+      expect(progress.stability, equals(0.0));
+      expect(progress.difficulty, equals(5.0));
+      expect(progress.state, equals(0)); // Learning state
     });
 
     test('updateMasteryLevel updates the mastery level', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
@@ -403,7 +425,7 @@ void main() {
 
     test('recordReview updates both mastery and SRS data', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
@@ -419,23 +441,24 @@ void main() {
       await repository.recordReview(
         passageId: 'test-1',
         masteryLevel: 2,
-        interval: 5,
-        repetitionCount: 3,
-        easeFactor: 270,
+        stability: 5.8,
+        difficulty: 4.5,
+        step: null,
+        state: 1, // Review state
         lastReviewed: lastReviewed,
         nextReview: nextReview,
       );
 
       final progress = await repository.getProgress('test-1');
       expect(progress!.masteryLevel, equals(2));
-      expect(progress.interval, equals(5));
-      expect(progress.repetitionCount, equals(3));
-      expect(progress.easeFactor, equals(270));
+      expect(progress.stability, equals(5.8));
+      expect(progress.difficulty, equals(4.5));
+      expect(progress.state, equals(1));
     });
 
     test('updateSemanticReflection stores reflection text', () async {
       await repository.insertPassage(
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
@@ -458,13 +481,13 @@ void main() {
 
     test('deleteAllProgress removes all progress', () async {
       await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
@@ -486,19 +509,19 @@ void main() {
   group('PassageRepository - Batch Operations', () {
     test('insertPassageBatch inserts multiple passages efficiently', () async {
       final count = await repository.insertPassageBatch([
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-1',
           translationId: 'niv',
           reference: 'Test 1:1',
           passageText: 'Test 1',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-2',
           translationId: 'niv',
           reference: 'Test 1:2',
           passageText: 'Test 2',
         ),
-        PassagesCompanion.insert(
+        createTestPassage(
           passageId: 'test-3',
           translationId: 'niv',
           reference: 'Test 1:3',
@@ -518,7 +541,7 @@ void main() {
       'watchPassageWithProgress emits updates when progress changes',
       () async {
         await repository.insertPassage(
-          PassagesCompanion.insert(
+          createTestPassage(
             passageId: 'mat-5-44',
             translationId: 'niv',
             reference: 'Matthew 5:44',
@@ -550,13 +573,13 @@ void main() {
       'watchAllPassagesWithProgress emits updates when new progress added',
       () async {
         await repository.insertPassageBatch([
-          PassagesCompanion.insert(
+          createTestPassage(
             passageId: 'p1',
             translationId: 'niv',
             reference: 'Ref 1',
             passageText: 'Text 1',
           ),
-          PassagesCompanion.insert(
+          createTestPassage(
             passageId: 'p2',
             translationId: 'niv',
             reference: 'Ref 2',

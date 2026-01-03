@@ -159,25 +159,30 @@ class PassageRepository {
     return _progressDAO.updateMasteryLevel(passageId, masteryLevel);
   }
 
-  /// Record a review event with complete SRS and mastery data.
+  /// Record a review event with complete FSRS and mastery data.
   ///
   /// This is the primary method for updating progress after a practice session.
-  /// Combines mastery level update with SRS scheduling in a single transaction.
+  /// Combines mastery level update with FSRS scheduling in a single transaction.
+  ///
+  /// Note: Prefer using FSRSSchedulerService.reviewPassage() which returns
+  /// a companion that can be passed to upsertProgress() directly.
   Future<void> recordReview({
     required String passageId,
     required int masteryLevel,
-    required int interval,
-    required int repetitionCount,
-    required int easeFactor,
+    required double stability,
+    required double difficulty,
+    required int? step,
+    required int state,
     required DateTime lastReviewed,
-    required DateTime nextReview,
+    required DateTime? nextReview,
   }) {
     return _progressDAO.recordReview(
       passageId: passageId,
       masteryLevel: masteryLevel,
-      interval: interval,
-      repetitionCount: repetitionCount,
-      easeFactor: easeFactor,
+      stability: stability,
+      difficulty: difficulty,
+      step: step,
+      state: state,
       lastReviewed: lastReviewed,
       nextReview: nextReview,
     );

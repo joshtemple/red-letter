@@ -28,6 +28,10 @@ void main() {
         translationId: 'niv',
         reference: 'Test $passageId',
         passageText: 'Test passage text',
+        book: 'TestBook',
+        chapter: 1,
+        startVerse: 1,
+        endVerse: 1,
       ),
     );
   }
@@ -88,20 +92,22 @@ void main() {
       final future = now.add(const Duration(days: 1));
 
       // Update nextReview times
-      await progressDAO.updateSRSData(
+      await progressDAO.updateFSRSData(
         passageId: 'test-1',
-        interval: 1,
-        repetitionCount: 1,
-        easeFactor: 250,
+        stability: 1.0,
+        difficulty: 5.0,
+        step: null,
+        state: 1, // Review state
         lastReviewed: past,
         nextReview: past, // Due in the past
       );
 
-      await progressDAO.updateSRSData(
+      await progressDAO.updateFSRSData(
         passageId: 'test-2',
-        interval: 1,
-        repetitionCount: 1,
-        easeFactor: 250,
+        stability: 1.0,
+        difficulty: 5.0,
+        step: null,
+        state: 1, // Review state
         lastReviewed: now,
         nextReview: future, // Not due yet
       );
@@ -162,9 +168,9 @@ void main() {
 
       expect(progress, isNotNull);
       expect(progress!.masteryLevel, equals(0));
-      expect(progress.interval, equals(0));
-      expect(progress.repetitionCount, equals(0));
-      expect(progress.easeFactor, equals(250)); // 2.5 * 100
+      expect(progress.stability, equals(0.0));
+      expect(progress.difficulty, equals(5.0));
+      expect(progress.state, equals(0)); // Learning state
     });
 
     test('upsertProgress creates new progress entry', () async {
@@ -214,26 +220,28 @@ void main() {
       expect(progress!.masteryLevel, equals(4));
     });
 
-    test('updateSRSData updates all SRS fields atomically', () async {
+    test('updateFSRSData updates all FSRS fields atomically', () async {
       await insertTestPassage('test-1');
       await progressDAO.createProgress('test-1');
 
       final lastReviewed = DateTime.now();
       final nextReview = lastReviewed.add(const Duration(days: 3));
 
-      await progressDAO.updateSRSData(
+      await progressDAO.updateFSRSData(
         passageId: 'test-1',
-        interval: 3,
-        repetitionCount: 2,
-        easeFactor: 260,
+        stability: 3.5,
+        difficulty: 6.2,
+        step: null,
+        state: 1, // Review state
         lastReviewed: lastReviewed,
         nextReview: nextReview,
       );
 
       final progress = await progressDAO.getProgressByPassageId('test-1');
-      expect(progress!.interval, equals(3));
-      expect(progress.repetitionCount, equals(2));
-      expect(progress.easeFactor, equals(260));
+      expect(progress!.stability, equals(3.5));
+      expect(progress.difficulty, equals(6.2));
+      expect(progress.step, isNull);
+      expect(progress.state, equals(1));
       expect(progress.lastReviewed, isNotNull);
       expect(progress.nextReview, isNotNull);
     });
@@ -254,7 +262,7 @@ void main() {
       );
     });
 
-    test('recordReview updates both mastery and SRS data', () async {
+    test('recordReview updates both mastery and FSRS data', () async {
       await insertTestPassage('test-1');
       await progressDAO.createProgress('test-1');
 
@@ -264,18 +272,19 @@ void main() {
       await progressDAO.recordReview(
         passageId: 'test-1',
         masteryLevel: 2,
-        interval: 5,
-        repetitionCount: 3,
-        easeFactor: 270,
+        stability: 5.8,
+        difficulty: 4.5,
+        step: null,
+        state: 1, // Review state
         lastReviewed: lastReviewed,
         nextReview: nextReview,
       );
 
       final progress = await progressDAO.getProgressByPassageId('test-1');
       expect(progress!.masteryLevel, equals(2));
-      expect(progress.interval, equals(5));
-      expect(progress.repetitionCount, equals(3));
-      expect(progress.easeFactor, equals(270));
+      expect(progress.stability, equals(5.8));
+      expect(progress.difficulty, equals(4.5));
+      expect(progress.state, equals(1));
     });
 
     test('updateLastSync updates sync timestamp', () async {

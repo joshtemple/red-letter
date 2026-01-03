@@ -557,11 +557,12 @@ void main() {
         await progressDAO.createProgress('test-1');
 
         final past = DateTime.now().subtract(const Duration(days: 1));
-        await progressDAO.updateSRSData(
+        await progressDAO.updateFSRSData(
           passageId: 'test-1',
-          interval: 1,
-          repetitionCount: 1,
-          easeFactor: 250,
+          stability: 1.0,
+          difficulty: 5.0,
+          step: null,
+          state: 1, // Review state
           lastReviewed: past,
           nextReview: past,
         );
@@ -582,11 +583,12 @@ void main() {
 
         final now = DateTime.now();
         final future = now.add(const Duration(days: 7));
-        await progressDAO.updateSRSData(
+        await progressDAO.updateFSRSData(
           passageId: 'test-1',
-          interval: 7,
-          repetitionCount: 2,
-          easeFactor: 250,
+          stability: 7.0,
+          difficulty: 5.0,
+          step: null,
+          state: 1, // Review state
           lastReviewed: now,
           nextReview: future,
         );
