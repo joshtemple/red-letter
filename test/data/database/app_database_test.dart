@@ -16,7 +16,7 @@ void main() {
 
   group('AppDatabase Initialization', () {
     test('should create database with correct schema version', () {
-      expect(database.schemaVersion, equals(1));
+      expect(database.schemaVersion, equals(3));
     });
 
     test('should create all tables successfully', () async {

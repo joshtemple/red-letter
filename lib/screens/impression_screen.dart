@@ -44,10 +44,10 @@ class ImpressionScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Read this passage aloud twice',
-                          style: RedLetterTypography.body.copyWith(
+                          style: RedLetterTypography.promptText.copyWith(
                             fontSize: 14,
                             fontStyle: FontStyle.italic,
-                            color: RedLetterColors.textSecondary,
+                            color: RedLetterColors.secondaryText,
                           ),
                           textAlign: TextAlign.center,
                         ),
