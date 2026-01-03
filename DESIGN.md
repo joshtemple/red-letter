@@ -58,7 +58,21 @@ The Flutter client performs a relational join in memory (or via Drift's relation
 ## **5\. Technical Requirements**
 
 * **State Persistence:** Aggregate results of a practice session (accuracy, speed, updated interval) are persisted to Drift immediately and queued for background sync to Firestore.  
-* **The SRS Algorithm:** Implements a modified **SuperMemo (SM-2)** algorithm designed to combat the human forgetting curve by modeling the decay of memory over time. It tracks three core variables: **Interval** (the number of days until the next review), **Repetition Count** (the number of consecutive successful recalls), and the **Ease Factor** (a floating-point scalar representing passage difficulty). By adjusting these variables based on granular user performance—such as response speed and accuracy during the Reconstruction Mode—the engine dynamically optimizes review timing. For example, successful recall exponentially increases the Interval, while a failure resets the Repetition Count and lowers the Ease Factor, ensuring the user reviews the text at the optimal point of "desirable difficulty" to maximize long-term encoding.
+* **The SRS Algorithm:** Implements the **FSRS (Free Spaced Repetition Scheduler)** algorithm. It tracks core variables including stability and difficulty. By adjusting these variables based on granular user performance—such as response speed and accuracy during the Reconstruction Mode—the engine dynamically optimizes review timing. Successful recall increases the interval based on the retrievability calculated by FSRS.
+* **Practice Mode Algorithm (Acquisition):**
+  * Read aloud two times
+  * Reflection - what does this passage mean to you?
+  * Cloze ladder on clauses
+      * Round 1: Remove 1-2 content words per clause
+      * Round 2: Delete 1 entire clause, rotate clause position until all have been covered
+      * Round 3: Show only the first 2 words of each clause
+  * Full recitation, with on demand hints
+  * Full recitation: On success, move into Review set
+  * At any point, on failure: reduce one level and try again
+* **Review Mode Algorithm:**
+  * Use FSRS (Free Spaced Repetition Scheduler)
+  * Calculate heuristic from review performance (latency and accuracy/similarity) to determine difficulty
+  * User-defined budget for working set size, top off with new cards (use Acquisition machine for new cards)
 
 ## **6\. Security & Privacy (GDPR & Article 9\)**
 

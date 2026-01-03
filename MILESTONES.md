@@ -6,7 +6,7 @@ This plan prioritizes a vertical "thin slice" of the core Practice Engine to val
 
 **Goal:** Prove the end-to-end practice loop for a single passage.
 
-* **Core Practice Loop (In-Memory):** Implement the sequence of Impression, Reflection, Scaffolding, Prompted, and Reconstruction modes.  
+* **Core Practice Loop (In-Memory):** Implement the Acquisition sequence: Impression (Read Aloud), Reflection, Scaffolding (Cloze Ladder), Prompted (Hints), and Reconstruction (Full Recitation).  
 * **Rendering Engine:** Establish the Impeller-based typography rendering pipeline.  
 * **Interactions:** Refine interactions, transitions, and animations for a tight and intuitive experience.
 
@@ -18,12 +18,13 @@ This plan prioritizes a vertical "thin slice" of the core Practice Engine to val
 * **Static Registry:** Seed the local database with an initial translation and command set.  
 * **Reactive UI:** Build "The Living List" driven by Drift Streams to ensure UI-wide reactivity to mastery changes.
 
-## **Milestone 3: Scheduling Engine (SRS)**
+## **Milestone 3: Scheduling Engine (SRS) & Practice Refinements**
 
-**Goal:** Implement the "Silent Orchestrator" to manage long-term retention.
+**Goal:** Implement the "Silent Orchestrator" and align Practice Mode with the new Acquisition algorithm.
 
-* **SM-2 Implementation:** Build the client-side SRS logic (Interval, Ease Factor, Repetition Count).  
+* **FSRS Implementation:** Build the client-side FSRS logic (Stability, Difficulty, Retrievability) using the `fsrs` package.  
 * **Review Queue:** Logic to query Drift for due items and prioritize the daily practice queue.
+* **Acquisition Logic:** Refine the Practice Engine to match the new "Cloze Ladder" design (clause-based rotation vs random occlusion) and add on-demand hints.
 
 ## **Milestone 4: Identity & Compliance Gate**
 
