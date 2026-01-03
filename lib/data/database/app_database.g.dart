@@ -687,41 +687,48 @@ class $UserProgressTableTable extends UserProgressTable
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _intervalMeta = const VerificationMeta(
-    'interval',
+  static const VerificationMeta _stabilityMeta = const VerificationMeta(
+    'stability',
   );
   @override
-  late final GeneratedColumn<int> interval = GeneratedColumn<int>(
-    'interval',
+  late final GeneratedColumn<double> stability = GeneratedColumn<double>(
+    'stability',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _difficultyMeta = const VerificationMeta(
+    'difficulty',
+  );
+  @override
+  late final GeneratedColumn<double> difficulty = GeneratedColumn<double>(
+    'difficulty',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(5.0),
+  );
+  static const VerificationMeta _stepMeta = const VerificationMeta('step');
+  @override
+  late final GeneratedColumn<int> step = GeneratedColumn<int>(
+    'step',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<int> state = GeneratedColumn<int>(
+    'state',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _repetitionCountMeta = const VerificationMeta(
-    'repetitionCount',
-  );
-  @override
-  late final GeneratedColumn<int> repetitionCount = GeneratedColumn<int>(
-    'repetition_count',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _easeFactorMeta = const VerificationMeta(
-    'easeFactor',
-  );
-  @override
-  late final GeneratedColumn<int> easeFactor = GeneratedColumn<int>(
-    'ease_factor',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(250),
   );
   static const VerificationMeta _lastReviewedMeta = const VerificationMeta(
     'lastReviewed',
@@ -772,9 +779,10 @@ class $UserProgressTableTable extends UserProgressTable
     id,
     passageId,
     masteryLevel,
-    interval,
-    repetitionCount,
-    easeFactor,
+    stability,
+    difficulty,
+    step,
+    state,
     lastReviewed,
     nextReview,
     semanticReflection,
@@ -812,25 +820,28 @@ class $UserProgressTableTable extends UserProgressTable
         ),
       );
     }
-    if (data.containsKey('interval')) {
+    if (data.containsKey('stability')) {
       context.handle(
-        _intervalMeta,
-        interval.isAcceptableOrUnknown(data['interval']!, _intervalMeta),
+        _stabilityMeta,
+        stability.isAcceptableOrUnknown(data['stability']!, _stabilityMeta),
       );
     }
-    if (data.containsKey('repetition_count')) {
+    if (data.containsKey('difficulty')) {
       context.handle(
-        _repetitionCountMeta,
-        repetitionCount.isAcceptableOrUnknown(
-          data['repetition_count']!,
-          _repetitionCountMeta,
-        ),
+        _difficultyMeta,
+        difficulty.isAcceptableOrUnknown(data['difficulty']!, _difficultyMeta),
       );
     }
-    if (data.containsKey('ease_factor')) {
+    if (data.containsKey('step')) {
       context.handle(
-        _easeFactorMeta,
-        easeFactor.isAcceptableOrUnknown(data['ease_factor']!, _easeFactorMeta),
+        _stepMeta,
+        step.isAcceptableOrUnknown(data['step']!, _stepMeta),
+      );
+    }
+    if (data.containsKey('state')) {
+      context.handle(
+        _stateMeta,
+        state.isAcceptableOrUnknown(data['state']!, _stateMeta),
       );
     }
     if (data.containsKey('last_reviewed')) {
@@ -884,17 +895,21 @@ class $UserProgressTableTable extends UserProgressTable
         DriftSqlType.int,
         data['${effectivePrefix}mastery_level'],
       )!,
-      interval: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}interval'],
+      stability: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}stability'],
       )!,
-      repetitionCount: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}repetition_count'],
+      difficulty: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}difficulty'],
       )!,
-      easeFactor: attachedDatabase.typeMapping.read(
+      step: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}ease_factor'],
+        data['${effectivePrefix}step'],
+      ),
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}state'],
       )!,
       lastReviewed: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -931,14 +946,17 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
   /// Current mastery level (0-4: new, learning, familiar, mastered, locked-in)
   final int masteryLevel;
 
-  /// SRS: Days until next review
-  final int interval;
+  /// FSRS: Memory stability in days (how long memory remains stable)
+  final double stability;
 
-  /// SRS: Number of successful repetitions
-  final int repetitionCount;
+  /// FSRS: Inherent difficulty of the passage (0-10 scale)
+  final double difficulty;
 
-  /// SRS: Ease factor (multiplier for interval growth, stored as int * 100)
-  final int easeFactor;
+  /// FSRS: Current step in learning/relearning process (null if in review state)
+  final int? step;
+
+  /// FSRS: Learning state (0=learning, 1=review, 2=relearning)
+  final int state;
 
   /// Timestamp of last review (Unix epoch seconds)
   final DateTime? lastReviewed;
@@ -955,9 +973,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
     required this.id,
     required this.passageId,
     required this.masteryLevel,
-    required this.interval,
-    required this.repetitionCount,
-    required this.easeFactor,
+    required this.stability,
+    required this.difficulty,
+    this.step,
+    required this.state,
     this.lastReviewed,
     this.nextReview,
     this.semanticReflection,
@@ -969,9 +988,12 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
     map['id'] = Variable<int>(id);
     map['passage_id'] = Variable<String>(passageId);
     map['mastery_level'] = Variable<int>(masteryLevel);
-    map['interval'] = Variable<int>(interval);
-    map['repetition_count'] = Variable<int>(repetitionCount);
-    map['ease_factor'] = Variable<int>(easeFactor);
+    map['stability'] = Variable<double>(stability);
+    map['difficulty'] = Variable<double>(difficulty);
+    if (!nullToAbsent || step != null) {
+      map['step'] = Variable<int>(step);
+    }
+    map['state'] = Variable<int>(state);
     if (!nullToAbsent || lastReviewed != null) {
       map['last_reviewed'] = Variable<DateTime>(lastReviewed);
     }
@@ -992,9 +1014,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
       id: Value(id),
       passageId: Value(passageId),
       masteryLevel: Value(masteryLevel),
-      interval: Value(interval),
-      repetitionCount: Value(repetitionCount),
-      easeFactor: Value(easeFactor),
+      stability: Value(stability),
+      difficulty: Value(difficulty),
+      step: step == null && nullToAbsent ? const Value.absent() : Value(step),
+      state: Value(state),
       lastReviewed: lastReviewed == null && nullToAbsent
           ? const Value.absent()
           : Value(lastReviewed),
@@ -1019,9 +1042,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
       id: serializer.fromJson<int>(json['id']),
       passageId: serializer.fromJson<String>(json['passage_id']),
       masteryLevel: serializer.fromJson<int>(json['mastery_level']),
-      interval: serializer.fromJson<int>(json['interval']),
-      repetitionCount: serializer.fromJson<int>(json['repetition_count']),
-      easeFactor: serializer.fromJson<int>(json['ease_factor']),
+      stability: serializer.fromJson<double>(json['stability']),
+      difficulty: serializer.fromJson<double>(json['difficulty']),
+      step: serializer.fromJson<int?>(json['step']),
+      state: serializer.fromJson<int>(json['state']),
       lastReviewed: serializer.fromJson<DateTime?>(json['last_reviewed']),
       nextReview: serializer.fromJson<DateTime?>(json['next_review']),
       semanticReflection: serializer.fromJson<String?>(
@@ -1037,9 +1061,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
       'id': serializer.toJson<int>(id),
       'passage_id': serializer.toJson<String>(passageId),
       'mastery_level': serializer.toJson<int>(masteryLevel),
-      'interval': serializer.toJson<int>(interval),
-      'repetition_count': serializer.toJson<int>(repetitionCount),
-      'ease_factor': serializer.toJson<int>(easeFactor),
+      'stability': serializer.toJson<double>(stability),
+      'difficulty': serializer.toJson<double>(difficulty),
+      'step': serializer.toJson<int?>(step),
+      'state': serializer.toJson<int>(state),
       'last_reviewed': serializer.toJson<DateTime?>(lastReviewed),
       'next_review': serializer.toJson<DateTime?>(nextReview),
       'semantic_reflection': serializer.toJson<String?>(semanticReflection),
@@ -1051,9 +1076,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
     int? id,
     String? passageId,
     int? masteryLevel,
-    int? interval,
-    int? repetitionCount,
-    int? easeFactor,
+    double? stability,
+    double? difficulty,
+    Value<int?> step = const Value.absent(),
+    int? state,
     Value<DateTime?> lastReviewed = const Value.absent(),
     Value<DateTime?> nextReview = const Value.absent(),
     Value<String?> semanticReflection = const Value.absent(),
@@ -1062,9 +1088,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
     id: id ?? this.id,
     passageId: passageId ?? this.passageId,
     masteryLevel: masteryLevel ?? this.masteryLevel,
-    interval: interval ?? this.interval,
-    repetitionCount: repetitionCount ?? this.repetitionCount,
-    easeFactor: easeFactor ?? this.easeFactor,
+    stability: stability ?? this.stability,
+    difficulty: difficulty ?? this.difficulty,
+    step: step.present ? step.value : this.step,
+    state: state ?? this.state,
     lastReviewed: lastReviewed.present ? lastReviewed.value : this.lastReviewed,
     nextReview: nextReview.present ? nextReview.value : this.nextReview,
     semanticReflection: semanticReflection.present
@@ -1079,13 +1106,12 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
       masteryLevel: data.masteryLevel.present
           ? data.masteryLevel.value
           : this.masteryLevel,
-      interval: data.interval.present ? data.interval.value : this.interval,
-      repetitionCount: data.repetitionCount.present
-          ? data.repetitionCount.value
-          : this.repetitionCount,
-      easeFactor: data.easeFactor.present
-          ? data.easeFactor.value
-          : this.easeFactor,
+      stability: data.stability.present ? data.stability.value : this.stability,
+      difficulty: data.difficulty.present
+          ? data.difficulty.value
+          : this.difficulty,
+      step: data.step.present ? data.step.value : this.step,
+      state: data.state.present ? data.state.value : this.state,
       lastReviewed: data.lastReviewed.present
           ? data.lastReviewed.value
           : this.lastReviewed,
@@ -1105,9 +1131,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
           ..write('id: $id, ')
           ..write('passageId: $passageId, ')
           ..write('masteryLevel: $masteryLevel, ')
-          ..write('interval: $interval, ')
-          ..write('repetitionCount: $repetitionCount, ')
-          ..write('easeFactor: $easeFactor, ')
+          ..write('stability: $stability, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('step: $step, ')
+          ..write('state: $state, ')
           ..write('lastReviewed: $lastReviewed, ')
           ..write('nextReview: $nextReview, ')
           ..write('semanticReflection: $semanticReflection, ')
@@ -1121,9 +1148,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
     id,
     passageId,
     masteryLevel,
-    interval,
-    repetitionCount,
-    easeFactor,
+    stability,
+    difficulty,
+    step,
+    state,
     lastReviewed,
     nextReview,
     semanticReflection,
@@ -1136,9 +1164,10 @@ class UserProgress extends DataClass implements Insertable<UserProgress> {
           other.id == this.id &&
           other.passageId == this.passageId &&
           other.masteryLevel == this.masteryLevel &&
-          other.interval == this.interval &&
-          other.repetitionCount == this.repetitionCount &&
-          other.easeFactor == this.easeFactor &&
+          other.stability == this.stability &&
+          other.difficulty == this.difficulty &&
+          other.step == this.step &&
+          other.state == this.state &&
           other.lastReviewed == this.lastReviewed &&
           other.nextReview == this.nextReview &&
           other.semanticReflection == this.semanticReflection &&
@@ -1149,9 +1178,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
   final Value<int> id;
   final Value<String> passageId;
   final Value<int> masteryLevel;
-  final Value<int> interval;
-  final Value<int> repetitionCount;
-  final Value<int> easeFactor;
+  final Value<double> stability;
+  final Value<double> difficulty;
+  final Value<int?> step;
+  final Value<int> state;
   final Value<DateTime?> lastReviewed;
   final Value<DateTime?> nextReview;
   final Value<String?> semanticReflection;
@@ -1160,9 +1190,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
     this.id = const Value.absent(),
     this.passageId = const Value.absent(),
     this.masteryLevel = const Value.absent(),
-    this.interval = const Value.absent(),
-    this.repetitionCount = const Value.absent(),
-    this.easeFactor = const Value.absent(),
+    this.stability = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.step = const Value.absent(),
+    this.state = const Value.absent(),
     this.lastReviewed = const Value.absent(),
     this.nextReview = const Value.absent(),
     this.semanticReflection = const Value.absent(),
@@ -1172,9 +1203,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
     this.id = const Value.absent(),
     required String passageId,
     this.masteryLevel = const Value.absent(),
-    this.interval = const Value.absent(),
-    this.repetitionCount = const Value.absent(),
-    this.easeFactor = const Value.absent(),
+    this.stability = const Value.absent(),
+    this.difficulty = const Value.absent(),
+    this.step = const Value.absent(),
+    this.state = const Value.absent(),
     this.lastReviewed = const Value.absent(),
     this.nextReview = const Value.absent(),
     this.semanticReflection = const Value.absent(),
@@ -1184,9 +1216,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
     Expression<int>? id,
     Expression<String>? passageId,
     Expression<int>? masteryLevel,
-    Expression<int>? interval,
-    Expression<int>? repetitionCount,
-    Expression<int>? easeFactor,
+    Expression<double>? stability,
+    Expression<double>? difficulty,
+    Expression<int>? step,
+    Expression<int>? state,
     Expression<DateTime>? lastReviewed,
     Expression<DateTime>? nextReview,
     Expression<String>? semanticReflection,
@@ -1196,9 +1229,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
       if (id != null) 'id': id,
       if (passageId != null) 'passage_id': passageId,
       if (masteryLevel != null) 'mastery_level': masteryLevel,
-      if (interval != null) 'interval': interval,
-      if (repetitionCount != null) 'repetition_count': repetitionCount,
-      if (easeFactor != null) 'ease_factor': easeFactor,
+      if (stability != null) 'stability': stability,
+      if (difficulty != null) 'difficulty': difficulty,
+      if (step != null) 'step': step,
+      if (state != null) 'state': state,
       if (lastReviewed != null) 'last_reviewed': lastReviewed,
       if (nextReview != null) 'next_review': nextReview,
       if (semanticReflection != null) 'semantic_reflection': semanticReflection,
@@ -1210,9 +1244,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
     Value<int>? id,
     Value<String>? passageId,
     Value<int>? masteryLevel,
-    Value<int>? interval,
-    Value<int>? repetitionCount,
-    Value<int>? easeFactor,
+    Value<double>? stability,
+    Value<double>? difficulty,
+    Value<int?>? step,
+    Value<int>? state,
     Value<DateTime?>? lastReviewed,
     Value<DateTime?>? nextReview,
     Value<String?>? semanticReflection,
@@ -1222,9 +1257,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
       id: id ?? this.id,
       passageId: passageId ?? this.passageId,
       masteryLevel: masteryLevel ?? this.masteryLevel,
-      interval: interval ?? this.interval,
-      repetitionCount: repetitionCount ?? this.repetitionCount,
-      easeFactor: easeFactor ?? this.easeFactor,
+      stability: stability ?? this.stability,
+      difficulty: difficulty ?? this.difficulty,
+      step: step ?? this.step,
+      state: state ?? this.state,
       lastReviewed: lastReviewed ?? this.lastReviewed,
       nextReview: nextReview ?? this.nextReview,
       semanticReflection: semanticReflection ?? this.semanticReflection,
@@ -1244,14 +1280,17 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
     if (masteryLevel.present) {
       map['mastery_level'] = Variable<int>(masteryLevel.value);
     }
-    if (interval.present) {
-      map['interval'] = Variable<int>(interval.value);
+    if (stability.present) {
+      map['stability'] = Variable<double>(stability.value);
     }
-    if (repetitionCount.present) {
-      map['repetition_count'] = Variable<int>(repetitionCount.value);
+    if (difficulty.present) {
+      map['difficulty'] = Variable<double>(difficulty.value);
     }
-    if (easeFactor.present) {
-      map['ease_factor'] = Variable<int>(easeFactor.value);
+    if (step.present) {
+      map['step'] = Variable<int>(step.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<int>(state.value);
     }
     if (lastReviewed.present) {
       map['last_reviewed'] = Variable<DateTime>(lastReviewed.value);
@@ -1274,9 +1313,10 @@ class UserProgressTableCompanion extends UpdateCompanion<UserProgress> {
           ..write('id: $id, ')
           ..write('passageId: $passageId, ')
           ..write('masteryLevel: $masteryLevel, ')
-          ..write('interval: $interval, ')
-          ..write('repetitionCount: $repetitionCount, ')
-          ..write('easeFactor: $easeFactor, ')
+          ..write('stability: $stability, ')
+          ..write('difficulty: $difficulty, ')
+          ..write('step: $step, ')
+          ..write('state: $state, ')
           ..write('lastReviewed: $lastReviewed, ')
           ..write('nextReview: $nextReview, ')
           ..write('semanticReflection: $semanticReflection, ')
@@ -1736,9 +1776,10 @@ typedef $$UserProgressTableTableCreateCompanionBuilder =
       Value<int> id,
       required String passageId,
       Value<int> masteryLevel,
-      Value<int> interval,
-      Value<int> repetitionCount,
-      Value<int> easeFactor,
+      Value<double> stability,
+      Value<double> difficulty,
+      Value<int?> step,
+      Value<int> state,
       Value<DateTime?> lastReviewed,
       Value<DateTime?> nextReview,
       Value<String?> semanticReflection,
@@ -1749,9 +1790,10 @@ typedef $$UserProgressTableTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> passageId,
       Value<int> masteryLevel,
-      Value<int> interval,
-      Value<int> repetitionCount,
-      Value<int> easeFactor,
+      Value<double> stability,
+      Value<double> difficulty,
+      Value<int?> step,
+      Value<int> state,
       Value<DateTime?> lastReviewed,
       Value<DateTime?> nextReview,
       Value<String?> semanticReflection,
@@ -1809,18 +1851,23 @@ class $$UserProgressTableTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get interval => $composableBuilder(
-    column: $table.interval,
+  ColumnFilters<double> get stability => $composableBuilder(
+    column: $table.stability,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get repetitionCount => $composableBuilder(
-    column: $table.repetitionCount,
+  ColumnFilters<double> get difficulty => $composableBuilder(
+    column: $table.difficulty,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get easeFactor => $composableBuilder(
-    column: $table.easeFactor,
+  ColumnFilters<int> get step => $composableBuilder(
+    column: $table.step,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get state => $composableBuilder(
+    column: $table.state,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1887,18 +1934,23 @@ class $$UserProgressTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get interval => $composableBuilder(
-    column: $table.interval,
+  ColumnOrderings<double> get stability => $composableBuilder(
+    column: $table.stability,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get repetitionCount => $composableBuilder(
-    column: $table.repetitionCount,
+  ColumnOrderings<double> get difficulty => $composableBuilder(
+    column: $table.difficulty,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get easeFactor => $composableBuilder(
-    column: $table.easeFactor,
+  ColumnOrderings<int> get step => $composableBuilder(
+    column: $table.step,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get state => $composableBuilder(
+    column: $table.state,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1963,18 +2015,19 @@ class $$UserProgressTableTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get interval =>
-      $composableBuilder(column: $table.interval, builder: (column) => column);
+  GeneratedColumn<double> get stability =>
+      $composableBuilder(column: $table.stability, builder: (column) => column);
 
-  GeneratedColumn<int> get repetitionCount => $composableBuilder(
-    column: $table.repetitionCount,
+  GeneratedColumn<double> get difficulty => $composableBuilder(
+    column: $table.difficulty,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get easeFactor => $composableBuilder(
-    column: $table.easeFactor,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get step =>
+      $composableBuilder(column: $table.step, builder: (column) => column);
+
+  GeneratedColumn<int> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => column);
 
   GeneratedColumn<DateTime> get lastReviewed => $composableBuilder(
     column: $table.lastReviewed,
@@ -2054,9 +2107,10 @@ class $$UserProgressTableTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> passageId = const Value.absent(),
                 Value<int> masteryLevel = const Value.absent(),
-                Value<int> interval = const Value.absent(),
-                Value<int> repetitionCount = const Value.absent(),
-                Value<int> easeFactor = const Value.absent(),
+                Value<double> stability = const Value.absent(),
+                Value<double> difficulty = const Value.absent(),
+                Value<int?> step = const Value.absent(),
+                Value<int> state = const Value.absent(),
                 Value<DateTime?> lastReviewed = const Value.absent(),
                 Value<DateTime?> nextReview = const Value.absent(),
                 Value<String?> semanticReflection = const Value.absent(),
@@ -2065,9 +2119,10 @@ class $$UserProgressTableTableTableManager
                 id: id,
                 passageId: passageId,
                 masteryLevel: masteryLevel,
-                interval: interval,
-                repetitionCount: repetitionCount,
-                easeFactor: easeFactor,
+                stability: stability,
+                difficulty: difficulty,
+                step: step,
+                state: state,
                 lastReviewed: lastReviewed,
                 nextReview: nextReview,
                 semanticReflection: semanticReflection,
@@ -2078,9 +2133,10 @@ class $$UserProgressTableTableTableManager
                 Value<int> id = const Value.absent(),
                 required String passageId,
                 Value<int> masteryLevel = const Value.absent(),
-                Value<int> interval = const Value.absent(),
-                Value<int> repetitionCount = const Value.absent(),
-                Value<int> easeFactor = const Value.absent(),
+                Value<double> stability = const Value.absent(),
+                Value<double> difficulty = const Value.absent(),
+                Value<int?> step = const Value.absent(),
+                Value<int> state = const Value.absent(),
                 Value<DateTime?> lastReviewed = const Value.absent(),
                 Value<DateTime?> nextReview = const Value.absent(),
                 Value<String?> semanticReflection = const Value.absent(),
@@ -2089,9 +2145,10 @@ class $$UserProgressTableTableTableManager
                 id: id,
                 passageId: passageId,
                 masteryLevel: masteryLevel,
-                interval: interval,
-                repetitionCount: repetitionCount,
-                easeFactor: easeFactor,
+                stability: stability,
+                difficulty: difficulty,
+                step: step,
+                state: state,
                 lastReviewed: lastReviewed,
                 nextReview: nextReview,
                 semanticReflection: semanticReflection,

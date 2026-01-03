@@ -58,14 +58,17 @@ class UserProgressTable extends Table {
   /// Current mastery level (0-4: new, learning, familiar, mastered, locked-in)
   IntColumn get masteryLevel => integer().withDefault(const Constant(0))();
 
-  /// SRS: Days until next review
-  IntColumn get interval => integer().withDefault(const Constant(0))();
+  /// FSRS: Memory stability in days (how long memory remains stable)
+  RealColumn get stability => real().withDefault(const Constant(0.0))();
 
-  /// SRS: Number of successful repetitions
-  IntColumn get repetitionCount => integer().withDefault(const Constant(0))();
+  /// FSRS: Inherent difficulty of the passage (0-10 scale)
+  RealColumn get difficulty => real().withDefault(const Constant(5.0))();
 
-  /// SRS: Ease factor (multiplier for interval growth, stored as int * 100)
-  IntColumn get easeFactor => integer().withDefault(const Constant(250))();
+  /// FSRS: Current step in learning/relearning process (null if in review state)
+  IntColumn get step => integer().nullable()();
+
+  /// FSRS: Learning state (0=learning, 1=review, 2=relearning)
+  IntColumn get state => integer().withDefault(const Constant(0))();
 
   /// Timestamp of last review (Unix epoch seconds)
   DateTimeColumn get lastReviewed => dateTime().nullable()();

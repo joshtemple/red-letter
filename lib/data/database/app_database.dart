@@ -29,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
     : super(executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -56,9 +56,7 @@ class AppDatabase extends _$AppDatabase {
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
-          // Add newly added columns.
-          // Since tables.dart defines them as non-nullable without default in Dart,
-          // we must provide a default at the SQL level for existing rows.
+          // Add passage metadata columns
           await customStatement(
             "ALTER TABLE passages ADD COLUMN book TEXT NOT NULL DEFAULT ''",
           );
@@ -75,6 +73,29 @@ class AppDatabase extends _$AppDatabase {
           // Populate the new columns from seed data
           final seeder = DatabaseSeeder(this);
           await seeder.updatePassageMetadata();
+        }
+
+        if (from < 3) {
+          // Migration from SM-2 to FSRS (schema v3)
+          // Replace SM-2 fields (interval, repetitionCount, easeFactor) with FSRS fields
+
+          // Add new FSRS columns
+          await customStatement(
+            "ALTER TABLE user_progress_table ADD COLUMN stability REAL NOT NULL DEFAULT 0.0",
+          );
+          await customStatement(
+            "ALTER TABLE user_progress_table ADD COLUMN difficulty REAL NOT NULL DEFAULT 5.0",
+          );
+          await customStatement(
+            "ALTER TABLE user_progress_table ADD COLUMN step INTEGER",
+          );
+          await customStatement(
+            "ALTER TABLE user_progress_table ADD COLUMN state INTEGER NOT NULL DEFAULT 0",
+          );
+
+          // Note: Old SM-2 columns (interval, repetitionCount, easeFactor) will be
+          // removed in a future migration after data is migrated to FSRS format.
+          // For now, both exist to enable gradual migration.
         }
       },
       beforeOpen: (details) async {
