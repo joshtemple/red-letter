@@ -1,3 +1,7 @@
+---
+last_updated_commit: 4a12567d97e773c98a6a508e6156227e7636d6e4
+---
+
 # **Technical Design: Red Letter**
 
 ## **1\. Introduction**
@@ -47,7 +51,7 @@ Contains metadata required for the SRS algorithm and user-generated content.
 * **Fields:**  
   * passageId: Foreign key to the global registry.  
   * masteryLevel: Enum representing the current Practice Mode.  
-  * srsData: Object containing interval, easeFactor, repetitionCount, and nextReviewDate.  
+  * srsData: Object containing stability, difficulty, state, time_last_review, and due_date.  
   * semanticReflection: The user's personal summary (for Semantic Encoding).  
   * lastSync: Timestamp for differential sync logic.
 
@@ -120,3 +124,4 @@ To be robust for non-US users (GDPR/CCPA/LGPD), the system implements the follow
 
 * **Content Licensing & Rights:** Scripture versions have varied licensing. Requires a "Rights Management" metadata layer.  
 * **Keystroke Performance:** Utilize a "Thin-Listener" pattern for text controllers, offloading string comparisons to a background isolate for longer passages.
+

@@ -2,13 +2,13 @@
 trigger: always_on
 ---
 
-# Project Overview
+# CLAUDE.md
 
-This file provides guidance to Antigravity agents when working with code in this repository.
+This file provides guidance to AI agents when working with code in this repository.
 
 ## Project Overview
 
-**Red Letter** is a mobile memorization app for internalizing the commands of Jesus. The design philosophy is "less is more" with a text-first, high-quality typography experience. Currently in the planning phase with no implementation yet.
+**Red Letter** is a mobile memorization app for internalizing the commands of Jesus. The design philosophy is "less is more" with a text-first, high-quality typography experience. Currently in active development (Milestone 3 in progress).
 
 ## Tech Stack
 
@@ -47,8 +47,8 @@ The core learning loop consists of 5 progressive modes that fade assistance:
 
 ### Spaced Repetition System (SRS)
 
-- **Algorithm:** Modified SuperMemo SM-2 running entirely client-side
-- **Variables:** Interval (days until next review), Repetition Count, Ease Factor
+- **Algorithm:** FSRS algorithm running entirely client-side
+- **Variables:** Stability, Difficulty, State, Due Date
 - **Performance-based:** Adjusts based on response speed and accuracy
 - **Zero-latency requirement:** Must run within 8-16ms frame budget
 
@@ -87,7 +87,7 @@ Per MILESTONES.md, the critical path is:
 
 1. **M1:** Practice Engine vertical slice (in-memory, validate UI/UX feel)
 2. **M2:** Drift local persistence (client-side join architecture)
-3. **M3:** SRS scheduling engine (client-side SM-2)
+3. **M3:** SRS scheduling engine (client-side FSRS)
 4. **M4:** Auth + GDPR compliance gate
 5. **M5:** Firestore sync + conflict resolution
 6. **M6:** i18n/l10n + scripture rights management

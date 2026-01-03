@@ -1,3 +1,7 @@
+---
+last_updated_commit: 4a12567d97e773c98a6a508e6156227e7636d6e4
+---
+
 # Red Letter
 
 A mobile memorization app for internalizing the commands of Jesus.
@@ -60,7 +64,7 @@ See [IMPELLER.md](IMPELLER.md) for detailed Impeller configuration and verificat
 
 ### Spaced Repetition System
 
-Modified SuperMemo SM-2 algorithm running entirely client-side for zero-latency performance.
+Modified FSRS algorithm running entirely client-side for zero-latency performance.
 
 ## Privacy & Compliance
 
@@ -79,8 +83,10 @@ This app processes Special Category Data (religious beliefs) under GDPR Article 
 - [OVERVIEW.md](OVERVIEW.md) - Project overview
 - [IMPELLER.md](IMPELLER.md) - Impeller rendering configuration and verification
 - [TYPOGRAPHY.md](TYPOGRAPHY.md) - Typography system and performance optimizations
+- [ACQUISITION_LADDER_INTEGRATION.md](ACQUISITION_LADDER_INTEGRATION.md) - M3 Advanced Acquisition Ladder integration guide
 - [CLAUDE.md](CLAUDE.md) - AI assistant guidelines
 
 ## License
 
 Copyright © 2026. All rights reserved.
+
