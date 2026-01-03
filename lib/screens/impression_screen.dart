@@ -42,6 +42,16 @@ class ImpressionScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Text(
+                          'Read this passage aloud twice',
+                          style: RedLetterTypography.body.copyWith(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: RedLetterColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
                         PassageText(
                           passage: state.currentPassage,
                           textAlign: TextAlign.center,
