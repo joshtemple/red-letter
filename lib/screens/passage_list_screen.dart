@@ -4,52 +4,20 @@ import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/theme/colors.dart';
 
 import 'package:red_letter/widgets/passage_list_item.dart';
-import 'package:red_letter/controllers/practice_session_controller.dart';
-import 'package:red_letter/main.dart'; // For navigation to RedLetterDemo (Practice Screen)
-import 'package:red_letter/models/passage.dart'; // Domain model
+import 'package:red_letter/screens/session_screen.dart';
 
 class PassageListScreen extends StatelessWidget {
   final PassageRepository repository;
-  final PracticeSessionController _sessionController =
-      PracticeSessionController();
 
-  PassageListScreen({super.key, required this.repository});
+  const PassageListScreen({super.key, required this.repository});
 
-  void _startPractice(BuildContext context, PassageWithProgress pwp) {
-    // Determine mode based on mastery level
-    final mode = _sessionController.getModeForLevel(pwp.masteryLevel);
-
-    // Convert Drift Passage to Domain Passage
-    final domainPassage = Passage.fromText(
-      id: pwp.passageId,
-      text: pwp.passage.passageText,
-      reference: pwp.passage.reference,
-    );
-
-    // Navigate to Practice Screen
+  void _handleMemorize(BuildContext context) {
+    // Navigate to the Session Orchestrator
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => RedLetterDemo(
-          repository: repository,
-          initialPassage: domainPassage,
-          initialMode: mode,
-        ),
+        builder: (context) => SessionScreen(repository: repository),
       ),
     );
-  }
-
-  void _handleMemorize(
-    BuildContext context,
-    List<PassageWithProgress> passages,
-  ) {
-    final selected = _sessionController.selectRandomPassage(passages);
-    if (selected != null) {
-      _startPractice(context, selected);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No passages available to memorize!')),
-      );
-    }
   }
 
   @override
@@ -101,7 +69,14 @@ class PassageListScreen extends StatelessWidget {
                   return PassageListItem(
                     key: ValueKey(pwp.passageId),
                     passageWithProgress: pwp,
-                    onTap: () => _startPractice(context, pwp),
+                    onTap: () {
+                      // Placeholder for detail view
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Use "Start Session" to practice'),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -113,11 +88,11 @@ class PassageListScreen extends StatelessWidget {
                 right: 0,
                 child: Center(
                   child: FloatingActionButton.extended(
-                    onPressed: () => _handleMemorize(context, passages),
+                    onPressed: () => _handleMemorize(context),
                     backgroundColor: RedLetterColors.accent,
                     icon: const Icon(Icons.play_arrow, color: Colors.white),
                     label: const Text(
-                      'MEMORIZE',
+                      'START SESSION',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
