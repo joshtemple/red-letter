@@ -50,6 +50,22 @@ void main() {
       expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
+    testWidgets('should display read-aloud instruction', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ImpressionScreen(
+            state: testState,
+            onContinue: () {},
+            onReset: () {},
+          ),
+        ),
+      );
+
+      expect(find.text('Read this passage aloud twice'), findsOneWidget);
+    });
+
     testWidgets('should display PassageText widget', (
       WidgetTester tester,
     ) async {

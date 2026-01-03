@@ -199,16 +199,28 @@ class UserProgressTable extends Table {
 
 All new models have comprehensive unit tests:
 
-- `test/models/clause_segmentation_test.dart`
-- `test/models/cloze_occlusion_test.dart`
-- `test/models/acquisition_state_test.dart`
+- `test/models/clause_segmentation_test.dart` - Tests clause segmentation logic with various punctuation patterns
+- `test/models/cloze_occlusion_test.dart` - Tests all 3 cloze rounds and word hiding/revealing logic
+- `test/models/acquisition_state_test.dart` - Tests state machine progression and failure/retry handling
+
+Updated existing tests:
+
+- `test/screens/impression_screen_test.dart` - Added test for "Read this passage aloud twice" prompt
+
+Existing tests remain valid:
+
+- `test/models/word_occlusion_test.dart` - Continues to test the original WordOcclusion model
+- `test/screens/scaffolding_screen_test.dart` - Still valid, tests current scaffolding screen with WordOcclusion
 
 Run tests with:
 ```bash
 flutter test test/models/clause_segmentation_test.dart
 flutter test test/models/cloze_occlusion_test.dart
 flutter test test/models/acquisition_state_test.dart
+flutter test test/screens/impression_screen_test.dart
 ```
+
+**Note**: Flutter/Dart environment not available during implementation, so tests have not been executed. Please run tests to verify correctness before integration.
 
 ## UI Considerations
 
@@ -256,13 +268,33 @@ if (_acquisitionState.currentLevel == AcquisitionLevel.rotatingClauseDeletion) {
 - **Random word selection** is seeded for reproducibility in testing
 - All operations complete within the 8-16ms frame budget requirement
 
+## Relationship with Existing WordOcclusion
+
+The existing `WordOcclusion` model (`lib/models/word_occlusion.dart`) provides simple random word occlusion with a 30-50% ratio. This is still valid and useful for:
+
+- Simpler scaffolding experiences
+- Quick random practice
+- Testing and prototyping
+
+The new `ClozeOcclusion` provides **clause-aware progressive scaffolding** specifically for the Advanced Acquisition Ladder:
+
+| Feature | WordOcclusion | ClozeOcclusion |
+|---------|---------------|----------------|
+| Occlusion strategy | Random words (30-50%) | Clause-aware (3 rounds) |
+| Content awareness | No | Yes (filters trivial words) |
+| Progressive difficulty | No | Yes (3 levels) |
+| Clause rotation | No | Yes (Round 2) |
+| Use case | Simple scaffolding | Advanced acquisition ladder |
+
+**Recommendation**: Keep both models. Use `WordOcclusion` for simple random practice, and `ClozeOcclusion` for the structured acquisition ladder.
+
 ## Migration Path
 
 1. **Phase 1**: Add new models alongside existing `WordOcclusion` (done)
-2. **Phase 2**: Update `ScaffoldingScreen` to use `ClozeOcclusion`
+2. **Phase 2**: Update `ScaffoldingScreen` to support both modes (optional: switch based on mastery level)
 3. **Phase 3**: Add persistence to track acquisition state
 4. **Phase 4**: Add UI indicators for round progression
-5. **Phase 5**: Remove deprecated `WordOcclusion` (if no longer needed for other modes)
+5. **Phase 5**: (Optional) Deprecate `WordOcclusion` if unified approach is preferred
 
 ## Related Issues
 
