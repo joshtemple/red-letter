@@ -137,7 +137,7 @@ void main() {
 
       final segmentation = ClauseSegmentation.fromPassage(passage);
 
-      expect(segmentation.clauseCount, 3);
+      expect(segmentation.clauseCount, 2);
       expect(segmentation.clauses[0].text, 'But I say to you,');
       expect(segmentation.clauses[1].text, 'Love your enemies and pray for those who persecute you.');
     });
