@@ -89,8 +89,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
         // Validate input for errors
         final targetWord = widget.state.currentPassage.words[targetIndex];
 
-        // If input length meets or exceeds target, treat as a wrong attempt
-        if (input.length >= targetWord.length) {
+        // Be more lenient with typos - only penalize if clearly wrong
+        // Allow 1 extra character for typos (e.g., "lovve" for "love")
+        if (input.length > targetWord.length + 1) {
           setState(() {
             isProcessingError = true;
           });
@@ -105,7 +106,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
             }
           });
         } else {
-          // Incomplete word, just update UI (red text if mismatch)
+          // Incomplete word or close typo, just update UI (red text if mismatch)
           setState(() {});
         }
       }
