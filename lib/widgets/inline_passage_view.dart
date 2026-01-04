@@ -107,6 +107,7 @@ class InlinePassageView extends StatelessWidget {
                       currentInput,
                       key: const Key('typed_text'),
                       style: RedLetterTypography.passageBody.copyWith(
+                        fontSize: 28, // Explicitly set to match passageBody
                         color: isInputValid
                             ? RedLetterColors.accent
                             : RedLetterColors.error,
