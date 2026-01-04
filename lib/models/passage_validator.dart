@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class PassageValidator {
   PassageValidator._();
 
@@ -16,7 +18,17 @@ class PassageValidator {
   /// without needing to type punctuation characters.
   static bool isStrictMatch(String target, String input) {
     if (input.isEmpty) return false;
-    return _normalizeLenient(target) == _normalizeLenient(input);
+    final normalizedTarget = _normalizeLenient(target);
+    final normalizedInput = _normalizeLenient(input);
+    final isMatch = normalizedTarget == normalizedInput;
+
+    if (!isMatch) {
+      debugPrint(
+        'PassageValidator Failed: Expected="$normalizedTarget", Received="$normalizedInput"',
+      );
+    }
+
+    return isMatch;
   }
 
   /// Checks if the input is a valid prefix of the target.

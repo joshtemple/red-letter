@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/clause_segmentation.dart';
 
@@ -308,9 +309,19 @@ class ClozeOcclusion {
     // Only apply if lengths are close (prevents accepting completely wrong words)
     if ((cleanInput.length - hiddenWord.length).abs() <= 1) {
       final distance = _levenshtein(hiddenWord, cleanInput);
+      if (distance > maxDistance) {
+        debugPrint(
+          'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
+          'Received="$cleanInput" ($input), Distance=$distance (Max=$maxDistance)',
+        );
+      }
       return distance <= maxDistance;
     }
 
+    debugPrint(
+      'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
+      'Received="$cleanInput" ($input), Length Mismatch',
+    );
     return false;
   }
 
