@@ -14,33 +14,65 @@ class PassageValidator {
 
   /// Checks if the input matches the target text strictly.
   /// Compares based on words only - ignores case, punctuation, and extra whitespace.
-  /// This allows users to type "Love your enemies" to match "Love your enemies."
-  /// without needing to type punctuation characters.
+  /// Uses the same robust validation as ClozeOcclusion (Levenshtein distance <= 1).
   static bool isStrictMatch(String target, String input) {
     if (input.isEmpty) return false;
-    final normalizedTarget = _normalizeLenient(target);
-    final normalizedInput = _normalizeLenient(input);
-    final isMatch = normalizedTarget == normalizedInput;
 
-    if (!isMatch) {
+    // Tokenize target and input into words
+    final targetWords = _tokenize(target);
+    final inputWords = _tokenize(input);
+
+    if (targetWords.length != inputWords.length) {
       debugPrint(
-        'PassageValidator Failed: Expected="$normalizedTarget", Received="$normalizedInput"',
+        'PassageValidator Failed: Word count mismatch. Expected=${targetWords.length}, Received=${inputWords.length}',
       );
+      return false;
     }
 
-    return isMatch;
+    for (int i = 0; i < targetWords.length; i++) {
+      if (!isWordMatch(targetWords[i], inputWords[i])) {
+        debugPrint(
+          'PassageValidator Failed at word $i: Expected="${targetWords[i]}", Received="${inputWords[i]}"',
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Checks if two words match strictly (clean + levenshtein).
+  static bool isWordMatch(
+    String targetWord,
+    String inputWord, {
+    int maxDistance = 1,
+  }) {
+    final cleanTarget = cleanWord(targetWord);
+    final cleanInput = cleanWord(inputWord);
+
+    if (cleanTarget.isEmpty) return false; // Should not happen with _tokenize
+
+    // Exact match
+    if (cleanTarget == cleanInput) return true;
+
+    // Typo tolerance
+    if ((cleanInput.length - cleanTarget.length).abs() <= 1) {
+      final distance = levenshtein(cleanTarget, cleanInput);
+      return distance <= maxDistance;
+    }
+
+    return false;
+  }
+
+  /// Tokenizes text into words, removing empty ones.
+  static List<String> _tokenize(String text) {
+    return text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
   }
 
   /// Checks if the input is a valid prefix of the target.
   static bool isValidPrefix(String target, String input) {
     if (input.isEmpty) return true;
-    // We use a prefix-friendly normalization (don't trim end of input to allow space check?)
-    // Actually, _normalizeLenient trims.
-    // If input is "Love ", normalized is "love". "love" is prefix of "love your".
-    // But "Love x" -> "love x". Not prefix.
-    // Issue: "Love " matches "Love". User thinks they are done with word.
-    // If we want detailed prefix check, we should retain spaces in input normalization if in middle?
-    // _normalizeLenient replaces \s+ with ' '.
+    // Prefix check using normalized strings
     final nTarget = _normalizeLenient(target);
     final nInput = _normalizeLenient(input);
     return nTarget.startsWith(nInput);
@@ -48,26 +80,13 @@ class PassageValidator {
 
   /// Returns the next word from the target that follows the input.
   static String getNextHint(String target, String input) {
-    // Simple implementation: split target, see how many words input covers.
-    // This is tricky with fuzzy matching.
-    // A robust way: find the length of the matching prefix in target?
-    // Or just normalization.
-
     final nTarget = _normalizeLenient(target);
     final nInput = _normalizeLenient(input);
 
     if (!nTarget.startsWith(nInput)) {
-      // Input is wrong, provide hint for start?
-      // Or first word.
       final words = nTarget.split(' ');
       return words.isNotEmpty ? words.first : '';
     }
-
-    // Input matches.
-    // Example: Target "love your enemies"
-    // Input "love" -> nInput "love".
-    // Remaining: " your enemies".
-    // Next word: "your".
 
     final remaining = nTarget.substring(nInput.length).trimLeft();
     final words = remaining.split(' ');
@@ -79,10 +98,46 @@ class PassageValidator {
 
   static String _normalizeLenient(String text) {
     // Remove punctuation, keep alphanumeric, collapse whitespace, lowercase
-    return text
-        .toLowerCase()
+    return cleanWord(text).replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
+  /// Cleans a string by removing punctuation and symbols, and converting to lowercase.
+  static String cleanWord(String word) {
+    return word
         .replaceAll(RegExp(r'[\p{P}\p{S}]', unicode: true), '')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+        .toLowerCase();
+  }
+
+  /// Calculates Levenshtein edit distance between two strings.
+  static int levenshtein(String s, String t) {
+    if (s == t) return 0;
+    if (s.isEmpty) return t.length;
+    if (t.isEmpty) return s.length;
+
+    List<int> v0 = List<int>.filled(t.length + 1, 0);
+    List<int> v1 = List<int>.filled(t.length + 1, 0);
+
+    for (int i = 0; i < t.length + 1; i++) {
+      v0[i] = i;
+    }
+
+    for (int i = 0; i < s.length; i++) {
+      v1[0] = i + 1;
+
+      for (int j = 0; j < t.length; j++) {
+        int cost = (s.codeUnitAt(i) == t.codeUnitAt(j)) ? 0 : 1;
+        v1[j + 1] = [
+          v1[j] + 1,
+          v0[j + 1] + 1,
+          v0[j] + cost,
+        ].reduce((a, b) => a < b ? a : b);
+      }
+
+      for (int j = 0; j < t.length + 1; j++) {
+        v0[j] = v1[j];
+      }
+    }
+
+    return v1[t.length];
   }
 }

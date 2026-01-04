@@ -40,11 +40,9 @@ void main() {
       const unicodeTarget = 'Agapé: God’s love.'; // Smart quote, accented e
       expect(
         PassageValidator.isStrictMatch(unicodeTarget, 'Agape Gods love'),
-        isFalse,
-      ); // Strict match should distinct e and é?
-      // Wait, standard _normalizeLenient only removes punctuation/symbols.
-      // It does NOT perform unicode normalization (e.g. é -> e).
-      // So 'Agapé' != 'Agape'. User must type accent.
+        isTrue,
+      ); // Fuzzy match allows Agapé -> Agape (distance 1)
+
       expect(
         PassageValidator.isStrictMatch(unicodeTarget, 'Agapé Gods love'),
         isTrue,

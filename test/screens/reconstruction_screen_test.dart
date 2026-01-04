@@ -92,14 +92,12 @@ void main() {
       // Actually, strict match requires words to match.
       // "Agapé" vs "Agape".
       // Our new Validator uses \p{P} to strip punctuation.
-      // So '“Agapé”' -> 'agapé'.
-      // Input 'Agape' -> 'agape'. 'agapé' != 'agape'.
-      // So user MUST type accented e.
+      // Fuzzy matching allows 'agapé' == 'agape' (distance 1)
 
-      // Try typing without accent
+      // Try typing without accent (should pass with fuzzy match)
       await tester.enterText(find.byType(TextField), '"Agape" means love');
       await tester.pump();
-      expect(tester.widget<ElevatedButton>(button).enabled, isFalse);
+      expect(tester.widget<ElevatedButton>(button).enabled, isTrue);
 
       // Try typing WITH accent
       await tester.enterText(find.byType(TextField), '"Agapé" means love');

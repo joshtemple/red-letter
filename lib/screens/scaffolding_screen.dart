@@ -81,8 +81,8 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
 
       // Evaluate only when length matches target (or exceeds)
       if (input.length >= requiredLength) {
-        // 1. Success: strict match
-        if (_occlusion.checkWord(targetIndex, input, maxDistance: 0)) {
+        // 1. Success: strict match (with tolerance)
+        if (_occlusion.checkWord(targetIndex, input)) {
           _isSuccessProcessing = true;
           final next = _occlusion.revealIndices({targetIndex});
 

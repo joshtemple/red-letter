@@ -46,7 +46,7 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
     final requiredLength = occlusion.getMatchingLength(targetIndex);
     if (input.length < requiredLength) return true;
 
-    return occlusion.checkWord(targetIndex, input, maxDistance: 0);
+    return occlusion.checkWord(targetIndex, input);
   }
 
   void handleInputChange({
@@ -64,7 +64,7 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
 
     final targetIndex = currentOcclusion.firstHiddenIndex;
     if (targetIndex != null) {
-      if (currentOcclusion.checkWord(targetIndex, input, maxDistance: 0)) {
+      if (currentOcclusion.checkWord(targetIndex, input)) {
         // Match found!
         isSuccessProcessing = true;
         final nextOcclusion = currentOcclusion.revealIndices({targetIndex});

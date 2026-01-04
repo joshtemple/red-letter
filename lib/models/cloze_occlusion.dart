@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/clause_segmentation.dart';
+import 'package:red_letter/models/passage_validator.dart';
 
 /// The mode/round of cloze practice in the acquisition ladder.
 enum ClozeRound {
@@ -184,10 +185,7 @@ class ClozeOcclusion {
       final word = passage.words[wordIndex].toLowerCase();
 
       // Remove punctuation for comparison
-      final cleanWord = word.replaceAll(
-        RegExp(r'[\p{P}\p{S}]', unicode: true),
-        '',
-      );
+      final cleanWord = PassageValidator.cleanWord(word);
 
       if (cleanWord.isNotEmpty && !trivialWords.contains(cleanWord)) {
         contentIndices.add(wordIndex);
@@ -295,74 +293,24 @@ class ClozeOcclusion {
   ///
   /// Accepts exact matches and close typos (Levenshtein distance <= 1).
   bool checkWord(int index, String input, {int maxDistance = 1}) {
-    if (!hiddenIndices.contains(index)) return false;
-
-    final hiddenWord = _cleanWord(passage.words[index]);
-    final cleanInput = _cleanWord(input);
-
-    if (hiddenWord.isEmpty) return false;
-
-    // Exact match
-    if (hiddenWord == cleanInput) return true;
-
-    // Typo tolerance: allow small Levenshtein distance
-    // Only apply if lengths are close (prevents accepting completely wrong words)
-    if ((cleanInput.length - hiddenWord.length).abs() <= 1) {
-      final distance = _levenshtein(hiddenWord, cleanInput);
-      if (distance > maxDistance) {
-        debugPrint(
-          'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
-          'Received="$cleanInput" ($input), Distance=$distance (Max=$maxDistance)',
-        );
-      }
-      return distance <= maxDistance;
-    }
-
-    debugPrint(
-      'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
-      'Received="$cleanInput" ($input), Length Mismatch',
+    // Use PassageValidator for robust word matching
+    final isMatch = PassageValidator.isWordMatch(
+      passage.words[index],
+      input,
+      maxDistance: maxDistance,
     );
-    return false;
-  }
 
-  String _cleanWord(String word) {
-    // Strip punctuation and symbols, preserve letters and numbers.
-    return word
-        .replaceAll(RegExp(r'[\p{P}\p{S}]', unicode: true), '')
-        .toLowerCase();
-  }
+    if (!isMatch) {
+      final hiddenWord = PassageValidator.cleanWord(passage.words[index]);
+      final cleanInput = PassageValidator.cleanWord(input);
 
-  /// Calculates Levenshtein edit distance between two strings.
-  int _levenshtein(String s, String t) {
-    if (s == t) return 0;
-    if (s.isEmpty) return t.length;
-    if (t.isEmpty) return s.length;
-
-    List<int> v0 = List<int>.filled(t.length + 1, 0);
-    List<int> v1 = List<int>.filled(t.length + 1, 0);
-
-    for (int i = 0; i < t.length + 1; i++) {
-      v0[i] = i;
+      debugPrint(
+        'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
+        'Received="$cleanInput" ($input)',
+      );
     }
 
-    for (int i = 0; i < s.length; i++) {
-      v1[0] = i + 1;
-
-      for (int j = 0; j < t.length; j++) {
-        int cost = (s.codeUnitAt(i) == t.codeUnitAt(j)) ? 0 : 1;
-        v1[j + 1] = [
-          v1[j] + 1,
-          v0[j + 1] + 1,
-          v0[j] + cost,
-        ].reduce((a, b) => a < b ? a : b);
-      }
-
-      for (int j = 0; j < t.length + 1; j++) {
-        v0[j] = v1[j];
-      }
-    }
-
-    return v1[t.length];
+    return isMatch;
   }
 
   /// Returns the percentage of words that are visible (0.0 to 1.0).

@@ -119,36 +119,15 @@ void main() {
         ),
       );
 
-      // 1. Type "Agape" (without accent) -> Should NOT match (because strict match requires accent on content)
-      // Actually, wait. My new _cleanWord logic removes PUNCTUATION/SYMBOLS.
-      // But it does NOT normalize accents (e.g. é -> e).
-      // So Agapé != Agape.
-      // So 'Agape' should be incorrect.
+      // 1. Type "Agape" (without accent)
+      // New logic uses fuzzy matching (distance 1), so 'Agape' matches 'Agapé'.
       await tester.enterText(find.byType(TextField), 'Agape');
       await tester.pump();
 
-      // Should be error
-      expect(find.byKey(const Key('typed_text')), findsOneWidget);
-      final textWidget = tester.widget<Text>(
-        find.byKey(const Key('typed_text')),
-      );
-      expect(textWidget.style?.color, RedLetterColors.error);
-
-      // Wait for clear
-      await tester.pump(const Duration(milliseconds: 400));
-
-      // 2. Type "Agapé" (with accent) -> Should match
-      await tester.enterText(find.byType(TextField), 'Agapé');
-      await tester.pump();
-
-      // Should be accepted and input cleared
-      expect(
-        find.text('Agapé'),
-        findsNothing,
-      ); // Should be cleared from input (or moved effectively)
-      // Wait, InlinePassageView renders the input. If it matched, it gets cleared.
-      // But let's check input controller.
+      // Should be accepted and input cleared immediately (or after microtask)
       final textField = tester.widget<TextField>(find.byType(TextField));
+      // Give time for clear
+      await tester.pump(const Duration(milliseconds: 100));
       expect(textField.controller?.text, isEmpty);
     });
   });
