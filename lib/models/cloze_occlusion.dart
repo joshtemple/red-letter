@@ -183,7 +183,10 @@ class ClozeOcclusion {
       final word = passage.words[wordIndex].toLowerCase();
 
       // Remove punctuation for comparison
-      final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '');
+      final cleanWord = word.replaceAll(
+        RegExp(r'[\p{P}\p{S}]', unicode: true),
+        '',
+      );
 
       if (cleanWord.isNotEmpty && !trivialWords.contains(cleanWord)) {
         contentIndices.add(wordIndex);
@@ -254,14 +257,16 @@ class ClozeOcclusion {
   static ({String prefix, String content, String suffix}) parseWordParts(
     String word,
   ) {
-    final startIndex = word.indexOf(RegExp(r'\w'));
+    // Matches any letter or number (unicode aware)
+    final alphaNum = RegExp(r'[\p{L}\p{N}]', unicode: true);
+    final startIndex = word.indexOf(alphaNum);
 
     if (startIndex == -1) {
       // No alphanumeric characters (e.g. "...")
       return (prefix: word, content: '', suffix: '');
     }
 
-    final endIndex = word.lastIndexOf(RegExp(r'\w'));
+    final endIndex = word.lastIndexOf(alphaNum);
 
     final prefix = word.substring(0, startIndex);
     final content = word.substring(startIndex, endIndex + 1);
@@ -310,7 +315,10 @@ class ClozeOcclusion {
   }
 
   String _cleanWord(String word) {
-    return word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
+    // Strip punctuation and symbols, preserve letters and numbers.
+    return word
+        .replaceAll(RegExp(r'[\p{P}\p{S}]', unicode: true), '')
+        .toLowerCase();
   }
 
   /// Calculates Levenshtein edit distance between two strings.

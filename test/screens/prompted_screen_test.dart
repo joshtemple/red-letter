@@ -103,5 +103,53 @@ void main() {
         lessThan(1.0),
       ); // Lighter contrast (0.3 in impl)
     });
+    testWidgets('should validate unicode/accented words correctly', (
+      tester,
+    ) async {
+      final uniPassage = Passage.fromText(
+        id: '2',
+        text: '“Agapé” means love.',
+        reference: 'Ref',
+      );
+      final uniState = PracticeState.initial(uniPassage);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: PromptedScreen(state: uniState, onContinue: (val) {}),
+        ),
+      );
+
+      // 1. Type "Agape" (without accent) -> Should NOT match (because strict match requires accent on content)
+      // Actually, wait. My new _cleanWord logic removes PUNCTUATION/SYMBOLS.
+      // But it does NOT normalize accents (e.g. é -> e).
+      // So Agapé != Agape.
+      // So 'Agape' should be incorrect.
+      await tester.enterText(find.byType(TextField), 'Agape');
+      await tester.pump();
+
+      // Should be error
+      expect(find.byKey(const Key('typed_text')), findsOneWidget);
+      final textWidget = tester.widget<Text>(
+        find.byKey(const Key('typed_text')),
+      );
+      expect(textWidget.style?.color, RedLetterColors.error);
+
+      // Wait for clear
+      await tester.pump(const Duration(milliseconds: 400));
+
+      // 2. Type "Agapé" (with accent) -> Should match
+      await tester.enterText(find.byType(TextField), 'Agapé');
+      await tester.pump();
+
+      // Should be accepted and input cleared
+      expect(
+        find.text('Agapé'),
+        findsNothing,
+      ); // Should be cleared from input (or moved effectively)
+      // Wait, InlinePassageView renders the input. If it matched, it gets cleared.
+      // But let's check input controller.
+      final textField = tester.widget<TextField>(find.byType(TextField));
+      expect(textField.controller?.text, isEmpty);
+    });
   });
 }
