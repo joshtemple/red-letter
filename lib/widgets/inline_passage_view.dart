@@ -14,6 +14,8 @@ class InlinePassageView extends StatelessWidget {
   final Set<int> originallyHiddenIndices;
   final int? hintedIndex;
   final bool showUnderlines;
+  final Function(int)? onWordTap; // Callback when a hidden word is tapped
+  final Set<int> revealedIndices; // Track manually revealed words
 
   const InlinePassageView({
     super.key,
@@ -26,6 +28,8 @@ class InlinePassageView extends StatelessWidget {
     required this.originallyHiddenIndices,
     this.hintedIndex,
     this.showUnderlines = true,
+    this.onWordTap,
+    this.revealedIndices = const {},
   });
 
   @override
@@ -46,76 +50,87 @@ class InlinePassageView extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.baseline,
             baseline: TextBaseline.alphabetic,
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                // Reserve EXACT space of the target word
-                Text(
-                  targetWord,
-                  style: RedLetterTypography.passageBody.copyWith(
-                    color: Colors.transparent,
-                  ),
-                ),
-                // Drawn line at the bottom
-                // Drawn line at the bottom
-                if (showUnderlines || isIndexActive)
-                  Positioned(
-                    bottom: 2,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 2.0,
-                      decoration: BoxDecoration(
-                        color: isIndexActive
-                            ? (isInputValid
-                                  ? RedLetterColors.accent.withOpacity(
-                                      pulseAnimation.value,
-                                    )
-                                  : RedLetterColors.error)
-                            : RedLetterColors.divider.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                  ),
-                // Hint text (faded in)
-                if (isHinted)
-                  TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: 0.0, end: 1.0),
-                    duration: const Duration(milliseconds: 500),
-                    builder: (context, opacity, child) {
-                      return Opacity(opacity: opacity, child: child);
-                    },
-                    child: Text(
-                      targetWord,
-                      key: const Key('hint_text'),
-                      style: RedLetterTypography.passageBody.copyWith(
-                        color: RedLetterColors.secondaryText.withOpacity(0.3),
-                      ),
-                    ),
-                  ),
-                // Currently typed text for active word
-                if (isIndexActive)
+            child: GestureDetector(
+              onTap: onWordTap != null && !isIndexActive
+                  ? () => onWordTap!(i)
+                  : null,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  // Reserve EXACT space of the target word
                   Text(
-                    currentInput,
-                    key: const Key('typed_text'),
+                    targetWord,
                     style: RedLetterTypography.passageBody.copyWith(
-                      color: isInputValid
-                          ? RedLetterColors.accent
-                          : RedLetterColors.error,
+                      color: Colors.transparent,
                     ),
                   ),
-              ],
+                  // Drawn line at the bottom
+                  // Drawn line at the bottom
+                  if (showUnderlines || isIndexActive)
+                    Positioned(
+                      bottom: 2,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 2.0,
+                        decoration: BoxDecoration(
+                          color: isIndexActive
+                              ? (isInputValid
+                                    ? RedLetterColors.accent.withOpacity(
+                                        pulseAnimation.value,
+                                      )
+                                    : RedLetterColors.error)
+                              : RedLetterColors.divider.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(1),
+                        ),
+                      ),
+                    ),
+                  // Hint text (faded in)
+                  if (isHinted)
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 500),
+                      builder: (context, opacity, child) {
+                        return Opacity(opacity: opacity, child: child);
+                      },
+                      child: Text(
+                        targetWord,
+                        key: const Key('hint_text'),
+                        style: RedLetterTypography.passageBody.copyWith(
+                          color: RedLetterColors.secondaryText.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+                  // Currently typed text for active word
+                  if (isIndexActive)
+                    Text(
+                      currentInput,
+                      key: const Key('typed_text'),
+                      style: RedLetterTypography.passageBody.copyWith(
+                        color: isInputValid
+                            ? RedLetterColors.accent
+                            : RedLetterColors.error,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
       } else {
         // Visible (revealed or originally visible)
         final wasHidden = originallyHiddenIndices.contains(i);
+        final wasRevealed = revealedIndices.contains(i);
+
         spans.add(
           TextSpan(
             text: words[i],
             style: RedLetterTypography.passageBody.copyWith(
-              color: wasHidden ? RedLetterColors.correct : null,
+              // Revealed words: neutral/secondary color
+              // Correctly typed words: green
+              color: wasRevealed
+                  ? RedLetterColors.secondaryText
+                  : (wasHidden ? RedLetterColors.correct : null),
             ),
           ),
         );
