@@ -264,11 +264,12 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           ),
         ),
       ),
-          // Lives indicator overlay in top-right
+          // Lives indicator overlay in top-right (aligned with AppBar)
           Positioned(
-            top: 8,
+            top: 0,
             right: 16,
             child: SafeArea(
+              minimum: const EdgeInsets.only(top: 12),
               child: Row(
                 children: [
                   Icon(
