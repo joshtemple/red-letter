@@ -243,18 +243,7 @@ class _SessionScreenState extends State<SessionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: RedLetterColors.secondaryText),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          '${_controller!.currentIndex + 1} / ${_controller!.totalCount}',
-          style: const TextStyle(
-            color: RedLetterColors.secondaryText,
-            fontSize: 14,
-          ),
-        ),
-        centerTitle: true,
+        foregroundColor: RedLetterColors.secondaryText,
       ),
       body: PracticeSessionView(
         // Use key to force rebuild when mode or passage changes
