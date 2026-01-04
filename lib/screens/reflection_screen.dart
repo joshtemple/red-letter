@@ -8,13 +8,11 @@ import 'package:red_letter/widgets/practice_footer.dart';
 class ReflectionScreen extends StatefulWidget {
   final PracticeState state;
   final ValueChanged<String> onContinue;
-  final VoidCallback onReset;
 
   const ReflectionScreen({
     super.key,
     required this.state,
     required this.onContinue,
-    required this.onReset,
   });
 
   @override
@@ -96,7 +94,6 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                 ),
               ),
               PracticeFooter(
-                onReset: widget.onReset,
                 onContinue: () => widget.onContinue(_controller.text),
                 continueEnabled: _canContinue,
               ),

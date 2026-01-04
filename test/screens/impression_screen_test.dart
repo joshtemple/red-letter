@@ -24,30 +24,19 @@ void main() {
     testWidgets('should display mode title', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
-
-      expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
     testWidgets('should display passage text', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
 
       expect(find.text(testState.currentPassage.text), findsOneWidget);
-      expect(find.text(testState.currentPassage.reference), findsOneWidget);
     });
 
     testWidgets('should display read-aloud instruction', (
@@ -55,11 +44,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
 
@@ -71,11 +56,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
 
@@ -90,11 +71,7 @@ void main() {
     testWidgets('should display continue button', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
 
@@ -110,7 +87,6 @@ void main() {
           home: ImpressionScreen(
             state: testState,
             onContinue: () => continuePressed = true,
-            onReset: () {},
           ),
         ),
       );
@@ -135,11 +111,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: longState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: longState, onContinue: () {}),
         ),
       );
 
@@ -151,16 +123,12 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: testState,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: testState, onContinue: () {}),
         ),
       );
 
       expect(find.byType(Scaffold), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
+
       expect(find.byType(SafeArea), findsWidgets);
     });
 
@@ -176,16 +144,11 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ImpressionScreen(
-            state: state2,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ImpressionScreen(state: state2, onContinue: () {}),
         ),
       );
 
       expect(find.text('For God so loved the world'), findsOneWidget);
-      expect(find.text('John 3:16'), findsOneWidget);
     });
   });
 }

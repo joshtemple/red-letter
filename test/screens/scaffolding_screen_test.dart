@@ -20,14 +20,16 @@ void main() {
       final state = PracticeState.initial(
         passage,
       ).copyWith(currentMode: PracticeMode.randomWords);
-      final occlusion = ClozeOcclusion.randomWordPerClause(passage: passage, seed: 42);
+      final occlusion = ClozeOcclusion.randomWordPerClause(
+        passage: passage,
+        seed: 42,
+      );
 
       await tester.pumpWidget(
         MaterialApp(
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -51,7 +53,6 @@ void main() {
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -83,7 +84,6 @@ void main() {
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -117,7 +117,6 @@ void main() {
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -159,7 +158,6 @@ void main() {
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -201,7 +199,6 @@ void main() {
             home: ScaffoldingScreen(
               state: state,
               onContinue: () => continuePressed = true,
-              onReset: () {},
               occlusion: occlusion,
             ),
           ),
@@ -240,7 +237,6 @@ void main() {
           home: ScaffoldingScreen(
             state: state,
             onContinue: () {},
-            onReset: () {},
             occlusion: occlusion,
           ),
         ),
@@ -256,5 +252,39 @@ void main() {
       // Ideally we check visually that the underline is still there, but that requires finding the Paint/Container which is detail-heavy.
       // For now, trusting the input state is preserved and not cleared is enough proxy.
     });
+
+    testWidgets(
+      'should validate words with punctuation correctly using strict subset matching',
+      (WidgetTester tester) async {
+        final passage = PassageBuilder().withText('Hello, world!').build();
+
+        // Occlude 'Hello,' (index 0)
+        final occlusion = ClozeOcclusion.manual(
+          passage: passage,
+          hiddenIndices: {0},
+        );
+
+        final state = PracticeState.initial(passage);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: ScaffoldingScreen(
+              state: state,
+              onContinue: () {},
+              occlusion: occlusion,
+            ),
+          ),
+        );
+
+        final page = ScaffoldingPage(tester);
+
+        // 1. Type "Hello" (5 chars). The comma is punctuation, so input length 5 should match content length 5.
+        // The validator should accept "Hello" against "Hello," because validation is on CONTENT.
+        await page.enterText('Hello');
+
+        // Should be accepted and cleared
+        page.expectInputCleared();
+      },
+    );
   });
 }

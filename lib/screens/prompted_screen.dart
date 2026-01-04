@@ -4,20 +4,18 @@ import 'package:red_letter/mixins/typing_practice_mixin.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
-import 'package:red_letter/theme/typography.dart';
+
 import 'package:red_letter/widgets/practice_footer.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
 
 class PromptedScreen extends StatefulWidget {
   final PracticeState state;
   final Function(String) onContinue;
-  final VoidCallback onReset;
 
   const PromptedScreen({
     super.key,
     required this.state,
     required this.onContinue,
-    required this.onReset,
   });
 
   @override
@@ -72,10 +70,6 @@ class _PromptedScreenState extends State<PromptedScreen>
 
     // Return focus to the input immediately so typing can continue
     focusNode.requestFocus();
-  }
-
-  bool get _isComplete {
-    return _occlusion.visibleRatio >= 1.0;
   }
 
   @override
@@ -150,13 +144,7 @@ class _PromptedScreenState extends State<PromptedScreen>
                     ),
                   ),
                 ),
-                PracticeFooter(
-                  onReset: widget.onReset,
-                  onContinue: () =>
-                      widget.onContinue(widget.state.currentPassage.text),
-                  onHint: _showHint,
-                  continueEnabled: _isComplete,
-                ),
+                PracticeFooter(onContinue: null, onHint: _showHint),
               ],
             ),
           ),

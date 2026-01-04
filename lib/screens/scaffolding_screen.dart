@@ -7,14 +7,12 @@ import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 
-import 'package:red_letter/widgets/practice_footer.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
 import 'package:red_letter/utils/levenshtein.dart';
 
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
-  final VoidCallback onReset;
   final ClozeOcclusion? occlusion;
   final ValueChanged<int>? onLivesChange;
 
@@ -22,7 +20,6 @@ class ScaffoldingScreen extends StatefulWidget {
     super.key,
     required this.state,
     required this.onContinue,
-    required this.onReset,
     this.occlusion,
     this.onLivesChange,
   });
@@ -69,10 +66,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       default:
         return ClozeOcclusion.randomWordPerClause(passage: passage);
     }
-  }
-
-  bool get _isComplete {
-    return _occlusion.visibleRatio >= 1.0;
   }
 
   void _onInputChange(String input) {
@@ -292,11 +285,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                       ],
                     ),
                   ),
-                ),
-                PracticeFooter(
-                  onReset: widget.onReset,
-                  onContinue: widget.onContinue,
-                  continueEnabled: _isComplete,
                 ),
               ],
             ),

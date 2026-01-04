@@ -3,7 +3,6 @@ import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 
 class PracticeFooter extends StatelessWidget {
-  final VoidCallback onReset;
   final VoidCallback? onContinue;
   final VoidCallback? onHint;
   final bool continueEnabled;
@@ -11,7 +10,6 @@ class PracticeFooter extends StatelessWidget {
 
   const PracticeFooter({
     super.key,
-    required this.onReset,
     this.onContinue,
     this.onHint,
     this.continueEnabled = true,
@@ -24,25 +22,6 @@ class PracticeFooter extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 32.0, top: 24.0),
       child: Row(
         children: [
-          // Reset Button
-          Expanded(
-            flex: 1,
-            child: SizedBox(
-              height: 56,
-              child: OutlinedButton(
-                key: const Key('reset_button'),
-                onPressed: onReset,
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: RedLetterColors.divider),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  foregroundColor: RedLetterColors.secondaryText,
-                ),
-                child: const Icon(Icons.refresh),
-              ),
-            ),
-          ),
           if (onContinue != null) ...[
             const SizedBox(width: 12),
             // Continue Button

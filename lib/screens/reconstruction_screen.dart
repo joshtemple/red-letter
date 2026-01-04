@@ -8,13 +8,11 @@ import 'package:red_letter/widgets/practice_footer.dart';
 class ReconstructionScreen extends StatefulWidget {
   final PracticeState state;
   final Function(String) onContinue;
-  final VoidCallback onReset;
 
   const ReconstructionScreen({
     super.key,
     required this.state,
     required this.onContinue,
-    required this.onReset,
   });
 
   @override
@@ -91,7 +89,6 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                 ),
               ),
               PracticeFooter(
-                onReset: widget.onReset,
                 onContinue: () => widget.onContinue(_userInput),
                 continueEnabled: _isComplete,
               ),

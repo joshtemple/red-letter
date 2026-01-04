@@ -22,15 +22,10 @@ void main() {
     testWidgets('should render reference and passage view', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(
-            state: state,
-            onContinue: (val) {},
-            onReset: () {},
-          ),
+          home: PromptedScreen(state: state, onContinue: (val) {}),
         ),
       );
 
-      expect(find.text('John 11:35'), findsOneWidget);
       expect(find.byKey(const Key('passage_text')), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
@@ -44,7 +39,6 @@ void main() {
           home: PromptedScreen(
             state: state,
             onContinue: (val) => continued = true,
-            onReset: () {},
           ),
         ),
       );
@@ -65,11 +59,7 @@ void main() {
     testWidgets('should show error state for incorrect input', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(
-            state: state,
-            onContinue: (val) {},
-            onReset: () {},
-          ),
+          home: PromptedScreen(state: state, onContinue: (val) {}),
         ),
       );
 
@@ -92,11 +82,7 @@ void main() {
     testWidgets('should show hint inline when requested', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(
-            state: state,
-            onContinue: (val) {},
-            onReset: () {},
-          ),
+          home: PromptedScreen(state: state, onContinue: (val) {}),
         ),
       );
 

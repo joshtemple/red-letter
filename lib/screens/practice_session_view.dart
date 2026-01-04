@@ -94,7 +94,8 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
     bool success = true;
     if (currentState.currentMode == PracticeMode.prompted ||
         currentState.currentMode == PracticeMode.reconstruction) {
-      if (input == null || !PassageValidator.isStrictMatch(widget.initialPassage.text, input)) {
+      if (input == null ||
+          !PassageValidator.isStrictMatch(widget.initialPassage.text, input)) {
         success = false;
       }
     }
@@ -138,10 +139,6 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
     widget.onComplete(metrics);
   }
 
-  void _resetDemo() {
-    _controller?.reset();
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -172,14 +169,12 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
             currentScreen = ImpressionScreen(
               state: state,
               onContinue: () => _handleStep(),
-              onReset: _resetDemo,
             );
             break;
           case PracticeMode.reflection:
             currentScreen = ReflectionScreen(
               state: state,
               onContinue: (text) => _handleStep(text),
-              onReset: _resetDemo,
             );
             break;
           case PracticeMode.randomWords:
@@ -189,7 +184,6 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
               key: ValueKey('cloze_${state.currentMode.name}'),
               state: state,
               onContinue: () => _handleStep(),
-              onReset: _resetDemo,
               onLivesChange: widget.onLivesChange,
             );
             break;
@@ -197,14 +191,12 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
             currentScreen = PromptedScreen(
               state: state,
               onContinue: (input) => _handleStep(input),
-              onReset: _resetDemo,
             );
             break;
           case PracticeMode.reconstruction:
             currentScreen = ReconstructionScreen(
               state: state,
               onContinue: (input) => _handleStep(input),
-              onReset: _resetDemo,
             );
             break;
         }

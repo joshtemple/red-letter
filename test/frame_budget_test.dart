@@ -25,11 +25,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: ScaffoldingScreen(
-            state: state,
-            onContinue: () {},
-            onReset: () {},
-          ),
+          home: ScaffoldingScreen(state: state, onContinue: () {}),
         ),
       );
 

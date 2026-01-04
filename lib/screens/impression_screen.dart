@@ -8,13 +8,11 @@ import 'package:red_letter/widgets/practice_footer.dart';
 class ImpressionScreen extends StatelessWidget {
   final PracticeState state;
   final VoidCallback onContinue;
-  final VoidCallback onReset;
 
   const ImpressionScreen({
     super.key,
     required this.state,
     required this.onContinue,
-    required this.onReset,
   });
 
   @override
@@ -54,7 +52,7 @@ class ImpressionScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              PracticeFooter(onReset: onReset, onContinue: onContinue),
+              PracticeFooter(onContinue: onContinue),
             ],
           ),
         ),
