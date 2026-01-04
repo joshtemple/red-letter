@@ -6,7 +6,7 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
-import 'package:red_letter/theme/typography.dart';
+
 import 'package:red_letter/widgets/practice_footer.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
 
@@ -15,6 +15,7 @@ class ScaffoldingScreen extends StatefulWidget {
   final VoidCallback onContinue;
   final VoidCallback onReset;
   final ClozeOcclusion? occlusion;
+  final ValueChanged<int>? onLivesChange;
 
   const ScaffoldingScreen({
     super.key,
@@ -22,6 +23,7 @@ class ScaffoldingScreen extends StatefulWidget {
     required this.onContinue,
     required this.onReset,
     this.occlusion,
+    this.onLivesChange,
   });
 
   @override
@@ -41,10 +43,14 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     _occlusion = widget.occlusion ?? _generateOcclusionForMode();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
 
+    // Report initial lives to parent
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onLivesChange?.call(_lives);
       focusNode.requestFocus();
     });
   }
+
+  // ... (omitted methods _generateOcclusionForMode, _isComplete, _onInputChange same as before)
 
   ClozeOcclusion _generateOcclusionForMode() {
     final passage = widget.state.currentPassage;
@@ -120,6 +126,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     setState(() {
       _lives--;
     });
+    widget.onLivesChange?.call(_lives);
 
     // Reveal the word as a penalty/assist
     final next = _occlusion.revealIndices({targetIndex});
@@ -150,6 +157,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       _revealedIndices.add(index);
       _lives--;
     });
+    widget.onLivesChange?.call(_lives);
 
     // Reveal the word
     final next = _occlusion.revealIndices({index});
@@ -180,6 +188,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
       _revealedIndices = {}; // Clear revealed words
     });
+    widget.onLivesChange?.call(_lives);
   }
 
   @override
@@ -188,9 +197,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
 
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      body: Stack(
-        children: [
-          SafeArea(
+      body: SafeArea(
         child: GestureDetector(
           onTap: () {
             if (!focusNode.hasFocus) {
@@ -207,7 +214,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 72),
                         SizedBox(
                           width: 1,
                           height: 1,
@@ -263,31 +269,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
             ),
           ),
         ),
-      ),
-          // Lives indicator overlay in top-right (aligned with AppBar)
-          Positioned(
-            top: 0,
-            right: 16,
-            child: SafeArea(
-              minimum: const EdgeInsets.only(top: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    _lives >= 1 ? Icons.favorite : Icons.favorite_border,
-                    color: RedLetterColors.accent,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    _lives >= 2 ? Icons.favorite : Icons.favorite_border,
-                    color: RedLetterColors.accent,
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

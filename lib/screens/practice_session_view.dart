@@ -18,6 +18,7 @@ class PracticeSessionView extends StatefulWidget {
   final PracticeMode initialMode;
   final Function(SessionMetrics) onComplete;
   final Function(PracticeMode, String?)? onStepComplete; // New callback
+  final ValueChanged<int>? onLivesChange;
 
   const PracticeSessionView({
     super.key,
@@ -26,6 +27,7 @@ class PracticeSessionView extends StatefulWidget {
     required this.initialMode,
     required this.onComplete,
     this.onStepComplete, // Optional
+    this.onLivesChange,
   });
 
   @override
@@ -194,6 +196,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
               state: state,
               onContinue: () => _handleStep(),
               onReset: _resetDemo,
+              onLivesChange: widget.onLivesChange,
             );
             break;
           case PracticeMode.prompted:

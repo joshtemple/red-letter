@@ -97,6 +97,7 @@ class _SessionScreenState extends State<SessionScreen> {
     if (mounted) {
       setState(() {
         _forcedMode = null;
+        _lives = null;
       });
     }
 
@@ -252,6 +253,31 @@ class _SessionScreenState extends State<SessionScreen> {
           ),
         ),
         centerTitle: true,
+        actions: _lives != null
+            ? [
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16.0),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _lives! >= 1 ? Icons.favorite : Icons.favorite_border,
+                          color: RedLetterColors.accent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          _lives! >= 2 ? Icons.favorite : Icons.favorite_border,
+                          color: RedLetterColors.accent,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
       body: PracticeSessionView(
         // Use key to force rebuild when mode or passage changes
@@ -261,8 +287,19 @@ class _SessionScreenState extends State<SessionScreen> {
         initialMode: _getInitialMode(),
         onComplete: _handleStepComplete,
         onStepComplete: _handleIntermediateStep,
+        onLivesChange: _updateLives,
       ),
     );
+  }
+
+  int? _lives;
+
+  void _updateLives(int lives) {
+    if (mounted) {
+      setState(() {
+        _lives = lives;
+      });
+    }
   }
 }
 
