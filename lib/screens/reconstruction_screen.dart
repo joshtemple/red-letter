@@ -60,15 +60,6 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          widget.state.currentPassage.reference,
-          style: RedLetterTypography.passageReference,
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -79,7 +70,12 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 72),
+                      const SizedBox(height: 24),
+                      Text(
+                        widget.state.currentPassage.reference,
+                        style: RedLetterTypography.passageReference,
+                      ),
+                      const SizedBox(height: 48),
                       TextField(
                         controller: _controller,
                         focusNode: _focusNode,
