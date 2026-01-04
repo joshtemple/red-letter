@@ -265,10 +265,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
         ),
       ),
           // Lives indicator overlay in top-right
-          SafeArea(
-            child: Positioned(
-              top: 8,
-              right: 16,
+          Positioned(
+            top: 8,
+            right: 16,
+            child: SafeArea(
               child: Row(
                 children: [
                   Icon(
