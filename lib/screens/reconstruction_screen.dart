@@ -70,7 +70,6 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 72),
                       TextField(
                         controller: _controller,
                         focusNode: _focusNode,

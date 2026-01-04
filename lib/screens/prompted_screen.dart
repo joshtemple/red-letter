@@ -101,7 +101,6 @@ class _PromptedScreenState extends State<PromptedScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 72),
                         // Hidden input field
                         SizedBox(
                           width: 1,
