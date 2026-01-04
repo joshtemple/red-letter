@@ -101,12 +101,7 @@ class _PromptedScreenState extends State<PromptedScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 24),
-                        Text(
-                          widget.state.currentPassage.reference,
-                          style: RedLetterTypography.passageReference,
-                        ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 72),
                         // Hidden input field
                         SizedBox(
                           width: 1,
