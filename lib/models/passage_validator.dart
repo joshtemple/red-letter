@@ -69,7 +69,7 @@ class PassageValidator {
     // Remove punctuation, keep alphanumeric, collapse whitespace, lowercase
     return text
         .toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .replaceAll(RegExp(r'[\p{P}\p{S}]', unicode: true), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }

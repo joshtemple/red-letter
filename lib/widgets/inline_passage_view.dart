@@ -146,48 +146,34 @@ class _HiddenContent extends StatelessWidget {
     return Stack(
       alignment: Alignment.centerLeft,
       children: [
-        // The Row of characters with individual underlines
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: text.characters.map((char) {
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Invisible character to reserve width
-                Text(
-                  char,
-                  style: RedLetterTypography.passageBody.copyWith(
-                    color: Colors.transparent,
-                  ),
-                ),
-                // The underline
-                if (showUnderline)
-                  Positioned(
-                    bottom: 2,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 2.0,
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? (isValid
-                                  ? RedLetterColors.accent.withOpacity(
-                                      animation.value,
-                                    )
-                                  : RedLetterColors.error)
-                            : RedLetterColors.divider.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(1),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }).toList(),
+        // 1. Invisible text to reserve exact width
+        Text(
+          text,
+          style: RedLetterTypography.passageBody.copyWith(
+            color: Colors.transparent,
+          ),
         ),
 
-        // Hint text (faded in)
+        // 2. Continuous underline
+        if (showUnderline)
+          Positioned(
+            bottom: 2,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 2.0,
+              decoration: BoxDecoration(
+                color: isActive
+                    ? (isValid
+                          ? RedLetterColors.accent.withOpacity(animation.value)
+                          : RedLetterColors.error)
+                    : RedLetterColors.divider.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(1),
+              ),
+            ),
+          ),
+
+        // 3. Hint text (faded in)
         if (isHinted)
           TweenAnimationBuilder<double>(
             tween: Tween<double>(begin: 0.0, end: 1.0),
@@ -204,13 +190,13 @@ class _HiddenContent extends StatelessWidget {
             ),
           ),
 
-        // Currently typed text for active word
+        // 4. Currently typed text for active word
         if (isActive && input.isNotEmpty)
           Text(
             input,
             key: const Key('typed_text'),
             style: RedLetterTypography.passageBody.copyWith(
-              fontSize: 28,
+              fontSize: 28, // Explicitly set to match passageBody
               color: isValid ? RedLetterColors.accent : RedLetterColors.error,
             ),
           ),
