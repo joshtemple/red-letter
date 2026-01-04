@@ -26,11 +26,6 @@ class ImpressionScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Column(
             children: [
-              const SizedBox(height: 24),
-              Text(
-                state.currentPassage.reference,
-                style: RedLetterTypography.passageReference,
-              ),
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(

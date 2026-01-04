@@ -244,6 +244,14 @@ class _SessionScreenState extends State<SessionScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: RedLetterColors.secondaryText,
+        title: Text(
+          _currentPassage!.reference,
+          style: const TextStyle(
+            color: RedLetterColors.secondaryText,
+            fontSize: 14,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: PracticeSessionView(
         // Use key to force rebuild when mode or passage changes

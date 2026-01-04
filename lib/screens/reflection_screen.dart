@@ -65,11 +65,6 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       const SizedBox(height: 24),
-                      Text(
-                        widget.state.currentPassage.reference,
-                        style: RedLetterTypography.passageReference,
-                      ),
-                      const SizedBox(height: 24),
                       PassageText(
                         passage: widget.state.currentPassage,
                         textAlign: TextAlign.start,
