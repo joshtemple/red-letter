@@ -54,16 +54,6 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          widget.state.currentPassage.reference,
-          style: RedLetterTypography.passageReference,
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -74,6 +64,11 @@ class _ReflectionScreenState extends State<ReflectionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      const SizedBox(height: 24),
+                      Text(
+                        widget.state.currentPassage.reference,
+                        style: RedLetterTypography.passageReference,
+                      ),
                       const SizedBox(height: 24),
                       PassageText(
                         passage: widget.state.currentPassage,

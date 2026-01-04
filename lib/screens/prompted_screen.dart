@@ -84,15 +84,6 @@ class _PromptedScreenState extends State<PromptedScreen>
 
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          widget.state.currentPassage.reference,
-          style: RedLetterTypography.passageReference,
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: GestureDetector(
           onTap: () {
@@ -110,7 +101,12 @@ class _PromptedScreenState extends State<PromptedScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 72),
+                        const SizedBox(height: 24),
+                        Text(
+                          widget.state.currentPassage.reference,
+                          style: RedLetterTypography.passageReference,
+                        ),
+                        const SizedBox(height: 48),
                         // Hidden input field
                         SizedBox(
                           width: 1,

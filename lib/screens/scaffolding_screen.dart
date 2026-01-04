@@ -188,36 +188,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
 
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          widget.state.currentPassage.reference,
-          style: RedLetterTypography.passageReference,
-        ),
-        centerTitle: true,
-        actions: [
-          // Lives Indicator
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Row(
-              children: [
-                Icon(
-                  _lives >= 1 ? Icons.favorite : Icons.favorite_border,
-                  color: RedLetterColors.accent,
-                  size: 20,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  _lives >= 2 ? Icons.favorite : Icons.favorite_border,
-                  color: RedLetterColors.accent,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
       // ... body ...
       body: SafeArea(
         child: GestureDetector(
@@ -236,7 +206,33 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 72),
+                        const SizedBox(height: 24),
+                        // Header with passage reference and lives
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              widget.state.currentPassage.reference,
+                              style: RedLetterTypography.passageReference,
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  _lives >= 1 ? Icons.favorite : Icons.favorite_border,
+                                  color: RedLetterColors.accent,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(
+                                  _lives >= 2 ? Icons.favorite : Icons.favorite_border,
+                                  color: RedLetterColors.accent,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 48),
                         SizedBox(
                           width: 1,
                           height: 1,

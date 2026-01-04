@@ -21,20 +21,16 @@ class ImpressionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: RedLetterColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          state.currentPassage.reference,
-          style: RedLetterTypography.passageReference,
-        ),
-        centerTitle: true,
-      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Column(
             children: [
+              const SizedBox(height: 24),
+              Text(
+                state.currentPassage.reference,
+                style: RedLetterTypography.passageReference,
+              ),
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
