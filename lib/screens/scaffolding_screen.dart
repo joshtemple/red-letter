@@ -32,6 +32,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     with TickerProviderStateMixin, TypingPracticeMixin {
   late ClozeOcclusion _occlusion;
   late Set<int> _originallyHiddenIndices;
+  Set<int> _revealedIndices = {}; // Track manually revealed words
   int _lives = 2;
 
   @override
@@ -135,6 +136,36 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     }
   }
 
+  void _handleWordTap(int index) {
+    // Ignore if already revealed or not hidden
+    if (!_occlusion.isWordHidden(index)) return;
+
+    // Clear input if tapping the active word
+    if (index == _occlusion.firstHiddenIndex) {
+      inputController.clear();
+    }
+
+    // Track as manually revealed (for neutral color)
+    setState(() {
+      _revealedIndices.add(index);
+      _lives--;
+    });
+
+    // Reveal the word
+    final next = _occlusion.revealIndices({index});
+    setState(() {
+      _occlusion = next;
+    });
+
+    if (_lives <= 0) {
+      _handleDeath();
+    } else {
+      if (next.visibleRatio >= 1.0) {
+        widget.onContinue();
+      }
+    }
+  }
+
   void _handleDeath() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -147,6 +178,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       _lives = 2;
       _occlusion = _generateOcclusionForMode();
       _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+      _revealedIndices = {}; // Clear revealed words
     });
   }
 
@@ -241,6 +273,8 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                               ),
                               pulseAnimation: pulseAnimation,
                               originallyHiddenIndices: _originallyHiddenIndices,
+                              onWordTap: _handleWordTap,
+                              revealedIndices: _revealedIndices,
                             );
                           },
                         ),
