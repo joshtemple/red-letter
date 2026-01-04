@@ -33,7 +33,7 @@ void main() {
       expect(state.completedModes.contains(PracticeMode.impression), true);
 
       state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.scaffolding);
+      expect(state.currentMode, PracticeMode.randomWords);
       expect(state.completedModes.contains(PracticeMode.reflection), true);
 
       state = state.advanceMode();
@@ -98,11 +98,11 @@ void main() {
     test('should implement copyWith correctly', () {
       final state = PracticeState.initial(testPassage);
       final copied = state.copyWith(
-        currentMode: PracticeMode.scaffolding,
+        currentMode: PracticeMode.randomWords,
         userInput: 'test',
       );
 
-      expect(copied.currentMode, PracticeMode.scaffolding);
+      expect(copied.currentMode, PracticeMode.randomWords);
       expect(copied.userInput, 'test');
       expect(copied.currentPassage, state.currentPassage);
       expect(copied.startTime, state.startTime);

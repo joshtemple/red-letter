@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 
 class InlinePassageView extends StatelessWidget {
   final Passage passage;
-  final WordOcclusion occlusion;
+  final ClozeOcclusion occlusion;
   final int? activeIndex;
   final String currentInput;
   final bool isInputValid;

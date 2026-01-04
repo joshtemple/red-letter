@@ -186,8 +186,11 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
               onReset: _resetDemo,
             );
             break;
-          case PracticeMode.scaffolding:
+          case PracticeMode.randomWords:
+          case PracticeMode.rotatingClauses:
+          case PracticeMode.firstTwoWords:
             currentScreen = ScaffoldingScreen(
+              key: ValueKey('cloze_${state.currentMode.name}'),
               state: state,
               onContinue: () => _handleStep(),
               onReset: _resetDemo,

@@ -58,7 +58,9 @@ class ClozeOcclusion {
 
       // Randomly select up to wordsPerClause words to hide
       final shuffled = List<int>.from(contentWordIndices)..shuffle(random);
-      final toHide = shuffled.take(min(wordsPerClause, contentWordIndices.length));
+      final toHide = shuffled.take(
+        min(wordsPerClause, contentWordIndices.length),
+      );
 
       hiddenIndices.addAll(toHide);
     }
@@ -104,9 +106,7 @@ class ClozeOcclusion {
   ///
   /// Shows only the first 2 words of every clause, hiding all others.
   /// This tests structural recall of the passage.
-  factory ClozeOcclusion.firstTwoWordsScaffolding({
-    required Passage passage,
-  }) {
+  factory ClozeOcclusion.firstTwoWordsScaffolding({required Passage passage}) {
     final segmentation = ClauseSegmentation.fromPassage(passage);
     final hiddenIndices = <int>{};
 
@@ -127,6 +127,23 @@ class ClozeOcclusion {
       passage: passage,
       segmentation: segmentation,
       round: ClozeRound.firstTwoWordsScaffolding,
+      hiddenIndices: hiddenIndices,
+    );
+  }
+
+  /// Creates a specific occlusion pattern (useful for Prompted Mode or testing).
+  factory ClozeOcclusion.manual({
+    required Passage passage,
+    required Set<int> hiddenIndices,
+    ClozeRound round = ClozeRound.randomWordPerClause, // Default dummy round
+  }) {
+    // Generate segmentation just to fulfill the field requirement
+    final segmentation = ClauseSegmentation.fromPassage(passage);
+
+    return ClozeOcclusion._(
+      passage: passage,
+      segmentation: segmentation,
+      round: round,
       hiddenIndices: hiddenIndices,
     );
   }
@@ -268,12 +285,7 @@ class ClozeOcclusion {
 
   @override
   int get hashCode {
-    return Object.hash(
-      passage,
-      round,
-      hiddenIndices.length,
-      hiddenClauseIndex,
-    );
+    return Object.hash(passage, round, hiddenIndices.length, hiddenClauseIndex);
   }
 
   @override

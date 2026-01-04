@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:red_letter/mixins/typing_practice_mixin.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/practice_footer.dart';
@@ -10,7 +10,7 @@ import 'package:red_letter/widgets/inline_passage_view.dart';
 
 class PromptedScreen extends StatefulWidget {
   final PracticeState state;
-  final VoidCallback onContinue;
+  final Function(String) onContinue;
   final VoidCallback onReset;
 
   const PromptedScreen({
@@ -26,7 +26,7 @@ class PromptedScreen extends StatefulWidget {
 
 class _PromptedScreenState extends State<PromptedScreen>
     with TickerProviderStateMixin, TypingPracticeMixin {
-  late WordOcclusion _occlusion;
+  late ClozeOcclusion _occlusion;
   int? _hintedIndex;
 
   @override
@@ -36,7 +36,7 @@ class _PromptedScreenState extends State<PromptedScreen>
     final allIndices = Set<int>.from(
       List.generate(widget.state.currentPassage.words.length, (i) => i),
     );
-    _occlusion = WordOcclusion.manual(
+    _occlusion = ClozeOcclusion.manual(
       passage: widget.state.currentPassage,
       hiddenIndices: allIndices,
     );
@@ -60,7 +60,7 @@ class _PromptedScreenState extends State<PromptedScreen>
           _hintedIndex = null; // Clear hint when word is matched
         });
       },
-      onComplete: widget.onContinue,
+      onComplete: () => widget.onContinue(input),
       onStateChanged: () => setState(() {}),
     );
   }
@@ -160,7 +160,8 @@ class _PromptedScreenState extends State<PromptedScreen>
                 ),
                 PracticeFooter(
                   onReset: widget.onReset,
-                  onContinue: widget.onContinue,
+                  onContinue: () =>
+                      widget.onContinue(widget.state.currentPassage.text),
                   onHint: _showHint,
                   continueEnabled: _isComplete,
                 ),

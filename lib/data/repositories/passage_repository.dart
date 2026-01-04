@@ -24,6 +24,9 @@ class PassageRepository {
   }) : _passageDAO = passageDAO,
        _progressDAO = progressDAO;
 
+  PassageDAO get passageDAO => _passageDAO;
+  UserProgressDAO get progressDAO => _progressDAO;
+
   /// Convenience factory that creates a repository from a database instance.
   ///
   /// This is the typical way to instantiate the repository in production code.

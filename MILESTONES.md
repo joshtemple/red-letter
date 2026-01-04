@@ -22,9 +22,9 @@ This plan prioritizes a vertical "thin slice" of the core Practice Engine to val
 
 **Goal:** Implement the "Silent Orchestrator" and align Practice Mode with the new Acquisition algorithm.
 
-* **FSRS Implementation:** Build the client-side FSRS logic (Stability, Difficulty, Retrievability) using the `fsrs` package.  
-* **Review Queue:** Logic to query Drift for due items and prioritize the daily practice queue.
-* **Acquisition Logic:** Refine the Practice Engine to match the new "Cloze Ladder" design (clause-based rotation vs random occlusion) and add on-demand hints.
+* **FSRS Implementation:** [x] Build the client-side FSRS logic (Stability, Difficulty, Retrievability) using the `fsrs` package.  
+* **Review Queue:** [x] Logic to query Drift for due items and prioritize the daily practice queue.
+* **Acquisition Logic:** [x] Refine the Practice Engine to match the new "Cloze Ladder" design (regression logic added) and add on-demand hints. (Note: Clause-based rotation pending).
 
 ## **Milestone 4: Identity & Compliance Gate**
 

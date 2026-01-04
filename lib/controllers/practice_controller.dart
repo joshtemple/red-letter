@@ -35,7 +35,7 @@ class PracticeController extends ValueNotifier<PracticeState> {
     PracticeMode? targetMode;
     switch (value.currentMode) {
       case PracticeMode.prompted:
-        targetMode = PracticeMode.scaffolding;
+        targetMode = PracticeMode.randomWords;
         break;
       case PracticeMode.reconstruction:
         targetMode = PracticeMode.prompted;

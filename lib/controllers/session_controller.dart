@@ -209,47 +209,56 @@ class SessionController extends ChangeNotifier {
           break;
 
         case PracticeMode.reflection:
-          // Save valid reflection text
+          // Save valid reflection text + set partial mastery
           if (metrics.userInput.isNotEmpty) {
             await _progressDAO.updateSemanticReflection(
               passageId,
               metrics.userInput,
             );
+            await _progressDAO.updateMasteryLevel(
+              passageId,
+              1,
+            ); // Reflection done
 
-            // Update in-memory card if possible to keep state sync
+            // Update in-memory card
             _updateInMemoryCard(
               passageId,
-              (p) => p.copyWith(semanticReflection: Value(metrics.userInput)),
+              (p) => p.copyWith(
+                semanticReflection: Value(metrics.userInput),
+                masteryLevel: 1,
+              ),
             );
           }
           break;
 
-        case PracticeMode.scaffolding:
-          // Completed Scaffolding -> Mastery Level 2 (Familiar)
+        case PracticeMode.randomWords:
+          // Completed Round 1 -> Mastery 2
           await _progressDAO.updateMasteryLevel(passageId, 2);
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 2));
           break;
 
-        case PracticeMode.prompted:
-          // Completed Prompted -> Mastery Level 3 (Mastered/Prompted)
+        case PracticeMode.rotatingClauses:
+          // Completed Round 2 -> Mastery 3
           await _progressDAO.updateMasteryLevel(passageId, 3);
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 3));
           break;
 
+        case PracticeMode.firstTwoWords:
+          // Completed Round 3 -> Mastery 4
+          await _progressDAO.updateMasteryLevel(passageId, 4);
+          _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 4));
+          break;
+
+        case PracticeMode.prompted:
+          // Completed Prompted -> Mastery 5
+          await _progressDAO.updateMasteryLevel(passageId, 5);
+          _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 5));
+          break;
+
         case PracticeMode.reconstruction:
-          // This is the "End of Card".
-          // The UI *should* call submitReview explicitly for the final step,
-          // OR we can delegate here.
-          // However, submitReview advances the queue.
-          // We'll assume the UI calls submitReview for the final step for now,
-          // or we can allow this method to handle it.
-          // For safety, let's treat this as a "Just in case" update or delegate.
-          // User approved plan says "PracticeController emits callbacks", so we might want to consolidate.
-          // Let's call submitReview here if it wasn't called.
-          // But submitReview requires logic about "Regression" vs "Pass".
-          // ReviewSessionController (old) had handleRegression logic in UI.
-          // We will leave Reconstruction persistence to the explicit submitReview call for now
-          // to avoid double-advancing, as submitReview handles FSRS logic.
+          // Reconstruction marks the end of the card.
+          // Persistence is handled by the explicit submitReview call in the UI
+          // to manage FSRS scheduling accurately.
           break;
       }
     } catch (e) {

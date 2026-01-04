@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:red_letter/mixins/typing_practice_mixin.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/theme/typography.dart';
 import 'package:red_letter/widgets/practice_footer.dart';
@@ -12,7 +14,7 @@ class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;
   final VoidCallback onReset;
-  final WordOcclusion? occlusion;
+  final ClozeOcclusion? occlusion;
 
   const ScaffoldingScreen({
     super.key,
@@ -28,15 +30,14 @@ class ScaffoldingScreen extends StatefulWidget {
 
 class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     with TickerProviderStateMixin, TypingPracticeMixin {
-  late WordOcclusion _occlusion;
+  late ClozeOcclusion _occlusion;
   late Set<int> _originallyHiddenIndices;
+  int _lives = 2;
 
   @override
   void initState() {
     super.initState();
-    _occlusion =
-        widget.occlusion ??
-        WordOcclusion.generate(passage: widget.state.currentPassage);
+    _occlusion = widget.occlusion ?? _generateOcclusionForMode();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -44,23 +45,108 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     });
   }
 
-  void _onInputChange(String input) {
-    handleInputChange(
-      input: input,
-      currentOcclusion: _occlusion,
-      passage: widget.state.currentPassage,
-      onWordMatched: (next) {
-        setState(() {
-          _occlusion = next;
-        });
-      },
-      onComplete: widget.onContinue,
-      onStateChanged: () => setState(() {}),
-    );
+  ClozeOcclusion _generateOcclusionForMode() {
+    final passage = widget.state.currentPassage;
+    switch (widget.state.currentMode) {
+      case PracticeMode.randomWords:
+        return ClozeOcclusion.randomWordPerClause(passage: passage);
+      case PracticeMode.rotatingClauses:
+        return ClozeOcclusion.rotatingClauseDeletion(
+          passage: passage,
+          clauseIndex: 0,
+        );
+      case PracticeMode.firstTwoWords:
+        return ClozeOcclusion.firstTwoWordsScaffolding(passage: passage);
+      default:
+        return ClozeOcclusion.randomWordPerClause(passage: passage);
+    }
   }
 
   bool get _isComplete {
     return _occlusion.visibleRatio >= 1.0;
+  }
+
+  void _onInputChange(String input) {
+    if (isProcessingError || input.isEmpty) {
+      setState(() {});
+      return;
+    }
+
+    final targetIndex = _occlusion.firstHiddenIndex;
+    if (targetIndex != null) {
+      if (_occlusion.checkWord(targetIndex, input)) {
+        // Correct input
+        final next = _occlusion.revealIndices({targetIndex});
+        inputController.clear();
+        setState(() {
+          _occlusion = next;
+        });
+
+        if (next.visibleRatio >= 1.0) {
+          widget.onContinue();
+        }
+      } else {
+        // Validate input for errors
+        final targetWord = widget.state.currentPassage.words[targetIndex];
+
+        // If input length meets or exceeds target, treat as a wrong attempt
+        if (input.length >= targetWord.length) {
+          setState(() {
+            isProcessingError = true;
+          });
+
+          // Delay penalty to allow user to see the error
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) {
+              _handleLifeLost(targetIndex);
+              setState(() {
+                isProcessingError = false;
+              });
+            }
+          });
+        } else {
+          // Incomplete word, just update UI (red text if mismatch)
+          setState(() {});
+        }
+      }
+    }
+  }
+
+  void _handleLifeLost(int targetIndex) {
+    inputController.clear();
+
+    setState(() {
+      _lives--;
+    });
+
+    // Reveal the word as a penalty/assist
+    final next = _occlusion.revealIndices({targetIndex});
+    setState(() {
+      _occlusion = next;
+    });
+
+    if (_lives <= 0) {
+      _handleDeath();
+    } else {
+      if (next.visibleRatio >= 1.0) {
+        widget.onContinue();
+      }
+    }
+  }
+
+  void _handleDeath() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Out of lives! Retrying with new pattern...'),
+      ),
+    );
+
+    // Reset with new pattern
+    setState(() {
+      _lives = 2;
+      _occlusion = _generateOcclusionForMode();
+      _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+    });
   }
 
   @override
@@ -77,7 +163,29 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           style: RedLetterTypography.passageReference,
         ),
         centerTitle: true,
+        actions: [
+          // Lives Indicator
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Row(
+              children: [
+                Icon(
+                  _lives >= 1 ? Icons.favorite : Icons.favorite_border,
+                  color: RedLetterColors.accent,
+                  size: 20,
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  _lives >= 2 ? Icons.favorite : Icons.favorite_border,
+                  color: RedLetterColors.accent,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
+      // ... body ...
       body: SafeArea(
         child: GestureDetector(
           onTap: () {

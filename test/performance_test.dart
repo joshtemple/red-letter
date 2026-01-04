@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/passage_validator.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 
 void main() {
   group('Performance Benchmarks', () {
@@ -17,21 +17,27 @@ void main() {
       reference: 'John 1:1',
     );
 
-    test('WordOcclusion.checkInput latency (simulating keystroke)', () {
-      final occlusion = WordOcclusion.generate(passage: passage);
+    test('ClozeOcclusion.checkWord latency (simulating keystroke)', () {
+      final occlusion = ClozeOcclusion.randomWordPerClause(passage: passage);
+      final firstHidden = occlusion.firstHiddenIndex;
+
+      if (firstHidden == null) return; // Should not happen with long text
+
+      final targetWord = passage.words[firstHidden];
+
       final stopWatch = Stopwatch()..start();
 
       const iterations = 1000;
       for (var i = 0; i < iterations; i++) {
-        // Simulate typing "the" which appears many times
-        occlusion.checkInput('the');
+        // Check if the target word is correct
+        occlusion.checkWord(firstHidden, targetWord);
       }
 
       stopWatch.stop();
       final avgMicros = stopWatch.elapsedMicroseconds / iterations;
 
       print(
-        'Average WordOcclusion.checkInput time: ${avgMicros.toStringAsFixed(2)} µs',
+        'Average ClozeOcclusion.checkWord time: ${avgMicros.toStringAsFixed(2)} µs',
       );
 
       // Requirement: 8-16ms (8000-16000 µs).

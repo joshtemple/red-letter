@@ -22,7 +22,11 @@ void main() {
     testWidgets('should render reference and passage view', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
+          home: PromptedScreen(
+            state: state,
+            onContinue: (val) {},
+            onReset: () {},
+          ),
         ),
       );
 
@@ -39,7 +43,7 @@ void main() {
         MaterialApp(
           home: PromptedScreen(
             state: state,
-            onContinue: () => continued = true,
+            onContinue: (val) => continued = true,
             onReset: () {},
           ),
         ),
@@ -61,7 +65,11 @@ void main() {
     testWidgets('should show error state for incorrect input', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
+          home: PromptedScreen(
+            state: state,
+            onContinue: (val) {},
+            onReset: () {},
+          ),
         ),
       );
 
@@ -84,7 +92,11 @@ void main() {
     testWidgets('should show hint inline when requested', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: PromptedScreen(state: state, onContinue: () {}, onReset: () {}),
+          home: PromptedScreen(
+            state: state,
+            onContinue: (val) {},
+            onReset: () {},
+          ),
         ),
       );
 

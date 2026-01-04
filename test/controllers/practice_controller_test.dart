@@ -45,7 +45,7 @@ void main() {
       controller.advance('My reflection');
       expect(lastCompletedStep, PracticeMode.reflection);
       expect(lastInput, 'My reflection');
-      expect(controller.value.currentMode, PracticeMode.scaffolding);
+      expect(controller.value.currentMode, PracticeMode.randomWords);
     });
 
     test('JumpTo changes mode and resets input', () {
@@ -57,7 +57,7 @@ void main() {
     test('Regress moves back correctly', () {
       controller.jumpTo(PracticeMode.prompted);
       controller.regress();
-      expect(controller.value.currentMode, PracticeMode.scaffolding);
+      expect(controller.value.currentMode, PracticeMode.randomWords);
 
       controller.jumpTo(PracticeMode.reconstruction);
       controller.regress();

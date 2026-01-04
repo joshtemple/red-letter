@@ -101,7 +101,6 @@ class _SessionScreenState extends State<SessionScreen> {
     }
 
     // Fetch passage text
-    // TODO: Ideally cache this or bulk load to avoid flickering
     final pwp = await widget.repository.getPassageWithProgress(card.passageId);
 
     if (mounted && pwp != null) {
@@ -138,7 +137,7 @@ class _SessionScreenState extends State<SessionScreen> {
       // 2. Switch UI to Scaffolding (Acquisition flow)
       if (mounted) {
         setState(() {
-          _forcedMode = PracticeMode.scaffolding;
+          _forcedMode = PracticeMode.randomWords;
         });
       }
     } else {
@@ -181,15 +180,26 @@ class _SessionScreenState extends State<SessionScreen> {
     // State 1 = Review
     // State 2 = Relearning
 
-    if (card.state == 0) {
-      // For new cards, start at Impression
-      return PracticeMode.impression;
-    } else if (card.state == 1) {
-      // For review cards, start at Reconstruction (Recitation)
+    if (card.state == 1) {
+      // Review -> Reconstruction
       return PracticeMode.reconstruction;
-    } else {
-      // Relearning (State 2) -> Scaffolding
-      return PracticeMode.scaffolding;
+    }
+
+    // Acquisition (New=0) or Relearning (Again=2)
+    // Resume based on mastery level
+    switch (card.masteryLevel) {
+      case 0:
+        return PracticeMode.impression;
+      case 1:
+        return PracticeMode.randomWords; // Resume after Reflection
+      case 2:
+        return PracticeMode.rotatingClauses; // Resume after Random Words
+      case 3:
+        return PracticeMode.firstTwoWords; // Resume after Rotating Clauses
+      case 4:
+        return PracticeMode.prompted; // Resume after First Two Words
+      default:
+        return PracticeMode.impression;
     }
   }
 

@@ -30,7 +30,7 @@ void main() {
 
       // Advance to Scaffolding
       state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.scaffolding);
+      expect(state.currentMode, PracticeMode.randomWords);
 
       // Advance to Prompted
       state = state.advanceMode();
@@ -62,18 +62,18 @@ void main() {
       final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
       var state = PracticeState.initial(
         p,
-        initialMode: PracticeMode.scaffolding,
+        initialMode: PracticeMode.randomWords,
       );
 
-      expect(state.currentMode, PracticeMode.scaffolding);
-      expect(state.sessionStartMode, PracticeMode.scaffolding);
+      expect(state.currentMode, PracticeMode.randomWords);
+      expect(state.sessionStartMode, PracticeMode.randomWords);
 
       state = state.advanceMode(); // Prompted
       expect(state.currentMode, PracticeMode.prompted);
 
       state = state.reset();
-      expect(state.currentMode, PracticeMode.scaffolding);
-      expect(state.sessionStartMode, PracticeMode.scaffolding);
+      expect(state.currentMode, PracticeMode.randomWords);
+      expect(state.sessionStartMode, PracticeMode.randomWords);
     });
   });
 }

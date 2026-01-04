@@ -7,7 +7,7 @@ import 'package:red_letter/widgets/practice_footer.dart';
 
 class ReconstructionScreen extends StatefulWidget {
   final PracticeState state;
-  final VoidCallback onContinue;
+  final Function(String) onContinue;
   final VoidCallback onReset;
 
   const ReconstructionScreen({
@@ -102,7 +102,7 @@ class _ReconstructionScreenState extends State<ReconstructionScreen> {
               ),
               PracticeFooter(
                 onReset: widget.onReset,
-                onContinue: widget.onContinue,
+                onContinue: () => widget.onContinue(_userInput),
                 continueEnabled: _isComplete,
               ),
             ],

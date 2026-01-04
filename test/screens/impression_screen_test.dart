@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/practice_mode.dart';
+
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/impression_screen.dart';
 import 'package:red_letter/widgets/passage_text.dart';

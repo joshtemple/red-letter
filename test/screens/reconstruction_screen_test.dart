@@ -23,7 +23,7 @@ void main() {
         MaterialApp(
           home: ReconstructionScreen(
             state: state,
-            onContinue: () {},
+            onContinue: (input) {},
             onReset: () {},
           ),
         ),
@@ -42,7 +42,7 @@ void main() {
         MaterialApp(
           home: ReconstructionScreen(
             state: state,
-            onContinue: () => continued = true,
+            onContinue: (input) => continued = true,
             onReset: () {},
           ),
         ),

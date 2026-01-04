@@ -25,7 +25,7 @@ class WorkingSetService {
   /// If [overrideLimit] is provided, uses that instead of the configured limit.
   Future<List<UserProgress>> getAvailableNewCards({int? overrideLimit}) {
     final limit = overrideLimit ?? newCardsPerDay;
-    return _progressDAO.getNewCards(limit: limit);
+    return _progressDAO.getPotentialNewCards(limit: limit);
   }
 
   /// Check if more new cards can be introduced today.
@@ -34,7 +34,7 @@ class WorkingSetService {
   /// new cards available within the budget. A more sophisticated version
   /// could track cards introduced per calendar day.
   Future<bool> canIntroduceMoreNewCards() async {
-    final newCards = await _progressDAO.getNewCards(limit: 1);
+    final newCards = await _progressDAO.getPotentialNewCards(limit: 1);
     return newCards.isNotEmpty;
   }
 
@@ -56,7 +56,7 @@ class WorkingSetService {
   ///
   /// Useful for UI to show "X new cards available".
   Future<int> getTotalNewCardsCount() async {
-    final newCards = await _progressDAO.getNewCards();
+    final newCards = await _progressDAO.getPotentialNewCards();
     return newCards.length;
   }
 }

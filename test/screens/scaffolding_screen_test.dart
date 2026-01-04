@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
 
 import '../utils/builders/passage_builder.dart';
@@ -19,8 +19,8 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
-      final occlusion = WordOcclusion.generate(passage: passage, seed: 42);
+      ).copyWith(currentMode: PracticeMode.randomWords);
+      final occlusion = ClozeOcclusion.randomWordPerClause(passage: passage, seed: 42);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -43,8 +43,8 @@ void main() {
       final passage = PassageBuilder().build();
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
-      final occlusion = WordOcclusion.generate(passage: passage);
+      ).copyWith(currentMode: PracticeMode.randomWords);
+      final occlusion = ClozeOcclusion.randomWordPerClause(passage: passage);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -69,14 +69,14 @@ void main() {
       final passage = PassageBuilder().withText('Love your enemies').build();
 
       // Use manual occlusion to force 'Love' (first word) to be hidden
-      final occlusion = WordOcclusion.manual(
+      final occlusion = ClozeOcclusion.manual(
         passage: passage,
         hiddenIndices: {0},
       );
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
+      ).copyWith(currentMode: PracticeMode.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -103,14 +103,14 @@ void main() {
     ) async {
       final passage = PassageBuilder().withText('Love').build();
 
-      final occlusion = WordOcclusion.manual(
+      final occlusion = ClozeOcclusion.manual(
         passage: passage,
         hiddenIndices: {0},
       );
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
+      ).copyWith(currentMode: PracticeMode.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -145,14 +145,14 @@ void main() {
       final passage = PassageBuilder().withText('Love your enemies').build();
 
       // Manual occlusion: 0 (Love) and 1 (your) are hidden
-      final occlusion = WordOcclusion.manual(
+      final occlusion = ClozeOcclusion.manual(
         passage: passage,
         hiddenIndices: {0, 1},
       );
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
+      ).copyWith(currentMode: PracticeMode.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -187,14 +187,14 @@ void main() {
 
         final passage = PassageBuilder().withText('Love God').build();
 
-        final occlusion = WordOcclusion.manual(
+        final occlusion = ClozeOcclusion.manual(
           passage: passage,
           hiddenIndices: {0, 1},
         );
 
         final state = PracticeState.initial(
           passage,
-        ).copyWith(currentMode: PracticeMode.scaffolding);
+        ).copyWith(currentMode: PracticeMode.randomWords);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -226,14 +226,14 @@ void main() {
     ) async {
       final passage = PassageBuilder().withText('Love God').build();
 
-      final occlusion = WordOcclusion.manual(
+      final occlusion = ClozeOcclusion.manual(
         passage: passage,
         hiddenIndices: {0},
       );
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.scaffolding);
+      ).copyWith(currentMode: PracticeMode.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(

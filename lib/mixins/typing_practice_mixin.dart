@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/word_occlusion.dart';
+import 'package:red_letter/models/cloze_occlusion.dart';
 
 mixin TypingPracticeMixin<T extends StatefulWidget>
     on State<T>, TickerProviderStateMixin<T> {
@@ -35,7 +35,7 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
     super.dispose();
   }
 
-  bool isInputValid(WordOcclusion occlusion, Passage passage) {
+  bool isInputValid(ClozeOcclusion occlusion, Passage passage) {
     final input = inputController.text;
     if (input.isEmpty) return true;
     final targetIndex = occlusion.firstHiddenIndex;
@@ -50,9 +50,9 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
 
   void handleInputChange({
     required String input,
-    required WordOcclusion currentOcclusion,
+    required ClozeOcclusion currentOcclusion,
     required Passage passage,
-    required Function(WordOcclusion) onWordMatched,
+    required Function(ClozeOcclusion) onWordMatched,
     required VoidCallback onComplete,
     required VoidCallback onStateChanged,
   }) {

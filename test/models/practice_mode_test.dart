@@ -6,34 +6,51 @@ void main() {
     test('should have correct display names', () {
       expect(PracticeMode.impression.displayName, 'Impression');
       expect(PracticeMode.reflection.displayName, 'Reflection');
-      expect(PracticeMode.scaffolding.displayName, 'Scaffolding');
+      expect(PracticeMode.randomWords.displayName, 'Cloze: Random Words');
+      expect(
+        PracticeMode.rotatingClauses.displayName,
+        'Cloze: Missing Clauses',
+      );
+      expect(PracticeMode.firstTwoWords.displayName, 'Cloze: First Two Words');
       expect(PracticeMode.prompted.displayName, 'Prompted');
       expect(PracticeMode.reconstruction.displayName, 'Reconstruction');
     });
 
     test('should have correct descriptions', () {
-      expect(PracticeMode.impression.description,
-          'Full text + visual mnemonic display');
-      expect(PracticeMode.reflection.description,
-          'Mandatory reflection prompt (semantic encoding)');
-      expect(PracticeMode.scaffolding.description,
-          'Variable ratio occlusion (random words hidden)');
-      expect(PracticeMode.prompted.description,
-          'Blank input with sparse prompting');
-      expect(PracticeMode.reconstruction.description,
-          'Total independent recall');
+      expect(
+        PracticeMode.impression.description,
+        'Full text + visual mnemonic display',
+      );
+      expect(
+        PracticeMode.reflection.description,
+        'Mandatory reflection prompt (semantic encoding)',
+      );
+      expect(
+        PracticeMode.randomWords.description,
+        '1-2 random non-trivial words removed per clause',
+      );
+      expect(
+        PracticeMode.rotatingClauses.description,
+        'One entire clause hidden (rotating)',
+      );
+      expect(
+        PracticeMode.firstTwoWords.description,
+        'Only the first 2 words of each clause shown',
+      );
     });
 
     test('should progress through modes in correct order', () {
       expect(PracticeMode.impression.next, PracticeMode.reflection);
-      expect(PracticeMode.reflection.next, PracticeMode.scaffolding);
-      expect(PracticeMode.scaffolding.next, PracticeMode.prompted);
+      expect(PracticeMode.reflection.next, PracticeMode.randomWords);
+      expect(PracticeMode.randomWords.next, PracticeMode.rotatingClauses);
+      expect(PracticeMode.rotatingClauses.next, PracticeMode.firstTwoWords);
+      expect(PracticeMode.firstTwoWords.next, PracticeMode.prompted);
       expect(PracticeMode.prompted.next, PracticeMode.reconstruction);
       expect(PracticeMode.reconstruction.next, null);
     });
 
-    test('should have 5 total modes', () {
-      expect(PracticeMode.values.length, 5);
+    test('should have 7 total modes', () {
+      expect(PracticeMode.values.length, 7);
     });
   });
 }

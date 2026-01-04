@@ -19,9 +19,9 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   ///
   /// Returns null if user has no progress for this passage yet.
   Future<UserProgress?> getProgressByPassageId(String passageId) {
-    return (select(userProgressTable)
-          ..where((p) => p.passageId.equals(passageId)))
-        .getSingleOrNull();
+    return (select(
+      userProgressTable,
+    )..where((p) => p.passageId.equals(passageId))).getSingleOrNull();
   }
 
   /// Get all user progress entries.
@@ -38,7 +38,9 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<List<UserProgress>> getDueForReview() {
     final now = DateTime.now();
     return (select(userProgressTable)
-          ..where((p) => p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now))
+          ..where(
+            (p) => p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now),
+          )
           ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
         .get();
   }
@@ -52,10 +54,12 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   /// Use [limit] to control working set size (e.g., 5 new cards per day).
   Future<List<UserProgress>> getNewCards({int? limit}) {
     final query = select(userProgressTable)
-      ..where((p) =>
-          p.state.equals(0) & // Learning state
-          (p.step.isNull() | p.step.equals(0)) & // Initial step
-          p.lastReviewed.isNull()) // Never reviewed
+      ..where(
+        (p) =>
+            p.state.equals(0) & // Learning state
+            (p.step.isNull() | p.step.equals(0)) & // Initial step
+            p.lastReviewed.isNull(),
+      ) // Never reviewed
       ..orderBy([(p) => OrderingTerm.asc(p.passageId)]);
 
     if (limit != null) {
@@ -63,6 +67,61 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     }
 
     return query.get();
+  }
+
+  /// Get potential new cards.
+  ///
+  /// This includes:
+  /// 1. Passages that have NO progress entry yet (unstarted)
+  /// 2. Passages with progress in learning state (0) and never reviewed
+  ///
+  /// Returns List<UserProgress>. For unstarted passages, it creates
+  /// a temporary UserProgress object with default values.
+  Future<List<UserProgress>> getPotentialNewCards({int? limit}) async {
+    // We need to join Passages with UserProgress to find null entries
+    final query = select(passages).join([
+      leftOuterJoin(
+        userProgressTable,
+        userProgressTable.passageId.equalsExp(passages.passageId),
+      ),
+    ]);
+
+    // Filter for: UserProgress is NULL OR (State=0 AND LastReviewed IS NULL)
+    query.where(
+      userProgressTable.passageId.isNull() |
+          (userProgressTable.state.equals(0) &
+              userProgressTable.lastReviewed.isNull()),
+    );
+
+    // Order by Passage ID for consistency
+    // Ideally we'd use a canonical ordering field in Passages table
+    query.orderBy([OrderingTerm.asc(passages.passageId)]);
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    final rows = await query.get();
+
+    return rows.map((row) {
+      final passage = row.readTable(passages);
+      final progress = row.readTableOrNull(userProgressTable);
+
+      if (progress != null) {
+        return progress;
+      } else {
+        // Create synthetic progress for unstarted passage
+        return UserProgress(
+          id: -1, // Synthetic ID for unpersisted progress
+          passageId: passage.passageId,
+          masteryLevel: 0,
+          stability: 0,
+          difficulty: 0,
+          state: 0,
+          step: 0,
+        );
+      }
+    }).toList();
   }
 
   /// Get cards due for review (review state only).
@@ -74,9 +133,11 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<List<UserProgress>> getDueReviewCards({int? limit}) {
     final now = DateTime.now();
     final query = select(userProgressTable)
-      ..where((p) =>
-          p.state.equals(1) & // Review state
-          p.nextReview.isSmallerThanValue(now))
+      ..where(
+        (p) =>
+            p.state.equals(1) & // Review state
+            p.nextReview.isSmallerThanValue(now),
+      )
       ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]);
 
     if (limit != null) {
@@ -94,10 +155,12 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<List<UserProgress>> getLearningCards() {
     final now = DateTime.now();
     return (select(userProgressTable)
-          ..where((p) =>
-              p.state.equals(0) & // Learning state
-              p.lastReviewed.isNotNull() & // Has been reviewed
-              (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)))
+          ..where(
+            (p) =>
+                p.state.equals(0) & // Learning state
+                p.lastReviewed.isNotNull() & // Has been reviewed
+                (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)),
+          )
           ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
         .get();
   }
@@ -110,9 +173,11 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<List<UserProgress>> getRelearningCards() {
     final now = DateTime.now();
     return (select(userProgressTable)
-          ..where((p) =>
-              p.state.equals(2) & // Relearning state
-              (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)))
+          ..where(
+            (p) =>
+                p.state.equals(2) & // Relearning state
+                (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)),
+          )
           ..orderBy([(p) => OrderingTerm.asc(p.nextReview)]))
         .get();
   }
@@ -130,9 +195,11 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
 
     // Get all due cards with state-based priority ordering
     final query = select(userProgressTable)
-      ..where((p) =>
-          (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)) &
-          p.lastReviewed.isNotNull()) // Exclude brand new cards
+      ..where(
+        (p) =>
+            (p.nextReview.isNull() | p.nextReview.isSmallerThanValue(now)) &
+            p.lastReviewed.isNotNull(),
+      ) // Exclude brand new cards
       ..orderBy([
         // Priority: relearning (2) > review (1) > learning (0)
         (p) => OrderingTerm.desc(p.state),
@@ -155,17 +222,15 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   /// - 2: Relearning
   Future<Map<int, int>> getCardCountsByState() async {
     final query = selectOnly(userProgressTable)
-      ..addColumns([
-        userProgressTable.state,
-        userProgressTable.id.count(),
-      ])
+      ..addColumns([userProgressTable.state, userProgressTable.id.count()])
       ..groupBy([userProgressTable.state]);
 
     final results = await query.get();
     return {
       for (final row in results)
-        row.read(userProgressTable.state)!:
-            row.read(userProgressTable.id.count())!
+        row.read(userProgressTable.state)!: row.read(
+          userProgressTable.id.count(),
+        )!,
     };
   }
 
@@ -173,9 +238,9 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   ///
   /// Useful for filtering practice queue by difficulty.
   Future<List<UserProgress>> getProgressByMasteryLevel(int masteryLevel) {
-    return (select(userProgressTable)
-          ..where((p) => p.masteryLevel.equals(masteryLevel)))
-        .get();
+    return (select(
+      userProgressTable,
+    )..where((p) => p.masteryLevel.equals(masteryLevel))).get();
   }
 
   /// Get count of passages at each mastery level.
@@ -192,8 +257,9 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     final results = await query.get();
     return {
       for (final row in results)
-        row.read(userProgressTable.masteryLevel)!:
-            row.read(userProgressTable.id.count())!
+        row.read(userProgressTable.masteryLevel)!: row.read(
+          userProgressTable.id.count(),
+        )!,
     };
   }
 
@@ -203,21 +269,18 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   ///
   /// Sets default values: masteryLevel=0, interval=0, repetitions=0, ease=2.5
   Future<int> createProgress(String passageId) {
-    return into(userProgressTable).insert(
-      UserProgressTableCompanion.insert(
-        passageId: passageId,
-      ),
-    );
+    return into(
+      userProgressTable,
+    ).insert(UserProgressTableCompanion.insert(passageId: passageId));
   }
 
   /// Upsert progress entry.
   ///
   /// If progress exists (same passageId), updates it. Otherwise creates new entry.
   Future<void> upsertProgress(UserProgressTableCompanion progress) async {
-    await into(userProgressTable).insert(
-      progress,
-      mode: InsertMode.insertOrReplace,
-    );
+    await into(
+      userProgressTable,
+    ).insert(progress, mode: InsertMode.insertOrReplace);
   }
 
   // ========== Update Methods ==========
@@ -228,9 +291,7 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<int> updateMasteryLevel(String passageId, int masteryLevel) {
     return (update(userProgressTable)
           ..where((p) => p.passageId.equals(passageId)))
-        .write(UserProgressTableCompanion(
-      masteryLevel: Value(masteryLevel),
-    ));
+        .write(UserProgressTableCompanion(masteryLevel: Value(masteryLevel)));
   }
 
   /// Update FSRS scheduling data after a review.
@@ -250,29 +311,30 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     required DateTime? nextReview,
   }) async {
     await transaction(() async {
-      await (update(userProgressTable)
-            ..where((p) => p.passageId.equals(passageId)))
-          .write(UserProgressTableCompanion(
-        stability: Value(stability),
-        difficulty: Value(difficulty),
-        step: Value(step),
-        state: Value(state),
-        lastReviewed: Value(lastReviewed),
-        nextReview: Value(nextReview),
-      ));
+      await (update(
+        userProgressTable,
+      )..where((p) => p.passageId.equals(passageId))).write(
+        UserProgressTableCompanion(
+          stability: Value(stability),
+          difficulty: Value(difficulty),
+          step: Value(step),
+          state: Value(state),
+          lastReviewed: Value(lastReviewed),
+          nextReview: Value(nextReview),
+        ),
+      );
     });
   }
 
   /// Update semantic reflection text.
   ///
   /// Stores the user's reflection to enforce understanding before rote practice.
-  Future<int> updateSemanticReflection(
-      String passageId, String reflection) {
-    return (update(userProgressTable)
-          ..where((p) => p.passageId.equals(passageId)))
-        .write(UserProgressTableCompanion(
-      semanticReflection: Value(reflection),
-    ));
+  Future<int> updateSemanticReflection(String passageId, String reflection) {
+    return (update(
+      userProgressTable,
+    )..where((p) => p.passageId.equals(passageId))).write(
+      UserProgressTableCompanion(semanticReflection: Value(reflection)),
+    );
   }
 
   /// Record a review event with updated FSRS and mastery data.
@@ -292,17 +354,19 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
     required DateTime? nextReview,
   }) async {
     await transaction(() async {
-      await (update(userProgressTable)
-            ..where((p) => p.passageId.equals(passageId)))
-          .write(UserProgressTableCompanion(
-        masteryLevel: Value(masteryLevel),
-        stability: Value(stability),
-        difficulty: Value(difficulty),
-        step: Value(step),
-        state: Value(state),
-        lastReviewed: Value(lastReviewed),
-        nextReview: Value(nextReview),
-      ));
+      await (update(
+        userProgressTable,
+      )..where((p) => p.passageId.equals(passageId))).write(
+        UserProgressTableCompanion(
+          masteryLevel: Value(masteryLevel),
+          stability: Value(stability),
+          difficulty: Value(difficulty),
+          step: Value(step),
+          state: Value(state),
+          lastReviewed: Value(lastReviewed),
+          nextReview: Value(nextReview),
+        ),
+      );
     });
   }
 
@@ -312,9 +376,7 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   Future<int> updateLastSync(String passageId, DateTime syncTime) {
     return (update(userProgressTable)
           ..where((p) => p.passageId.equals(passageId)))
-        .write(UserProgressTableCompanion(
-      lastSync: Value(syncTime),
-    ));
+        .write(UserProgressTableCompanion(lastSync: Value(syncTime)));
   }
 
   // ========== Delete Methods ==========
@@ -323,9 +385,9 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
   ///
   /// Note: Progress will auto-delete if the passage is deleted (CASCADE).
   Future<int> deleteProgress(String passageId) {
-    return (delete(userProgressTable)
-          ..where((p) => p.passageId.equals(passageId)))
-        .go();
+    return (delete(
+      userProgressTable,
+    )..where((p) => p.passageId.equals(passageId))).go();
   }
 
   /// Delete all user progress.
