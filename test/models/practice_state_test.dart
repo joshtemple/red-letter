@@ -37,6 +37,12 @@ void main() {
       expect(state.completedModes.contains(PracticeMode.reflection), true);
 
       state = state.advanceMode();
+      expect(state.currentMode, PracticeMode.rotatingClauses);
+
+      state = state.advanceMode();
+      expect(state.currentMode, PracticeMode.firstTwoWords);
+
+      state = state.advanceMode();
       expect(state.currentMode, PracticeMode.prompted);
 
       state = state.advanceMode();

@@ -32,6 +32,14 @@ void main() {
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.randomWords);
 
+      // Advance to Rotating Clauses
+      state = state.advanceMode();
+      expect(state.currentMode, PracticeMode.rotatingClauses);
+
+      // Advance to First Two Words
+      state = state.advanceMode();
+      expect(state.currentMode, PracticeMode.firstTwoWords);
+
       // Advance to Prompted
       state = state.advanceMode();
       expect(state.currentMode, PracticeMode.prompted);
@@ -44,7 +52,7 @@ void main() {
       state = state.advanceMode();
 
       expect(state.currentMode, PracticeMode.reconstruction);
-      expect(state.completedModes.length, 5);
+      expect(state.completedModes.length, 7);
       expect(state.completedModes, containsAll(PracticeMode.values));
     });
 
@@ -68,8 +76,8 @@ void main() {
       expect(state.currentMode, PracticeMode.randomWords);
       expect(state.sessionStartMode, PracticeMode.randomWords);
 
-      state = state.advanceMode(); // Prompted
-      expect(state.currentMode, PracticeMode.prompted);
+      state = state.advanceMode(); // Rotating Clauses
+      expect(state.currentMode, PracticeMode.rotatingClauses);
 
       state = state.reset();
       expect(state.currentMode, PracticeMode.randomWords);

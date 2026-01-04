@@ -3,16 +3,35 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/data/database/app_database.dart';
+import 'package:red_letter/data/database/user_progress_dao.dart';
 import 'package:red_letter/data/models/passage_with_progress.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/screens/passage_list_screen.dart';
 
-import 'package:red_letter/screens/reflection_screen.dart';
+import 'package:red_letter/screens/session_screen.dart';
 
 // Mock Repository
+// Mock UserProgressDAO
+class MockUserProgressDAO extends Fake implements UserProgressDAO {
+  @override
+  Future<List<UserProgress>> getReviewQueue({int? limit}) async {
+    return [];
+  }
+
+  @override
+  Future<List<UserProgress>> getPotentialNewCards({int? limit}) async {
+    return [];
+  }
+}
+
 class MockPassageRepository extends Fake implements PassageRepository {
   final StreamController<List<PassageWithProgress>> _streamController =
       StreamController<List<PassageWithProgress>>.broadcast();
+
+  final _mockProgressDAO = MockUserProgressDAO();
+
+  @override
+  UserProgressDAO get progressDAO => _mockProgressDAO;
 
   // Expose function to emit data for testing
   void emit(List<PassageWithProgress> data) {
@@ -46,7 +65,7 @@ class MockPassageRepository extends Fake implements PassageRepository {
         endVerse: 1,
       ),
       progress: UserProgress(
-        id: 1, // AutoIncrement
+        id: 1,
         passageId: passageId,
         masteryLevel: 0,
         stability: 0.0,
@@ -173,15 +192,15 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find FAB
-      final fab = find.widgetWithText(FloatingActionButton, 'MEMORIZE');
+      final fab = find.widgetWithText(FloatingActionButton, 'START SESSION');
       expect(fab, findsOneWidget);
 
       // Tap it
       await tester.tap(fab);
       await tester.pumpAndSettle();
 
-      // Should navigate to ReflectionScreen
-      expect(find.byType(ReflectionScreen), findsOneWidget);
+      // Should navigate to SessionScreen
+      expect(find.byType(SessionScreen), findsOneWidget);
     });
   });
 }
