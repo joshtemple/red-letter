@@ -9,6 +9,7 @@ import 'package:red_letter/theme/colors.dart';
 
 import 'package:red_letter/widgets/practice_footer.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
+import 'package:red_letter/utils/levenshtein.dart';
 
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
@@ -36,6 +37,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   late Set<int> _originallyHiddenIndices;
   Set<int> _revealedIndices = {}; // Track manually revealed words
   int _lives = 2;
+  bool _isSuccessProcessing = false;
 
   @override
   void initState() {
@@ -74,36 +76,64 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   }
 
   void _onInputChange(String input) {
-    if (isProcessingError || input.isEmpty) {
-      setState(() {});
+    if (_isSuccessProcessing || isProcessingError || input.isEmpty) {
+      if (!_isSuccessProcessing) setState(() {});
       return;
     }
 
     final targetIndex = _occlusion.firstHiddenIndex;
     if (targetIndex != null) {
-      if (_occlusion.checkWord(targetIndex, input)) {
-        // Correct input
-        final next = _occlusion.revealIndices({targetIndex});
-        inputController.clear();
-        setState(() {
-          _occlusion = next;
-        });
+      final targetWord = widget.state.currentPassage.words[targetIndex];
+      final requiredLength = _occlusion.getMatchingLength(targetIndex);
 
-        if (next.visibleRatio >= 1.0) {
-          widget.onContinue();
+      // Evaluate only when length matches target (or exceeds)
+      if (input.length >= requiredLength) {
+        // 1. Success: strict match
+        if (_occlusion.checkWord(targetIndex, input, maxDistance: 0)) {
+          _isSuccessProcessing = true;
+          final next = _occlusion.revealIndices({targetIndex});
+
+          setState(() {
+            _occlusion = next;
+          });
+
+          // Delay clearing to allow IME to settle (fixes iOS double-entry bug)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              inputController.clear();
+              _isSuccessProcessing = false;
+              setState(() {});
+            }
+          });
+
+          if (next.visibleRatio >= 1.0) {
+            widget.onContinue();
+          }
+          return;
         }
-      } else {
-        // Validate input for errors
-        final targetWord = widget.state.currentPassage.words[targetIndex];
 
-        // Be more lenient with typos - only penalize if clearly wrong
-        // Allow 1 extra character for typos (e.g., "lovve" for "love")
-        if (input.length > targetWord.length + 1) {
+        // Calculate distance for Retry vs Failure
+        // We use lowercased comparison for distance check
+        final distance = levenshtein(
+          input.toLowerCase(),
+          targetWord.toLowerCase(),
+        );
+
+        // Define threshold: 1 for short words, 2 for longer
+        final threshold = targetWord.length <= 3 ? 1 : 2;
+
+        if (distance <= threshold) {
+          // 2. Retry
+          // Flash red (automatic via isInputValid check) but keep input
+          // Do not deduct life
+          setState(() {});
+        } else {
+          // 3. Failure
           setState(() {
             isProcessingError = true;
           });
 
-          // Delay penalty to allow user to see the error
+          // Delay penalty to allow user to see the error (red)
           Future.delayed(const Duration(milliseconds: 300), () {
             if (mounted) {
               _handleLifeLost(targetIndex);
@@ -112,10 +142,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
               });
             }
           });
-        } else {
-          // Incomplete word or close typo, just update UI (red text if mismatch)
-          setState(() {});
         }
+      } else {
+        // Typing in progress
+        setState(() {});
       }
     }
   }
@@ -223,8 +253,8 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                             autofocus: true,
                             onChanged: _onInputChange,
                             readOnly: isProcessingError,
-                            autocorrect: false,
-                            enableSuggestions: false,
+                            autocorrect: true,
+                            enableSuggestions: true,
                             showCursor: false,
                             inputFormatters: [
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
@@ -243,7 +273,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                               passage: widget.state.currentPassage,
                               occlusion: _occlusion,
                               activeIndex: activeIndex,
-                              currentInput: inputController.text,
+                              // If success processing, show empty to avoid flashing old word on new active index
+                              currentInput: _isSuccessProcessing
+                                  ? ''
+                                  : inputController.text,
                               isInputValid: isInputValid(
                                 _occlusion,
                                 widget.state.currentPassage,

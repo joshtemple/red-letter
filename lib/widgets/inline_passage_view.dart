@@ -44,80 +44,51 @@ class InlinePassageView extends StatelessWidget {
       if (isHidden) {
         final isIndexActive = i == activeIndex;
         final isHinted = i == hintedIndex;
-        final targetWord = words[i];
+        final parts = ClozeOcclusion.parseWordParts(words[i]);
 
-        spans.add(
-          WidgetSpan(
-            alignment: PlaceholderAlignment.baseline,
-            baseline: TextBaseline.alphabetic,
-            child: GestureDetector(
-              onTap: onWordTap != null && !isIndexActive
-                  ? () => onWordTap!(i)
-                  : null,
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  // Reserve EXACT space of the target word
-                  Text(
-                    targetWord,
-                    style: RedLetterTypography.passageBody.copyWith(
-                      color: Colors.transparent,
-                    ),
-                  ),
-                  // Drawn line at the bottom
-                  // Drawn line at the bottom
-                  if (showUnderlines || isIndexActive)
-                    Positioned(
-                      bottom: 2,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 2.0,
-                        decoration: BoxDecoration(
-                          color: isIndexActive
-                              ? (isInputValid
-                                    ? RedLetterColors.accent.withOpacity(
-                                        pulseAnimation.value,
-                                      )
-                                    : RedLetterColors.error)
-                              : RedLetterColors.divider.withOpacity(0.6),
-                          borderRadius: BorderRadius.circular(1),
-                        ),
-                      ),
-                    ),
-                  // Hint text (faded in)
-                  if (isHinted)
-                    TweenAnimationBuilder<double>(
-                      tween: Tween<double>(begin: 0.0, end: 1.0),
-                      duration: const Duration(milliseconds: 500),
-                      builder: (context, opacity, child) {
-                        return Opacity(opacity: opacity, child: child);
-                      },
-                      child: Text(
-                        targetWord,
-                        key: const Key('hint_text'),
-                        style: RedLetterTypography.passageBody.copyWith(
-                          color: RedLetterColors.secondaryText.withOpacity(0.3),
-                        ),
-                      ),
-                    ),
-                  // Currently typed text for active word
-                  if (isIndexActive)
-                    Text(
-                      currentInput,
-                      key: const Key('typed_text'),
-                      style: RedLetterTypography.passageBody.copyWith(
-                        fontSize: 28, // Explicitly set to match passageBody
-                        color: isInputValid
-                            ? RedLetterColors.accent
-                            : RedLetterColors.error,
-                      ),
-                    ),
-                ],
+        // 1. Prefix (Punctuation)
+        if (parts.prefix.isNotEmpty) {
+          spans.add(
+            TextSpan(
+              text: parts.prefix,
+              style: RedLetterTypography.passageBody,
+            ),
+          );
+        }
+
+        // 2. Content (The hidden word)
+        if (parts.content.isNotEmpty) {
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: GestureDetector(
+                onTap: onWordTap != null && !isIndexActive
+                    ? () => onWordTap!(i)
+                    : null,
+                child: _HiddenContent(
+                  text: parts.content,
+                  input: isIndexActive ? currentInput : '',
+                  isActive: isIndexActive,
+                  isValid: isInputValid,
+                  isHinted: isHinted,
+                  animation: pulseAnimation,
+                  showUnderline: showUnderlines || isIndexActive,
+                ),
               ),
             ),
-          ),
-        );
+          );
+        }
+
+        // 3. Suffix (Punctuation)
+        if (parts.suffix.isNotEmpty) {
+          spans.add(
+            TextSpan(
+              text: parts.suffix,
+              style: RedLetterTypography.passageBody,
+            ),
+          );
+        }
       } else {
         // Visible (revealed or originally visible)
         final wasHidden = originallyHiddenIndices.contains(i);
@@ -147,6 +118,103 @@ class InlinePassageView extends StatelessWidget {
       key: const Key('passage_text'),
       textAlign: TextAlign.start,
       text: TextSpan(style: RedLetterTypography.passageBody, children: spans),
+    );
+  }
+}
+
+class _HiddenContent extends StatelessWidget {
+  final String text;
+  final String input;
+  final bool isActive;
+  final bool isValid;
+  final bool isHinted;
+  final Animation<double> animation;
+  final bool showUnderline;
+
+  const _HiddenContent({
+    required this.text,
+    required this.input,
+    required this.isActive,
+    required this.isValid,
+    required this.isHinted,
+    required this.animation,
+    required this.showUnderline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: [
+        // The Row of characters with individual underlines
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: text.characters.map((char) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Invisible character to reserve width
+                Text(
+                  char,
+                  style: RedLetterTypography.passageBody.copyWith(
+                    color: Colors.transparent,
+                  ),
+                ),
+                // The underline
+                if (showUnderline)
+                  Positioned(
+                    bottom: 2,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 2.0,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? (isValid
+                                  ? RedLetterColors.accent.withOpacity(
+                                      animation.value,
+                                    )
+                                  : RedLetterColors.error)
+                            : RedLetterColors.divider.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }).toList(),
+        ),
+
+        // Hint text (faded in)
+        if (isHinted)
+          TweenAnimationBuilder<double>(
+            tween: Tween<double>(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 500),
+            builder: (context, opacity, child) {
+              return Opacity(opacity: opacity, child: child);
+            },
+            child: Text(
+              text,
+              key: const Key('hint_text'),
+              style: RedLetterTypography.passageBody.copyWith(
+                color: RedLetterColors.secondaryText.withOpacity(0.3),
+              ),
+            ),
+          ),
+
+        // Currently typed text for active word
+        if (isActive && input.isNotEmpty)
+          Text(
+            input,
+            key: const Key('typed_text'),
+            style: RedLetterTypography.passageBody.copyWith(
+              fontSize: 28,
+              color: isValid ? RedLetterColors.accent : RedLetterColors.error,
+            ),
+          ),
+      ],
     );
   }
 }

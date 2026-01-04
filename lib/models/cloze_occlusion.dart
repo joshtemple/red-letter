@@ -214,6 +214,8 @@ class ClozeOcclusion {
   }
 
   /// Returns the display word at [index] (hidden words show as underscores).
+  ///
+  /// Preserves "outer" punctuation (.,?! etc.) but hides the inner word content.
   String getDisplayWord(int index) {
     if (index < 0 || index >= passage.words.length) {
       throw RangeError(
@@ -221,12 +223,51 @@ class ClozeOcclusion {
       );
     }
 
+    final originalWord = passage.words[index];
+
     if (isWordHidden(index)) {
-      final wordLength = passage.words[index].length;
-      return '_' * wordLength;
+      final parts = parseWordParts(originalWord);
+
+      // If no content (all punctuation), just return as is (or handle gracefully)
+      if (parts.content.isEmpty) {
+        return originalWord;
+      }
+
+      return '${parts.prefix}${'_' * parts.content.length}${parts.suffix}';
     }
 
-    return passage.words[index];
+    return originalWord;
+  }
+
+  /// Returns the length of the "inner" word content (excluding outer punctuation).
+  ///
+  /// This is the length the user is expected to type.
+  int getMatchingLength(int index) {
+    if (index < 0 || index >= passage.words.length) return 0;
+
+    final originalWord = passage.words[index];
+    final parts = parseWordParts(originalWord);
+    return parts.content.length;
+  }
+
+  /// Splits a word into prefix (punctuation), content (inner word), and suffix (punctuation).
+  static ({String prefix, String content, String suffix}) parseWordParts(
+    String word,
+  ) {
+    final startIndex = word.indexOf(RegExp(r'\w'));
+
+    if (startIndex == -1) {
+      // No alphanumeric characters (e.g. "...")
+      return (prefix: word, content: '', suffix: '');
+    }
+
+    final endIndex = word.lastIndexOf(RegExp(r'\w'));
+
+    final prefix = word.substring(0, startIndex);
+    final content = word.substring(startIndex, endIndex + 1);
+    final suffix = word.substring(endIndex + 1);
+
+    return (prefix: prefix, content: content, suffix: suffix);
   }
 
   /// Returns the full display text with hidden words as underscores.

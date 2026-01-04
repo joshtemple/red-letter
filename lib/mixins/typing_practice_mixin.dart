@@ -8,6 +8,7 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
   late TextEditingController inputController;
   late FocusNode focusNode;
   bool isProcessingError = false;
+  bool isSuccessProcessing = false;
 
   late AnimationController pulseController;
   late Animation<double> pulseAnimation;
@@ -40,12 +41,12 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
     if (input.isEmpty) return true;
     final targetIndex = occlusion.firstHiddenIndex;
     if (targetIndex == null) return true;
-    final targetWord = passage.words[targetIndex];
 
     // No feedback until the full word is typed
-    if (input.length < targetWord.length) return true;
+    final requiredLength = occlusion.getMatchingLength(targetIndex);
+    if (input.length < requiredLength) return true;
 
-    return occlusion.checkWord(targetIndex, input);
+    return occlusion.checkWord(targetIndex, input, maxDistance: 0);
   }
 
   void handleInputChange({
@@ -56,18 +57,27 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
     required VoidCallback onComplete,
     required VoidCallback onStateChanged,
   }) {
-    if (input.isEmpty) {
-      onStateChanged();
+    if (input.isEmpty || isSuccessProcessing) {
+      if (!isSuccessProcessing) onStateChanged();
       return;
     }
 
     final targetIndex = currentOcclusion.firstHiddenIndex;
     if (targetIndex != null) {
-      if (currentOcclusion.checkWord(targetIndex, input)) {
+      if (currentOcclusion.checkWord(targetIndex, input, maxDistance: 0)) {
         // Match found!
+        isSuccessProcessing = true;
         final nextOcclusion = currentOcclusion.revealIndices({targetIndex});
-        inputController.clear();
-        onWordMatched(nextOcclusion);
+        onWordMatched(nextOcclusion); // Should trigger setState in parent
+
+        // Delay clearing to allow IME to settle
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            inputController.clear();
+            isSuccessProcessing = false;
+            onStateChanged();
+          }
+        });
 
         // Auto-advance if complete
         if (nextOcclusion.visibleRatio >= 1.0) {
@@ -76,11 +86,12 @@ mixin TypingPracticeMixin<T extends StatefulWidget>
       } else {
         // Validation logic for auto-clearing
         final targetWord = passage.words[targetIndex];
+        final requiredLength = currentOcclusion.getMatchingLength(targetIndex);
 
         bool shouldClear = false;
-        if (input.length > targetWord.length) {
+        if (input.length > requiredLength) {
           shouldClear = true;
-        } else if (input.length == targetWord.length) {
+        } else if (input.length == requiredLength) {
           final prefix = input.substring(0, input.length - 1);
           final isPrefixCorrect = targetWord.toLowerCase().startsWith(
             prefix.toLowerCase(),

@@ -187,8 +187,8 @@ void main() {
       // Should preserve word lengths
       for (int i = 0; i < passage.words.length; i++) {
         if (occlusion.isWordHidden(i)) {
-          final originalLength = passage.words[i].length;
-          final underscores = '_' * originalLength;
+          final matchingLength = occlusion.getMatchingLength(i);
+          final underscores = '_' * matchingLength;
           expect(displayText.contains(underscores), true);
         }
       }
@@ -258,6 +258,96 @@ void main() {
       // Reveal all words
       final revealed = occlusion.revealIndices(occlusion.hiddenIndices);
       expect(revealed.visibleRatio, 1.0);
+    });
+  });
+  group('ClozeOcclusion - Punctuation Handling and Display', () {
+    test('getDisplayWord preserves outer punctuation for hidden words', () {
+      final passage = Passage.fromText(
+        id: 'test-punc-1',
+        text: 'Hello, (world)!',
+        reference: 'Test Punc 1:1',
+      );
+
+      // We manually create an occlusion where everything is hidden
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1}, // hide "Hello," and "(world)!"
+      );
+
+      // "Hello," -> "Hello" (5) + ","
+      // Display should be "____,"
+      final displayHello = occlusion.getDisplayWord(0);
+      expect(displayHello, '_____,', reason: 'Should preserve trailing comma');
+
+      // "(world)!" -> "(" + "world" (5) + ")!"
+      // Display should be "(_____)!"
+      final displayWorld = occlusion.getDisplayWord(1);
+      expect(
+        displayWorld,
+        '(_____)!',
+        reason: 'Should preserve surrounding mechanics',
+      );
+    });
+
+    test('getDisplayWord handles internal punctuation correctly', () {
+      final passage = Passage.fromText(
+        id: 'test-punc-2',
+        text: "Don't self-control",
+        reference: 'Test Punc 2:1',
+      );
+
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1},
+      );
+
+      // "Don't" -> "Don't" (5) - internal apostrophe is part of the word
+      // Display should be "_____" (5 underscores)
+      final displayDont = occlusion.getDisplayWord(0);
+      expect(displayDont, '_____');
+
+      // "self-control" -> "self-control" (12)
+      // Display should be "____________" (12 underscores)
+      final displaySelfControl = occlusion.getDisplayWord(1);
+      expect(displaySelfControl, '____________');
+    });
+
+    test('getMatchingLength returns length of clean inner word', () {
+      final passage = Passage.fromText(
+        id: 'test-punc-3',
+        text: 'Hello, (world)!',
+        reference: 'Test Punc 3:1',
+      );
+
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1},
+      );
+
+      // "Hello," -> "Hello" (5)
+      expect(occlusion.getMatchingLength(0), 5);
+
+      // "(world)!" -> "world" (5)
+      expect(occlusion.getMatchingLength(1), 5);
+    });
+
+    test('getMatchingLength handles words with internal punctuation', () {
+      final passage = Passage.fromText(
+        id: 'test-punc-4',
+        text: "Don't self-control",
+        reference: 'Test Punc 4:1',
+      );
+
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1},
+      );
+
+      // "Don't" -> "Don't" (5)
+      expect(occlusion.getMatchingLength(0), 5);
+
+      // "self-control" -> "self-control" (12)
+      expect(occlusion.getMatchingLength(1), 12);
     });
   });
 }

@@ -111,8 +111,8 @@ class _PromptedScreenState extends State<PromptedScreen>
                             onChanged: _onInputChange,
                             autofocus: true,
                             readOnly: isProcessingError,
-                            autocorrect: false,
-                            enableSuggestions: false,
+                            autocorrect: true,
+                            enableSuggestions: true,
                             showCursor: false,
                             inputFormatters: [
                               FilteringTextInputFormatter.deny(RegExp(r'\s')),
@@ -131,7 +131,9 @@ class _PromptedScreenState extends State<PromptedScreen>
                               passage: widget.state.currentPassage,
                               occlusion: _occlusion,
                               activeIndex: activeIndex,
-                              currentInput: inputController.text,
+                              currentInput: isSuccessProcessing
+                                  ? ''
+                                  : inputController.text,
                               isInputValid: isInputValid(
                                 _occlusion,
                                 widget.state.currentPassage,
