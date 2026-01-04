@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/models/passage.dart';
+import 'package:red_letter/models/passage_validator.dart';
 import 'package:red_letter/models/practice_mode.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/impression_screen.dart';
@@ -91,7 +92,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
     bool success = true;
     if (currentState.currentMode == PracticeMode.prompted ||
         currentState.currentMode == PracticeMode.reconstruction) {
-      if (input == null || !_isStrictMatch(widget.initialPassage.text, input)) {
+      if (input == null || !PassageValidator.isStrictMatch(widget.initialPassage.text, input)) {
         success = false;
       }
     }
@@ -113,13 +114,6 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
         ),
       );
     }
-  }
-
-  bool _isStrictMatch(String original, String input) {
-    // Basic strict match normalization
-    final normOriginal = original.trim();
-    final normInput = input.trim();
-    return normOriginal == normInput;
   }
 
   void _submitMetrics(String? input) {

@@ -11,17 +11,12 @@ class PassageValidator {
   }
 
   /// Checks if the input matches the target text strictly.
-  /// Ignores case but respects punctuation (mostly).
-  /// Actually, for "Reconstruction", maybe we want exact punctuation?
-  /// Let's define "Strict" as case-insensitive but punctuation-sensitive?
-  /// Or exact match?
-  /// User requirement: "Typing validation: Must execute within 8-16ms".
-  /// "Reconstruction Mode - Total independent recall".
-  /// Usually memorization apps match strictly on words, but case is often forgiven. Punctuation is mixed.
-  /// Let's define Strict as: Case-insensitive, Punctuation-sensitive.
+  /// Compares based on words only - ignores case, punctuation, and extra whitespace.
+  /// This allows users to type "Love your enemies" to match "Love your enemies."
+  /// without needing to type punctuation characters.
   static bool isStrictMatch(String target, String input) {
     if (input.isEmpty) return false;
-    return target.trim().toLowerCase() == input.trim().toLowerCase();
+    return _normalizeLenient(target) == _normalizeLenient(input);
   }
 
   /// Checks if the input is a valid prefix of the target.

@@ -14,19 +14,18 @@ void main() {
       expect(PassageValidator.isLenientMatch(target, 'Jesus slept'), isFalse);
     });
 
-    test('isStrictMatch respects punctuation', () {
-      // "Strict" as defined: Case-insensitive, Punctuation-sensitive
+    test('isStrictMatch ignores punctuation, case, and whitespace', () {
+      // Word-based comparison - only the actual words matter
       expect(PassageValidator.isStrictMatch(target, 'Jesus wept.'), isTrue);
       expect(PassageValidator.isStrictMatch(target, 'jesus wept.'), isTrue);
+      expect(PassageValidator.isStrictMatch(target, 'Jesus wept'), isTrue); // No punctuation is OK
+      expect(PassageValidator.isStrictMatch(target, 'JESUS WEPT!'), isTrue); // Different punctuation is OK
+      expect(PassageValidator.isStrictMatch(target, 'Jesus  wept'), isTrue); // Extra spaces are OK
 
       expect(
-        PassageValidator.isStrictMatch(target, 'Jesus wept'),
+        PassageValidator.isStrictMatch(target, 'Jesus slept'),
         isFalse,
-      ); // Missing dot
-      expect(
-        PassageValidator.isStrictMatch(target, 'Jesus, wept.'),
-        isFalse,
-      ); // Extra comma
+      ); // Different word
     });
   });
 }
