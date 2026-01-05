@@ -8,7 +8,7 @@ import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 
 import 'package:red_letter/widgets/inline_passage_view.dart';
-import 'package:red_letter/utils/levenshtein.dart';
+import 'package:red_letter/models/passage_validator.dart';
 
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
@@ -105,17 +105,8 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           return;
         }
 
-        // Calculate distance for Retry vs Failure
-        // We use lowercased comparison for distance check
-        final distance = levenshtein(
-          input.toLowerCase(),
-          targetWord.toLowerCase(),
-        );
-
-        // Define threshold: 1 for short words, 2 for longer
-        final threshold = targetWord.length <= 3 ? 1 : 2;
-
-        if (distance <= threshold) {
+        // 2. Retry vs Failure check
+        if (PassageValidator.isTypoRetry(targetWord, input)) {
           // 2. Retry
           // Flash red (automatic via isInputValid check) but keep input
           // Do not deduct life

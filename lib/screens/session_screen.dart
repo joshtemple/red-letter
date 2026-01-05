@@ -199,6 +199,8 @@ class _SessionScreenState extends State<SessionScreen> {
         return PracticeMode.firstTwoWords; // Resume after Rotating Clauses
       case 4:
         return PracticeMode.prompted; // Resume after First Two Words
+      case 5:
+        return PracticeMode.reconstruction; // Resume after Prompted
       default:
         return PracticeMode.impression;
     }
@@ -280,8 +282,9 @@ class _SessionScreenState extends State<SessionScreen> {
             : null,
       ),
       body: PracticeSessionView(
-        // Use key to force rebuild when mode or passage changes
-        key: ValueKey('${_currentPassage!.id}_${_getInitialMode()}'),
+        // Use key to force rebuild when passage changes.
+        // Mode changes are handled by PracticeSessionView.didUpdateWidget
+        key: ValueKey(_currentPassage!.id),
         repository: widget.repository,
         initialPassage: _currentPassage!,
         initialMode: _getInitialMode(),

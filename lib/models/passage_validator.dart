@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 class PassageValidator {
   PassageValidator._();
 
@@ -23,17 +21,17 @@ class PassageValidator {
     final inputWords = _tokenize(input);
 
     if (targetWords.length != inputWords.length) {
-      debugPrint(
-        'PassageValidator Failed: Word count mismatch. Expected=${targetWords.length}, Received=${inputWords.length}',
-      );
+      // debugPrint(
+      //   'PassageValidator Failed: Word count mismatch. Expected=${targetWords.length}, Received=${inputWords.length}',
+      // );
       return false;
     }
 
     for (int i = 0; i < targetWords.length; i++) {
       if (!isWordMatch(targetWords[i], inputWords[i])) {
-        debugPrint(
-          'PassageValidator Failed at word $i: Expected="${targetWords[i]}", Received="${inputWords[i]}"',
-        );
+        // debugPrint(
+        //   'PassageValidator Failed at word $i: Expected="${targetWords[i]}", Received="${inputWords[i]}"',
+        // );
         return false;
       }
     }
@@ -62,6 +60,18 @@ class PassageValidator {
     }
 
     return false;
+  }
+
+  /// Checks if the input is close enough to the target to be considered a potentially recoverable typo (retry).
+  /// Uses a threshold of 1 for words <= 3 length, and 2 for longer words.
+  static bool isTypoRetry(String target, String input) {
+    final cleanTarget = cleanWord(target);
+    final cleanInput = cleanWord(input);
+
+    final distance = levenshtein(cleanInput, cleanTarget);
+    final threshold = cleanTarget.length <= 3 ? 1 : 2;
+
+    return distance <= threshold;
   }
 
   /// Tokenizes text into words, removing empty ones.

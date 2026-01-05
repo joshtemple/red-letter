@@ -50,9 +50,15 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
   @override
   void didUpdateWidget(PracticeSessionView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.initialPassage.id != widget.initialPassage.id ||
-        oldWidget.initialMode != widget.initialMode) {
+    if (oldWidget.initialPassage.id != widget.initialPassage.id) {
       _loadPassage();
+    } else if (oldWidget.initialMode != widget.initialMode) {
+      // Only reload if the new mode is strictly different from our CURRENT state
+      // This prevents resetting the controller when the parent catches up to our internal state
+      if (_controller != null &&
+          _controller!.value.currentMode != widget.initialMode) {
+        _loadPassage();
+      }
     }
   }
 
@@ -92,8 +98,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
 
     // Check strict match for Prompted/Reconstruction
     bool success = true;
-    if (currentState.currentMode == PracticeMode.prompted ||
-        currentState.currentMode == PracticeMode.reconstruction) {
+    if (currentState.currentMode == PracticeMode.reconstruction) {
       if (input == null ||
           !PassageValidator.isStrictMatch(widget.initialPassage.text, input)) {
         success = false;

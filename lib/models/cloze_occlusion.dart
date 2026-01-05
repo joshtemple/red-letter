@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'package:flutter/foundation.dart';
+
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/clause_segmentation.dart';
 import 'package:red_letter/models/passage_validator.dart';
@@ -300,15 +300,14 @@ class ClozeOcclusion {
       maxDistance: maxDistance,
     );
 
-    if (!isMatch) {
-      final hiddenWord = PassageValidator.cleanWord(passage.words[index]);
-      final cleanInput = PassageValidator.cleanWord(input);
+    // Variables unused now that debugPrint is commented out
+    // final hiddenWord = PassageValidator.cleanWord(passage.words[index]);
+    // final cleanInput = PassageValidator.cleanWord(input);
 
-      debugPrint(
-        'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
-        'Received="$cleanInput" ($input)',
-      );
-    }
+    // debugPrint(
+    //   'Validation Failed: Expected="$hiddenWord" (${passage.words[index]}), '
+    //   'Received="$cleanInput" ($input)',
+    // );
 
     return isMatch;
   }

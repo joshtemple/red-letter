@@ -6,6 +6,7 @@ import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 
 import 'package:red_letter/widgets/practice_footer.dart';
+import 'package:red_letter/models/passage_validator.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
 
 class PromptedScreen extends StatefulWidget {
@@ -48,19 +49,65 @@ class _PromptedScreenState extends State<PromptedScreen>
   }
 
   void _onInputChange(String input) {
-    handleInputChange(
-      input: input,
-      currentOcclusion: _occlusion,
-      passage: widget.state.currentPassage,
-      onWordMatched: (next) {
-        setState(() {
-          _occlusion = next;
-          _hintedIndex = null; // Clear hint when word is matched
-        });
-      },
-      onComplete: () => widget.onContinue(input),
-      onStateChanged: () => setState(() {}),
-    );
+    if (isSuccessProcessing || isProcessingError || input.isEmpty) {
+      if (!isSuccessProcessing) setState(() {});
+      return;
+    }
+
+    final targetIndex = _occlusion.firstHiddenIndex;
+    if (targetIndex != null) {
+      final targetWord = widget.state.currentPassage.words[targetIndex];
+      final requiredLength = _occlusion.getMatchingLength(targetIndex);
+
+      if (input.length >= requiredLength) {
+        // 1. Success
+        if (_occlusion.checkWord(targetIndex, input)) {
+          isSuccessProcessing = true;
+          final next = _occlusion.revealIndices({targetIndex});
+
+          setState(() {
+            _occlusion = next;
+            _hintedIndex = null;
+          });
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              inputController.clear();
+              isSuccessProcessing = false;
+              setState(() {});
+            }
+          });
+
+          if (next.visibleRatio >= 1.0) {
+            widget.onContinue(input);
+          }
+          return;
+        }
+
+        // 2. Retry vs Failure check
+        if (PassageValidator.isTypoRetry(targetWord, input)) {
+          // Retry: keep input (visual feedback handled by isInputValid returning false)
+          setState(() {});
+        } else {
+          // 3. Failure: clear input
+          setState(() {
+            isProcessingError = true;
+          });
+
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) {
+              inputController.clear();
+              setState(() {
+                isProcessingError = false;
+              });
+            }
+          });
+        }
+      } else {
+        // Typing in progress
+        setState(() {});
+      }
+    }
   }
 
   void _showHint() {
