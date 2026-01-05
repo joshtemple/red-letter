@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:red_letter/data/models/passage_with_progress.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
+import 'package:red_letter/screens/developer_options_screen.dart';
 import 'package:red_letter/theme/colors.dart';
-
 import 'package:red_letter/widgets/passage_list_item.dart';
 import 'package:red_letter/screens/session_screen.dart';
 
@@ -35,6 +35,22 @@ class PassageListScreen extends StatelessWidget {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.bug_report,
+              color: RedLetterColors.secondaryText,
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DeveloperOptionsScreen(repository: repository),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: StreamBuilder<List<PassageWithProgress>>(
         stream: repository.watchAllPassagesWithProgress(),

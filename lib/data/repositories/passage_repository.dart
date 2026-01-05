@@ -232,6 +232,23 @@ class PassageRepository {
     return _progressDAO.getAllProgress();
   }
 
+  // ========== Debug/Dev Methods ==========
+
+  /// Update progress with raw values.
+  ///
+  /// Used for manual testing and debugging.
+  Future<void> debugUpdateProgress(
+    String passageId,
+    UserProgressTableCompanion progress,
+  ) {
+    return _progressDAO.upsertProgress(progress);
+  }
+
+  /// Delete progress for a specific passage.
+  Future<int> deleteProgress(String passageId) {
+    return _progressDAO.deleteProgress(passageId);
+  }
+
   // ========== Danger Zone ==========
 
   /// Delete all user progress.
