@@ -4,6 +4,7 @@ import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/screens/session_preview_view.dart';
 import 'package:red_letter/screens/practice_session_view.dart';
 import 'package:red_letter/services/fsrs_scheduler_service.dart';
 import 'package:red_letter/services/working_set_service.dart';
@@ -22,6 +23,7 @@ class SessionScreen extends StatefulWidget {
 class _SessionScreenState extends State<SessionScreen> {
   SessionController? _controller;
   bool _isLoading = true;
+  bool _isSessionStarted = false;
   String? _error;
 
   // Track current passage text and mode manually since Controller only has UserProgress
@@ -237,6 +239,19 @@ class _SessionScreenState extends State<SessionScreen> {
       return const Scaffold(
         backgroundColor: RedLetterColors.background,
         body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Session Preview
+    if (!_isSessionStarted) {
+      return SessionPreviewView(
+        cards: _controller!.cards,
+        repository: widget.repository,
+        onStart: () {
+          setState(() {
+            _isSessionStarted = true;
+          });
+        },
       );
     }
 
