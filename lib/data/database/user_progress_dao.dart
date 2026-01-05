@@ -116,7 +116,7 @@ class UserProgressDAO extends DatabaseAccessor<AppDatabase>
           passageId: passage.passageId,
           masteryLevel: 0,
           stability: 0,
-          difficulty: 0,
+          difficulty: 5.0,
           state: 0,
           step: 0,
         );

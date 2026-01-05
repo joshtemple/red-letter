@@ -40,6 +40,7 @@ void main() {
       expect(newCards.length, 1);
       expect(newCards.first.passageId, 'unstarted-1');
       expect(newCards.first.id, -1); // Check synthetic ID
+      expect(newCards.first.difficulty, 5.0); // Check default difficulty
     });
 
     test('returns passages with learning progress but never reviewed', () async {

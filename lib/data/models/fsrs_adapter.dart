@@ -32,8 +32,10 @@ class FSRSAdapter {
       cardId: cardId,
       state: state,
       step: progress.step,
-      stability: progress.stability,
-      difficulty: progress.difficulty,
+      // Clamp stability to avoid division by zero (or 0 interval) in FSRS
+      stability: (progress.stability <= 0.0) ? 1e-4 : progress.stability,
+      // Clamp difficulty to valid FSRS range (1-10) to avoid negative difficulty
+      difficulty: (progress.difficulty <= 0.0) ? 5.0 : progress.difficulty,
       due: progress.nextReview ?? DateTime.now(),
       lastReview: progress.lastReviewed,
     );
