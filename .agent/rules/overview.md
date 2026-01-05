@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
 ---
 
 # CLAUDE.md
@@ -41,8 +41,8 @@ The core learning loop consists of 5 progressive modes that fade assistance:
 
 1. **Impression Mode** - Full text + visual mnemonic display
 2. **Reflection Mode** - Mandatory reflection prompt (forces semantic encoding before rote practice)
-3. **Scaffolding Mode** - Variable ratio occlusion (random words hidden each visit)
-4. **Prompted Mode** - Blank input with sparse prompting (avoids static cues that create false competence)
+3. **Scaffolding Mode** - Progressive occlusion ladder (First 2 words -> 1 clause -> Random words)
+4. **Prompted Mode** - Blank input with sparse prompting and smart validation (Levenshtein distance)
 5. **Reconstruction Mode** - Total independent recall
 
 ### Spaced Repetition System (SRS)
@@ -99,3 +99,4 @@ Per MILESTONES.md, the critical path is:
 - **Unicode support:** Must handle Greek, Hebrew, CJK scripts in typing engine
 - **Scripture licensing:** Requires rights management metadata layer
 - **Vendor lock-in:** Heavy Firebase dependency (accepted trade-off for velocity)
+

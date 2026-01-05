@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 4a12567d97e773c98a6a508e6156227e7636d6e4
+last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
 ---
 
 # Red Letter
@@ -58,8 +58,8 @@ See [IMPELLER.md](IMPELLER.md) for detailed Impeller configuration and verificat
 
 1. **Impression Mode** - Full text + visual mnemonic display
 2. **Reflection Mode** - Mandatory reflection prompt
-3. **Scaffolding Mode** - Variable ratio occlusion
-4. **Prompted Mode** - Blank input with sparse prompting
+3. **Scaffolding Mode** - Progressive occlusion ladder (First 2 words -> 1 clause -> Random words)
+4. **Prompted Mode** - Blank input with sparse prompting and smart validation (Levenshtein distance)
 5. **Reconstruction Mode** - Total independent recall
 
 ### Spaced Repetition System

@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 4a12567d97e773c98a6a508e6156227e7636d6e4
+last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
 ---
 
 # **Technical Design: Red Letter**
@@ -61,7 +61,7 @@ The Flutter client performs a relational join in memory (or via Drift's relation
 
 ## **5\. Technical Requirements**
 
-* **State Persistence:** Aggregate results of a practice session (accuracy, speed, updated interval) are persisted to Drift immediately and queued for background sync to Firestore.  
+* **State Persistence:** Incremental persistence of session state (per-step) to Drift ensures robustness against crashes. Final aggregated results are queued for background sync to Firestore.  
 * **The SRS Algorithm:** Implements the **FSRS (Free Spaced Repetition Scheduler)** algorithm. It tracks core variables including stability and difficulty. By adjusting these variables based on granular user performance—such as response speed and accuracy during the Reconstruction Mode—the engine dynamically optimizes review timing. Successful recall increases the interval based on the retrievability calculated by FSRS.
 * **Practice Mode Algorithm (Acquisition):**
   * Read aloud two times
@@ -72,7 +72,7 @@ The Flutter client performs a relational join in memory (or via Drift's relation
       * Round 3: Show only the first 2 words of each clause
   * Full recitation, with on demand hints
   * Full recitation: On success, move into Review set
-  * At any point, on failure: reduce one level and try again
+  * At any point, on failure (running out of lives): reduce one level and try again
 * **Review Mode Algorithm:**
   * Use FSRS (Free Spaced Repetition Scheduler)
   * Calculate heuristic from review performance (latency and accuracy/similarity) to determine difficulty
