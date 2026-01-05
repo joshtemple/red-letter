@@ -63,5 +63,17 @@ void main() {
       controller.regress();
       expect(controller.value.currentMode, PracticeMode.prompted);
     });
+
+    test('Regress moves back correctly within scaffolding', () {
+      controller.jumpTo(PracticeMode.firstTwoWords);
+      controller.regress();
+      expect(controller.value.currentMode, PracticeMode.rotatingClauses);
+
+      controller.regress();
+      expect(controller.value.currentMode, PracticeMode.randomWords);
+
+      controller.regress();
+      expect(controller.value.currentMode, PracticeMode.reflection);
+    });
   });
 }

@@ -37,6 +37,15 @@ class PracticeController extends ValueNotifier<PracticeState> {
       case PracticeMode.prompted:
         targetMode = PracticeMode.randomWords;
         break;
+      case PracticeMode.firstTwoWords:
+        targetMode = PracticeMode.rotatingClauses;
+        break;
+      case PracticeMode.rotatingClauses:
+        targetMode = PracticeMode.randomWords;
+        break;
+      case PracticeMode.randomWords:
+        targetMode = PracticeMode.reflection;
+        break;
       case PracticeMode.reconstruction:
         targetMode = PracticeMode.prompted;
         break;

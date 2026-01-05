@@ -15,6 +15,7 @@ class ScaffoldingScreen extends StatefulWidget {
   final VoidCallback onContinue;
   final ClozeOcclusion? occlusion;
   final ValueChanged<int>? onLivesChange;
+  final VoidCallback? onRegress;
 
   const ScaffoldingScreen({
     super.key,
@@ -22,6 +23,7 @@ class ScaffoldingScreen extends StatefulWidget {
     required this.onContinue,
     this.occlusion,
     this.onLivesChange,
+    this.onRegress,
   });
 
   @override
@@ -189,6 +191,17 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   }
 
   void _handleDeath() {
+    if (widget.onRegress != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Out of lives! Stepping back...'),
+          duration: Duration(milliseconds: 1500),
+        ),
+      );
+      widget.onRegress!();
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Out of lives! Retrying with new pattern...'),

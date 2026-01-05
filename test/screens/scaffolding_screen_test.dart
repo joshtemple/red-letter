@@ -286,5 +286,50 @@ void main() {
         page.expectInputCleared();
       },
     );
+
+    testWidgets('should call onRegress when lives run out if provided', (
+      WidgetTester tester,
+    ) async {
+      bool regressed = false;
+
+      final passage = PassageBuilder().withText('Love God').build();
+
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1},
+      );
+
+      final state = PracticeState.initial(
+        passage,
+      ).copyWith(currentMode: PracticeMode.randomWords);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldingScreen(
+            state: state,
+            onContinue: () {},
+            occlusion: occlusion,
+            onRegress: () {
+              regressed = true;
+            },
+          ),
+        ),
+      );
+
+      final page = ScaffoldingPage(tester);
+
+      // Force failure 1
+      await page.enterText('AAAA'); // Wrong input
+      await tester.pump(const Duration(milliseconds: 300)); // Delay for error
+      await tester.pump(const Duration(milliseconds: 100)); // Reset
+
+      // Force failure 2 (lives should be 0)
+      await page.enterText('BBBB');
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(); // Handle death
+
+      expect(regressed, isTrue);
+      expect(find.textContaining('Stepping back'), findsOneWidget);
+    });
   });
 }

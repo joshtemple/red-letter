@@ -190,6 +190,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
               state: state,
               onContinue: () => _handleStep(),
               onLivesChange: widget.onLivesChange,
+              onRegress: () => _controller?.regress(),
             );
             break;
           case PracticeMode.prompted:
