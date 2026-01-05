@@ -26,7 +26,7 @@ class FSRSSchedulerService {
   /// - Maximum interval: 365 days (yearly reviews for mastered passages)
   /// - Fuzzing enabled: Adds randomness to prevent review clustering
   FSRSSchedulerService({fsrs.Scheduler? scheduler})
-      : _scheduler = scheduler ?? _createDefaultScheduler();
+    : _scheduler = scheduler ?? _createDefaultScheduler();
 
   /// Create the default FSRS scheduler with Red Letter's optimized parameters.
   static fsrs.Scheduler _createDefaultScheduler() {
@@ -34,23 +34,36 @@ class FSRSSchedulerService {
       // Default FSRS v4 parameters (optimized for general learning)
       // These can be customized per-user based on their performance data
       parameters: const [
-        0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234,
-        1.616, 0.1544, 1.0826, 1.9813, 0.0953, 0.2975, 2.2042, 0.2407,
-        2.9466, 0.5034, 0.6567, 0.1514, 0.2,
+        0.4072,
+        1.1829,
+        3.1262,
+        15.4722,
+        7.2102,
+        0.5316,
+        1.0651,
+        0.0234,
+        1.616,
+        0.1544,
+        1.0826,
+        1.9813,
+        0.0953,
+        0.2975,
+        2.2042,
+        0.2407,
+        2.9466,
+        0.5034,
+        0.6567,
+        0.1514,
+        0.2,
       ],
       // Desired retention: 90% recall probability at review time
       desiredRetention: 0.9,
-      // Learning steps for new passages: 1 minute, then 10 minutes
-      // This provides quick initial reinforcement
-      learningSteps: const [
-        Duration(minutes: 1),
-        Duration(minutes: 10),
-      ],
+      // Learning steps: Empty to skip learning phase and graduate immediately
+      // This is because Red Letter handles acquisition via the practice engine
+      learningSteps: const [],
       // Relearning steps for forgotten passages: 10 minutes
       // Allows faster reacquisition than initial learning
-      relearningSteps: const [
-        Duration(minutes: 10),
-      ],
+      relearningSteps: const [Duration(minutes: 10)],
       // Maximum interval: 1 year
       // Even well-mastered passages should be reviewed annually
       maximumInterval: 365,
@@ -77,7 +90,6 @@ class FSRSSchedulerService {
     required String passageId,
     required UserProgress progress,
     required fsrs.Rating rating,
-    int? customMasteryLevel,
   }) {
     // Convert UserProgress to FSRS Card
     final currentCard = FSRSAdapter.toFSRSCard(progress, passageId: passageId);
@@ -90,7 +102,6 @@ class FSRSSchedulerService {
     return FSRSAdapter.toUserProgressCompanion(
       passageId: passageId,
       card: updatedCard,
-      customMasteryLevel: customMasteryLevel,
     );
   }
 
@@ -152,7 +163,6 @@ class FSRSSchedulerService {
     return FSRSAdapter.toUserProgressCompanion(
       passageId: passageId,
       card: newCard,
-      customMasteryLevel: 0, // New passage
     );
   }
 

@@ -98,10 +98,7 @@ void main() {
       expect(card.state, equals(fsrs.State.learning));
       expect(card.lastReview, isNull);
       // nextReview is null, so due should default to now
-      expect(
-        card.due.difference(DateTime.now()).inMinutes.abs(),
-        lessThan(1),
-      );
+      expect(card.due.difference(DateTime.now()).inMinutes.abs(), lessThan(1));
     });
   });
 
@@ -148,7 +145,10 @@ void main() {
         card: card,
       );
 
-      expect(companion.masteryLevel.value, equals(2)); // Review state
+      expect(
+        companion.masteryLevel.value,
+        equals(3),
+      ); // Review state, stability 14.5 -> Level 3
       expect(companion.state.value, equals(1)); // Review = 1
       expect(companion.step.value, isNull);
       expect(companion.stability.value, equals(14.5));
@@ -170,7 +170,10 @@ void main() {
         card: card,
       );
 
-      expect(companion.masteryLevel.value, equals(1)); // Relearning → Learning level
+      expect(
+        companion.masteryLevel.value,
+        equals(1),
+      ); // Relearning → Learning level
       expect(companion.state.value, equals(2)); // Relearning = 2
       expect(companion.step.value, equals(0));
     });
@@ -189,10 +192,11 @@ void main() {
       final companion = FSRSAdapter.toUserProgressCompanion(
         passageId: 'test',
         card: card,
-        customMasteryLevel: 4, // Locked-in
+        // customMasteryLevel removed
       );
 
-      expect(companion.masteryLevel.value, equals(4));
+      // Stability 30.0 -> Mastery Level 3 (since 14 < 30 <= 90)
+      expect(companion.masteryLevel.value, equals(3));
     });
 
     test('clamps infinite stability values', () {

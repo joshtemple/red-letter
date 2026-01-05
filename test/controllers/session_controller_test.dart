@@ -172,9 +172,13 @@ void main() {
         ),
       );
 
-      verify(
-        mockProgressDAO.updateSemanticReflection('1', 'My reflection'),
-      ).called(1);
+      // Verify NO DB calls were made
+      verifyNever(mockProgressDAO.updateSemanticReflection(any, any));
+      verifyNever(mockProgressDAO.updateMasteryLevel(any, any));
+
+      // Verify in-memory update happened
+      expect(controller.cards[0].semanticReflection, 'My reflection');
+      expect(controller.cards[0].masteryLevel, 1);
     });
   });
 }

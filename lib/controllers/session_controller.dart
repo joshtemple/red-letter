@@ -88,6 +88,18 @@ class SessionController extends ChangeNotifier {
 
     // Combine: reviews first, then new cards
     _cards = [...reviewQueue, ...newCards];
+
+    // Ensure all new cards have a database entry (ID != -1)
+    // This prevents issues where we try to update a card that doesn't exist yet.
+    for (var i = 0; i < _cards.length; i++) {
+      if (_cards[i].id == -1) {
+        // Create initial progress in DB
+        final newId = await _progressDAO.createProgress(_cards[i].passageId);
+        // Update in-memory card with real ID
+        _cards[i] = _cards[i].copyWith(id: newId);
+      }
+    }
+
     _currentIndex = 0;
     _completedReviews.clear();
     _isLoaded = true;
@@ -202,25 +214,18 @@ class SessionController extends ChangeNotifier {
     required SessionMetrics metrics,
   }) async {
     try {
+      // NOTE: We no longer persist intermediate states to the database.
+      // Persistence only happens on successful completion of the full loop (submitReview).
+      // We only update the in-memory card to drive the UI state (resume within session).
+
       switch (mode) {
         case PracticeMode.impression:
-          // No specific persistence needed yet.
-          // Could update 'lastSeen' timestamp if we had one for non-FSRS.
+          // Nothing to do
           break;
 
         case PracticeMode.reflection:
-          // Save valid reflection text + set partial mastery
+          // Update in-memory: Save content + set mastery 1
           if (metrics.userInput.isNotEmpty) {
-            await _progressDAO.updateSemanticReflection(
-              passageId,
-              metrics.userInput,
-            );
-            await _progressDAO.updateMasteryLevel(
-              passageId,
-              1,
-            ); // Reflection done
-
-            // Update in-memory card
             _updateInMemoryCard(
               passageId,
               (p) => p.copyWith(
@@ -232,38 +237,33 @@ class SessionController extends ChangeNotifier {
           break;
 
         case PracticeMode.randomWords:
-          // Completed Round 1 -> Mastery 2
-          await _progressDAO.updateMasteryLevel(passageId, 2);
+          // Update in-memory: Mastery 2
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 2));
           break;
 
         case PracticeMode.rotatingClauses:
-          // Completed Round 2 -> Mastery 3
-          await _progressDAO.updateMasteryLevel(passageId, 3);
+          // Update in-memory: Mastery 3
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 3));
           break;
 
         case PracticeMode.firstTwoWords:
-          // Completed Round 3 -> Mastery 4
-          await _progressDAO.updateMasteryLevel(passageId, 4);
+          // Update in-memory: Mastery 4
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 4));
           break;
 
         case PracticeMode.prompted:
-          // Completed Prompted -> Mastery 5
-          await _progressDAO.updateMasteryLevel(passageId, 5);
+          // Update in-memory: Mastery 5
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 5));
           break;
 
         case PracticeMode.reconstruction:
-          // Reconstruction marks the end of the card.
-          // Persistence is handled by the explicit submitReview call in the UI
-          // to manage FSRS scheduling accurately.
+          // Reconstruction marks card completion.
+          // Persistence is handled by submitReview.
           break;
       }
     } catch (e) {
-      debugPrint('Error persisting step: $e');
-      // Non-fatal, don't crash session
+      debugPrint('Error handling step completion: $e');
+      // Non-fatal
     }
   }
 

@@ -67,21 +67,7 @@ void main() {
       expect(companion.stability.value, lessThan(progress.stability));
     });
 
-    test('reviewPassage accepts custom mastery level override', () {
-      final progress = ProgressBuilder()
-          .forPassage('test-1')
-          .atMasteryLevel(2)
-          .build();
-
-      final companion = service.reviewPassage(
-        passageId: 'test-1',
-        progress: progress,
-        rating: fsrs.Rating.easy,
-        customMasteryLevel: 4,
-      );
-
-      expect(companion.masteryLevel.value, equals(4));
-    });
+    // Removed test: reviewPassage accepts custom mastery level override
 
     test(
       'getRetrievability returns null for null nextReview (new/unreviewed)',

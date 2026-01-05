@@ -46,19 +46,18 @@ class FSRSAdapter {
   static UserProgressTableCompanion toUserProgressCompanion({
     required String passageId,
     required fsrs.Card card,
-    int? customMasteryLevel,
   }) {
-    // Map FSRS state to our domain mastery level if not provided
-    final masteryLevel = customMasteryLevel ?? _stateToMasteryLevel(card.state);
-
-    // Convert FSRS State enum to integer for storage
-    final stateInt = _stateToInt(card.state);
-
     // Clamp stability to reasonable range (0-36500 days = ~100 years)
     final stability = (card.stability ?? 0.0);
     final clampedStability = stability.isFinite
         ? stability.clamp(0.0, 36500.0)
         : 0.0;
+
+    // Calculate mastery level based on stability
+    final masteryLevel = _stabilityToMasteryLevel(clampedStability);
+
+    // Convert FSRS State enum to integer for storage
+    final stateInt = _stateToInt(card.state);
 
     return UserProgressTableCompanion(
       passageId: Value(passageId),
@@ -156,18 +155,18 @@ class FSRSAdapter {
     }
   }
 
-  /// Map FSRS state to our mastery level scale (0-4).
+  /// Map FSRS stability (days) to our mastery level scale (0-4).
   ///
-  /// This is a basic mapping; actual mastery progression should consider
-  /// performance metrics and review history.
-  static int _stateToMasteryLevel(fsrs.State state) {
-    switch (state) {
-      case fsrs.State.learning:
-        return 1; // Learning
-      case fsrs.State.review:
-        return 2; // Familiar/Mastered (graduated)
-      case fsrs.State.relearning:
-        return 1; // Back to learning after forgetting
-    }
+  /// - 0: New (Stability = 0)
+  /// - 1: Acquired (Stability > 0)
+  /// - 2: Solid (Stability > 3 days)
+  /// - 3: Strong (Stability > 14 days)
+  /// - 4: Mastered (Stability > 90 days)
+  static int _stabilityToMasteryLevel(double stability) {
+    if (stability <= 0) return 0; // New
+    if (stability <= 3) return 1; // Acquired (0-3 days)
+    if (stability <= 14) return 2; // Solid (3-14 days)
+    if (stability <= 90) return 3; // Strong (14-90 days)
+    return 4; // Mastered (> 90 days)
   }
 }
