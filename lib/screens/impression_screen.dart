@@ -37,9 +37,10 @@ class _ImpressionScreenState extends State<ImpressionScreen>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeIn));
 
     // Reveal first clause after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,7 +95,7 @@ class _ImpressionScreenState extends State<ImpressionScreen>
                       constraints: BoxConstraints(
                         minHeight: MediaQuery.of(context).size.height - 200,
                       ),
-                      padding: const EdgeInsets.only(top: 48.0),
+                      padding: const EdgeInsets.only(top: 24.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,

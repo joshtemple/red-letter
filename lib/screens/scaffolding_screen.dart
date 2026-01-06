@@ -6,6 +6,7 @@ import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
+import 'package:red_letter/theme/typography.dart';
 
 import 'package:red_letter/widgets/inline_passage_view.dart';
 import 'package:red_letter/models/passage_validator.dart';
@@ -291,58 +292,76 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SizedBox(
-                          width: 1,
-                          height: 1,
-                          child: TextField(
-                            controller: inputController,
-                            focusNode: focusNode,
-                            autofocus: true,
-                            onChanged: _onInputChange,
-                            readOnly: isProcessingError,
-                            autocorrect: true,
-                            enableSuggestions: true,
-                            showCursor: false,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                            ],
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              counterText: '',
+                    child: Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - 200,
+                      ),
+                      padding: const EdgeInsets.only(top: 24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Type the missing words to complete the passage',
+                            style: RedLetterTypography.promptText.copyWith(
+                              fontSize: 14,
+                              fontStyle: FontStyle.italic,
+                              color: RedLetterColors.secondaryText,
                             ),
-                            style: const TextStyle(color: Colors.transparent),
+                            textAlign: TextAlign.start,
                           ),
-                        ),
-                        AnimatedBuilder(
-                          animation: pulseController,
-                          builder: (context, _) {
-                            return InlinePassageView(
-                              passage: widget.state.currentPassage,
-                              occlusion: _occlusion,
-                              activeIndex: activeIndex,
-                              // If success processing, show empty to avoid flashing old word on new active index
-                              currentInput: _isSuccessProcessing
-                                  ? ''
-                                  : inputController.text,
-                              isInputValid: isInputValid(
-                                _occlusion,
-                                widget.state.currentPassage,
+                          const SizedBox(height: 32),
+                          SizedBox(
+                            width: 1,
+                            height: 1,
+                            child: TextField(
+                              controller: inputController,
+                              focusNode: focusNode,
+                              autofocus: true,
+                              onChanged: _onInputChange,
+                              readOnly: isProcessingError,
+                              autocorrect: true,
+                              enableSuggestions: true,
+                              showCursor: false,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                              ],
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                counterText: '',
                               ),
-                              pulseAnimation: pulseAnimation,
-                              originallyHiddenIndices: _originallyHiddenIndices,
-                              onWordTap: _handleWordTap,
-                              revealedIndices: _revealedIndices,
-                              showUnderlines:
-                                  widget.state.currentStep !=
-                                  PracticeStep.fullPassage,
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 32),
-                      ],
+                              style: const TextStyle(color: Colors.transparent),
+                            ),
+                          ),
+                          AnimatedBuilder(
+                            animation: pulseController,
+                            builder: (context, _) {
+                              return InlinePassageView(
+                                passage: widget.state.currentPassage,
+                                occlusion: _occlusion,
+                                activeIndex: activeIndex,
+                                // If success processing, show empty to avoid flashing old word on new active index
+                                currentInput: _isSuccessProcessing
+                                    ? ''
+                                    : inputController.text,
+                                isInputValid: isInputValid(
+                                  _occlusion,
+                                  widget.state.currentPassage,
+                                ),
+                                pulseAnimation: pulseAnimation,
+                                originallyHiddenIndices:
+                                    _originallyHiddenIndices,
+                                onWordTap: _handleWordTap,
+                                revealedIndices: _revealedIndices,
+                                showUnderlines:
+                                    widget.state.currentStep !=
+                                    PracticeStep.fullPassage,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
