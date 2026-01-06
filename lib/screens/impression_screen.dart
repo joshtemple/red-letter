@@ -88,10 +88,15 @@ class _ImpressionScreenState extends State<ImpressionScreen>
                 child: GestureDetector(
                   behavior: HitTestBehavior.translucent,
                   onTap: _handleTap,
-                  child: Center(
-                    child: SingleChildScrollView(
+                  child: SingleChildScrollView(
+                    child: Container(
+                      width: double.infinity,
+                      constraints: BoxConstraints(
+                        minHeight: MediaQuery.of(context).size.height - 200,
+                      ),
+                      padding: const EdgeInsets.only(top: 48.0),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(

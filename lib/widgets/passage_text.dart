@@ -119,7 +119,7 @@ class RevealablePassageText extends StatelessWidget {
       child: AnimatedBuilder(
         animation: fadeAnimation,
         builder: (context, child) {
-          final spans = <InlineSpan>[];
+          final clauseWidgets = <Widget>[];
 
           for (int i = 0; i < revealedClauseCount && i < segmentation.clauseCount; i++) {
             final clause = segmentation.clauses[i];
@@ -127,26 +127,32 @@ class RevealablePassageText extends StatelessWidget {
 
             if (isLastRevealed) {
               // Animate the most recently revealed clause
-              spans.add(WidgetSpan(
-                child: Opacity(
+              clauseWidgets.add(
+                Opacity(
                   opacity: fadeAnimation.value,
-                  child: Text(clause.text, style: textStyle),
+                  child: Text(
+                    clause.text,
+                    style: textStyle,
+                    textAlign: textAlign,
+                  ),
                 ),
-              ));
+              );
             } else {
               // Already revealed, show without animation
-              spans.add(TextSpan(text: clause.text, style: textStyle));
-            }
-
-            // Add space between clauses (not after last)
-            if (i < revealedClauseCount - 1) {
-              spans.add(const TextSpan(text: ' '));
+              clauseWidgets.add(
+                Text(
+                  clause.text,
+                  style: textStyle,
+                  textAlign: textAlign,
+                ),
+              );
             }
           }
 
-          return Text.rich(
-            TextSpan(children: spans),
-            textAlign: textAlign,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: clauseWidgets,
           );
         },
       ),
