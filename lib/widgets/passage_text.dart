@@ -121,7 +121,11 @@ class RevealablePassageText extends StatelessWidget {
         builder: (context, child) {
           final clauseWidgets = <Widget>[];
 
-          for (int i = 0; i < revealedClauseCount && i < segmentation.clauseCount; i++) {
+          for (
+            int i = 0;
+            i < revealedClauseCount && i < segmentation.clauseCount;
+            i++
+          ) {
             final clause = segmentation.clauses[i];
             final isLastRevealed = i == revealedClauseCount - 1;
 
@@ -134,6 +138,7 @@ class RevealablePassageText extends StatelessWidget {
                     clause.text,
                     style: textStyle,
                     textAlign: textAlign,
+                    textScaler: TextScaler.noScaling,
                   ),
                 ),
               );
@@ -144,6 +149,7 @@ class RevealablePassageText extends StatelessWidget {
                   clause.text,
                   style: textStyle,
                   textAlign: textAlign,
+                  textScaler: TextScaler.noScaling,
                 ),
               );
             }

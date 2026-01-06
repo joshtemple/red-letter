@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:red_letter/models/clause_segmentation.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
@@ -35,87 +36,102 @@ class InlinePassageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final words = passage.words;
-    final spans = <InlineSpan>[];
+    final segmentation = ClauseSegmentation.fromPassage(passage);
+    final clauseWidgets = <Widget>[];
 
-    for (int i = 0; i < words.length; i++) {
-      final isHidden = occlusion.isWordHidden(i);
-      final isLast = i == words.length - 1;
+    for (var clause in segmentation.clauses) {
+      final spans = <InlineSpan>[];
 
-      if (isHidden) {
-        final isIndexActive = i == activeIndex;
-        final isHinted = i == hintedIndex;
-        final parts = ClozeOcclusion.parseWordParts(words[i]);
+      for (var wordIndex in clause.wordIndices) {
+        final isHidden = occlusion.isWordHidden(wordIndex);
+        final isLastInClause = wordIndex == clause.wordIndices.last;
 
-        // 1. Prefix (Punctuation)
-        if (parts.prefix.isNotEmpty) {
+        if (isHidden) {
+          final isIndexActive = wordIndex == activeIndex;
+          final isHinted = wordIndex == hintedIndex;
+          final parts = ClozeOcclusion.parseWordParts(words[wordIndex]);
+
+          // 1. Prefix (Punctuation)
+          if (parts.prefix.isNotEmpty) {
+            spans.add(
+              TextSpan(
+                text: parts.prefix,
+                style: RedLetterTypography.passageBody,
+              ),
+            );
+          }
+
+          // 2. Content (The hidden word)
+          if (parts.content.isNotEmpty) {
+            spans.add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: GestureDetector(
+                  onTap: onWordTap != null ? () => onWordTap!(wordIndex) : null,
+                  child: _HiddenContent(
+                    text: parts.content,
+                    input: isIndexActive ? currentInput : '',
+                    isActive: isIndexActive,
+                    isValid: isInputValid,
+                    isHinted: isHinted,
+                    animation: pulseAnimation,
+                    showUnderline: showUnderlines || isIndexActive,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          // 3. Suffix (Punctuation)
+          if (parts.suffix.isNotEmpty) {
+            spans.add(
+              TextSpan(
+                text: parts.suffix,
+                style: RedLetterTypography.passageBody,
+              ),
+            );
+          }
+        } else {
+          // Visible (revealed or originally visible)
+          final wasHidden = originallyHiddenIndices.contains(wordIndex);
+          final wasRevealed = revealedIndices.contains(wordIndex);
+
           spans.add(
             TextSpan(
-              text: parts.prefix,
-              style: RedLetterTypography.passageBody,
-            ),
-          );
-        }
-
-        // 2. Content (The hidden word)
-        if (parts.content.isNotEmpty) {
-          spans.add(
-            WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: GestureDetector(
-                onTap: onWordTap != null ? () => onWordTap!(i) : null,
-                child: _HiddenContent(
-                  text: parts.content,
-                  input: isIndexActive ? currentInput : '',
-                  isActive: isIndexActive,
-                  isValid: isInputValid,
-                  isHinted: isHinted,
-                  animation: pulseAnimation,
-                  showUnderline: showUnderlines || isIndexActive,
-                ),
+              text: words[wordIndex],
+              style: RedLetterTypography.passageBody.copyWith(
+                // Revealed words: neutral/secondary color
+                // Correctly typed words: green
+                color: wasRevealed
+                    ? RedLetterColors.secondaryText
+                    : (wasHidden ? RedLetterColors.correct : null),
               ),
             ),
           );
         }
 
-        // 3. Suffix (Punctuation)
-        if (parts.suffix.isNotEmpty) {
-          spans.add(
-            TextSpan(
-              text: parts.suffix,
-              style: RedLetterTypography.passageBody,
-            ),
-          );
+        // Add space if not last word in clause
+        if (!isLastInClause) {
+          spans.add(const TextSpan(text: ' '));
         }
-      } else {
-        // Visible (revealed or originally visible)
-        final wasHidden = originallyHiddenIndices.contains(i);
-        final wasRevealed = revealedIndices.contains(i);
-
-        spans.add(
-          TextSpan(
-            text: words[i],
-            style: RedLetterTypography.passageBody.copyWith(
-              // Revealed words: neutral/secondary color
-              // Correctly typed words: green
-              color: wasRevealed
-                  ? RedLetterColors.secondaryText
-                  : (wasHidden ? RedLetterColors.correct : null),
-            ),
-          ),
-        );
       }
 
-      // Add space if not last
-      if (!isLast) {
-        spans.add(const TextSpan(text: ' '));
-      }
+      // Add this clause as a separate line
+      clauseWidgets.add(
+        Text.rich(
+          TextSpan(style: RedLetterTypography.passageBody, children: spans),
+          textAlign: TextAlign.start,
+          textScaler: TextScaler.noScaling,
+        ),
+      );
     }
 
-    return RichText(
+    return Column(
       key: const Key('passage_text'),
-      textAlign: TextAlign.start,
-      text: TextSpan(style: RedLetterTypography.passageBody, children: spans),
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: clauseWidgets,
     );
   }
 }
@@ -150,6 +166,7 @@ class _HiddenContent extends StatelessWidget {
           style: RedLetterTypography.passageBody.copyWith(
             color: Colors.transparent,
           ),
+          textScaler: TextScaler.noScaling,
         ),
 
         // 2. Continuous underline
@@ -185,6 +202,7 @@ class _HiddenContent extends StatelessWidget {
               style: RedLetterTypography.passageBody.copyWith(
                 color: RedLetterColors.secondaryText.withOpacity(0.3),
               ),
+              textScaler: TextScaler.noScaling,
             ),
           ),
 
@@ -194,9 +212,9 @@ class _HiddenContent extends StatelessWidget {
             input,
             key: const Key('typed_text'),
             style: RedLetterTypography.passageBody.copyWith(
-              fontSize: 28, // Explicitly set to match passageBody
               color: isValid ? RedLetterColors.accent : RedLetterColors.error,
             ),
+            textScaler: TextScaler.noScaling,
           ),
       ],
     );

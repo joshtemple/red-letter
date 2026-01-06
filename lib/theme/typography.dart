@@ -12,7 +12,7 @@ class RedLetterTypography {
   static const Color _inputTextColor = Color(0xFF2C2C2C);
 
   static final TextStyle passageBody = GoogleFonts.literata(
-    fontSize: 28,
+    fontSize: 24,
     height: 1.6,
     letterSpacing: 0.15,
     color: _primaryTextColor,
