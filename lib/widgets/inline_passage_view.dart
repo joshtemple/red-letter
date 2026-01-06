@@ -97,18 +97,42 @@ class InlinePassageView extends StatelessWidget {
           final wasHidden = originallyHiddenIndices.contains(wordIndex);
           final wasRevealed = revealedIndices.contains(wordIndex);
 
-          spans.add(
-            TextSpan(
-              text: words[wordIndex],
-              style: RedLetterTypography.passageBody.copyWith(
-                // Revealed words: neutral/secondary color
-                // Correctly typed words: green
-                color: wasRevealed
-                    ? RedLetterColors.secondaryText
-                    : (wasHidden ? RedLetterColors.correct : null),
+          // For correctly typed words (wasHidden && !wasRevealed), animate to green
+          if (wasHidden && !wasRevealed) {
+            spans.add(
+              WidgetSpan(
+                alignment: PlaceholderAlignment.baseline,
+                baseline: TextBaseline.alphabetic,
+                child: TweenAnimationBuilder<Color?>(
+                  tween: ColorTween(
+                    begin: RedLetterColors.accent,
+                    end: RedLetterTypography.passageBody.color,
+                  ),
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                  builder: (context, color, child) {
+                    return Text(
+                      words[wordIndex],
+                      style: RedLetterTypography.passageBody.copyWith(
+                        color: color,
+                      ),
+                      textScaler: TextScaler.noScaling,
+                    );
+                  },
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // Revealed or originally visible words (no animation)
+            spans.add(
+              TextSpan(
+                text: words[wordIndex],
+                style: RedLetterTypography.passageBody.copyWith(
+                  color: wasRevealed ? RedLetterColors.secondaryText : null,
+                ),
+              ),
+            );
+          }
         }
 
         // Add space if not last word in clause
