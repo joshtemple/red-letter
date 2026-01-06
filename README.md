@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
+last_updated_commit: 1492a05ef3dcc495e3f75c997dafa44586f43444
 ---
 
 # Red Letter
@@ -54,13 +54,15 @@ See [IMPELLER.md](IMPELLER.md) for detailed Impeller configuration and verificat
 
 ## Core Features
 
-### Practice Engine Modes (Sequential)
+### Practice Flow (Sequential)
 
-1. **Impression Mode** - Full text + visual mnemonic display
-2. **Reflection Mode** - Mandatory reflection prompt
-3. **Scaffolding Mode** - Progressive occlusion ladder (First 2 words -> 1 clause -> Random words)
-4. **Prompted Mode** - Blank input with sparse prompting and smart validation (Levenshtein distance)
-5. **Reconstruction Mode** - Total independent recall
+1. **Impression Step** - Full text + visual mnemonic display
+2. **Reflection Step** - Mandatory reflection prompt (forces semantic encoding)
+3. **Scaffolding Step** - Progressive 4-level occlusion ladder:
+   - **L1 (Random Words)**: Random words hidden (3 rounds)
+   - **L2 (First Two Words)**: Only first 2 words of clause shown (1 round)
+   - **L3 (Rotating Clauses)**: One full clause hidden at a time (rotating)
+   - **L4 (Full Passage)**: Total independent recall (replaces Reconstruction)
 
 ### Spaced Repetition System
 

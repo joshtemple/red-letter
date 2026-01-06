@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
+last_updated_commit: 1492a05ef3dcc495e3f75c997dafa44586f43444
 ---
 
 # CLAUDE.md
@@ -35,15 +35,22 @@ The system uses a bifurcated data model to minimize storage and maximize scalabi
    - Flutter/Drift performs relational joins in-memory
    - Decorates global passages with user-specific mastery status
 
-### Practice Engine Modes (Sequential)
-
-The core learning loop consists of 5 progressive modes that fade assistance:
-
-1. **Impression Mode** - Full text + visual mnemonic display
-2. **Reflection Mode** - Mandatory reflection prompt (forces semantic encoding before rote practice)
-3. **Scaffolding Mode** - Progressive occlusion ladder (First 2 words -> 1 clause -> Random words)
-4. **Prompted Mode** - Blank input with sparse prompting and smart validation (Levenshtein distance)
-5. **Reconstruction Mode** - Total independent recall
+### Practice Session Structure
+ 
+The core learning and review loop follows a strict hierarchy:
+ 
+1. **Session** - An end-to-end practice event for a single passage.
+2. **Flow** - The type of session:
+   - **Learning Flow**: For new passages (Impression -> Reflection -> Scaffolding).
+   - **Review Flow**: For existing passages (Scaffolding L4 only).
+3. **Step** - Sequential stages within a flow (e.g., Impression, Scaffolding).
+4. **Scaffolding Level** - Progressive difficulty in the Scaffolding step:
+   - **L1 (RandomWords)**: Random non-trivial words removed (N rounds).
+   - **L2 (FirstTwoWords)**: Only first 2 words of each clause shown (1 round).
+   - **L3 (RotatingClauses)**: One full clause hidden at a time (M rounds).
+   - **L4 (FullPassage)**: 100% cloze deletion, no underlines (1 round).
+5. **Round** - An atomic unit of practice within a Level.
+6. **Lives** - User has 2 lives per Round. Losing all lives triggers regression to the previous Level (or restart of L1).
 
 ### Spaced Repetition System (SRS)
 

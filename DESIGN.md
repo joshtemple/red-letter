@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
+last_updated_commit: 1492a05ef3dcc495e3f75c997dafa44586f43444
 ---
 
 # **Technical Design: Red Letter**
@@ -63,20 +63,22 @@ The Flutter client performs a relational join in memory (or via Drift's relation
 
 * **State Persistence:** Incremental persistence of session state (per-step) to Drift ensures robustness against crashes. Final aggregated results are queued for background sync to Firestore.  
 * **The SRS Algorithm:** Implements the **FSRS (Free Spaced Repetition Scheduler)** algorithm. It tracks core variables including stability and difficulty. By adjusting these variables based on granular user performance—such as response speed and accuracy during the Reconstruction Mode—the engine dynamically optimizes review timing. Successful recall increases the interval based on the retrievability calculated by FSRS.
-* **Practice Mode Algorithm (Acquisition):**
-  * Read aloud two times
-  * Reflection - what does this passage mean to you?
-  * Cloze ladder on clauses
-      * Round 1: Remove 1-2 content words per clause
-      * Round 2: Delete 1 entire clause, rotate clause position until all have been covered
-      * Round 3: Show only the first 2 words of each clause
-  * Full recitation, with on demand hints
-  * Full recitation: On success, move into Review set
-  * At any point, on failure (running out of lives): reduce one level and try again
-* **Review Mode Algorithm:**
-  * Use FSRS (Free Spaced Repetition Scheduler)
-  * Calculate heuristic from review performance (latency and accuracy/similarity) to determine difficulty
-  * User-defined budget for working set size, top off with new cards (use Acquisition machine for new cards)
+* **Practice Flow Algorithm (Acquisition):**
+  * **Impression:** Read aloud + visual mnemonic
+  * **Reflection:** Mandatory semantic reflection response
+  * **Scaffolding:** 4-Level progression
+      * **L1 (Random Words):** 3 rounds of random word deletion
+      * **L2 (First Two Words):** Show only start of clauses (1 round)
+      * **L3 (Rotating Clauses):** Hide one full clause at a time (rotating)
+      * **L4 (Full Passage):** 100% blind recall (Graduation)
+  * **Progression:** Success advances Round/Level.
+  * **Regression:** Losing 2 lives regresses one Level (e.g. L3 -> L2).
+* **Review Flow Algorithm:**
+  * Uses **FSRS** logic.
+  * Presents passage immediately at **Scaffolding L4** (Full Passage).
+  * On success: FSRS schedule update (Good/Easy based on metrics).
+  * On failure: Regress to Learning Flow or handle as 'Again'.
+  * Integrated queue mixes Review and new Learning cards.
 
 ## **6\. Security & Privacy (GDPR & Article 9\)**
 

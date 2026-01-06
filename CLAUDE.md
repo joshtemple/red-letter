@@ -1,5 +1,5 @@
 ---
-last_updated_commit: 5eabf0be08573c34ac750880b8acab95339a638a
+last_updated_commit: 1492a05ef3dcc495e3f75c997dafa44586f43444
 ---
 
 # CLAUDE.md
