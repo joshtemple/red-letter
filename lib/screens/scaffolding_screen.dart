@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:red_letter/mixins/typing_practice_mixin.dart';
 import 'package:red_letter/models/practice_state.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/theme/colors.dart';
 
@@ -55,15 +55,15 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
 
   ClozeOcclusion _generateOcclusionForMode() {
     final passage = widget.state.currentPassage;
-    switch (widget.state.currentMode) {
-      case PracticeMode.randomWords:
+    switch (widget.state.currentStep) {
+      case PracticeStep.randomWords:
         return ClozeOcclusion.randomWordPerClause(passage: passage);
-      case PracticeMode.rotatingClauses:
+      case PracticeStep.rotatingClauses:
         return ClozeOcclusion.rotatingClauseDeletion(
           passage: passage,
           clauseIndex: 0,
         );
-      case PracticeMode.firstTwoWords:
+      case PracticeStep.firstTwoWords:
         return ClozeOcclusion.firstTwoWordsScaffolding(passage: passage);
       default:
         return ClozeOcclusion.randomWordPerClause(passage: passage);

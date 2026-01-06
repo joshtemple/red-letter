@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
 
 void main() {
@@ -21,67 +21,63 @@ void main() {
       final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
       var state = PracticeState.initial(p);
 
-      expect(state.currentMode, PracticeMode.impression);
+      expect(state.currentStep, PracticeStep.impression);
 
       // Advance to Reflection
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.reflection);
-      expect(state.completedModes, contains(PracticeMode.impression));
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.reflection);
+      expect(state.completedSteps, contains(PracticeStep.impression));
 
       // Advance to Scaffolding
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.randomWords);
-
-      // Advance to Rotating Clauses
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.rotatingClauses);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.randomWords);
 
       // Advance to First Two Words
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.firstTwoWords);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.firstTwoWords);
 
-      // Advance to Prompted
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.prompted);
+      // Advance to Rotating Clauses
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.rotatingClauses);
 
-      // Advance to Reconstruction
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.reconstruction);
+      // Advance to Full Passage
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.fullPassage);
 
       // Finish
-      state = state.advanceMode();
+      state = state.advanceStep();
 
-      expect(state.currentMode, PracticeMode.reconstruction);
-      expect(state.completedModes.length, 7);
-      expect(state.completedModes, containsAll(PracticeMode.values));
+      expect(state.isComplete, true);
+      expect(state.completedSteps.length, 6);
+      expect(state.completedSteps, containsAll(PracticeStep.values));
     });
 
     test('reset should return to initial state', () {
       final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
       var state = PracticeState.initial(p);
-      state = state.advanceMode(); // Reflection
+      state = state.advanceStep(); // Reflection
 
       state = state.reset();
-      expect(state.currentMode, PracticeMode.impression);
-      expect(state.completedModes, isEmpty);
+      expect(state.currentStep, PracticeStep.impression);
+      expect(state.completedSteps, isEmpty);
     });
 
     test('should allow custom initial mode and reset to it', () {
       final p = Passage.fromText(id: '1', text: 'Test', reference: 'Ref');
       var state = PracticeState.initial(
         p,
-        initialMode: PracticeMode.randomWords,
+        initialStep: PracticeStep.randomWords,
       );
 
-      expect(state.currentMode, PracticeMode.randomWords);
-      expect(state.sessionStartMode, PracticeMode.randomWords);
+      expect(state.currentStep, PracticeStep.randomWords);
+      expect(state.sessionStartStep, PracticeStep.randomWords);
 
-      state = state.advanceMode(); // Rotating Clauses
-      expect(state.currentMode, PracticeMode.rotatingClauses);
+      state = state.advanceStep(); // First Two Words
+      expect(state.currentStep, PracticeStep.firstTwoWords);
 
       state = state.reset();
-      expect(state.currentMode, PracticeMode.randomWords);
-      expect(state.sessionStartMode, PracticeMode.randomWords);
+      expect(state.currentStep, PracticeStep.randomWords);
+      expect(state.sessionStartStep, PracticeStep.randomWords);
     });
   });
 }

@@ -3,7 +3,7 @@ import 'package:red_letter/controllers/session_controller.dart';
 import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/screens/session_preview_view.dart';
 import 'package:red_letter/screens/practice_session_view.dart';
 import 'package:red_letter/services/fsrs_scheduler_service.dart';
@@ -28,7 +28,7 @@ class _SessionScreenState extends State<SessionScreen> {
 
   // Track current passage text and mode manually since Controller only has UserProgress
   Passage? _currentPassage;
-  PracticeMode?
+  PracticeStep?
   _forcedMode; // Used for handling regression (overriding default)
 
   @override
@@ -140,7 +140,7 @@ class _SessionScreenState extends State<SessionScreen> {
       // 2. Switch UI to Scaffolding (Acquisition flow)
       if (mounted) {
         setState(() {
-          _forcedMode = PracticeMode.randomWords;
+          _forcedMode = PracticeStep.randomWords;
         });
       }
     } else {
@@ -152,7 +152,7 @@ class _SessionScreenState extends State<SessionScreen> {
     }
   }
 
-  void _handleIntermediateStep(PracticeMode mode, String? input) {
+  void _handleIntermediateStep(PracticeStep mode, String? input) {
     if (_controller == null || _currentPassage == null) return;
 
     // Create intermediate metrics (approximate duration)
@@ -172,10 +172,10 @@ class _SessionScreenState extends State<SessionScreen> {
     );
   }
 
-  PracticeMode _getInitialMode() {
+  PracticeStep _getInitialMode() {
     if (_forcedMode != null) return _forcedMode!;
 
-    if (_controller?.currentCard == null) return PracticeMode.impression;
+    if (_controller?.currentCard == null) return PracticeStep.impression;
 
     final card = _controller!.currentCard!;
 
@@ -184,27 +184,25 @@ class _SessionScreenState extends State<SessionScreen> {
     // State 2 = Relearning
 
     if (card.state == 1) {
-      // Review -> Reconstruction
-      return PracticeMode.reconstruction;
+      // Review -> Full Passage (L4)
+      return PracticeStep.fullPassage;
     }
 
     // Acquisition (New=0) or Relearning (Again=2)
     // Resume based on mastery level
     switch (card.masteryLevel) {
       case 0:
-        return PracticeMode.impression;
+        return PracticeStep.impression;
       case 1:
-        return PracticeMode.randomWords; // Resume after Reflection
+        return PracticeStep.randomWords; // Resume after Reflection (L1)
       case 2:
-        return PracticeMode.rotatingClauses; // Resume after Random Words
+        return PracticeStep.firstTwoWords; // Resume after RandomWords (L2)
       case 3:
-        return PracticeMode.firstTwoWords; // Resume after Rotating Clauses
+        return PracticeStep.rotatingClauses; // Resume after FirstTwoWords (L3)
       case 4:
-        return PracticeMode.prompted; // Resume after First Two Words
-      case 5:
-        return PracticeMode.reconstruction; // Resume after Prompted
+        return PracticeStep.fullPassage; // Resume after RotatingClauses (L4)
       default:
-        return PracticeMode.impression;
+        return PracticeStep.impression;
     }
   }
 
@@ -302,7 +300,7 @@ class _SessionScreenState extends State<SessionScreen> {
         key: ValueKey(_currentPassage!.id),
         repository: widget.repository,
         initialPassage: _currentPassage!,
-        initialMode: _getInitialMode(),
+        initialStep: _getInitialMode(),
         onComplete: _handleStepComplete,
         onStepComplete: _handleIntermediateStep,
         onLivesChange: _updateLives,

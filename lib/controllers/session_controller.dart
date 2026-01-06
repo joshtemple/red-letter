@@ -6,7 +6,7 @@ import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/services/fsrs_scheduler_service.dart';
 import 'package:red_letter/services/working_set_service.dart';
 import 'package:fsrs/fsrs.dart' show Rating;
-import 'package:red_letter/models/practice_mode.dart'; // Added for handleStepCompletion
+import 'package:red_letter/models/practice_step.dart'; // Added for handleStepCompletion
 
 /// Controller that manages the daily review session lifecycle.
 ///
@@ -210,7 +210,7 @@ class SessionController extends ChangeNotifier {
   /// Persists step-specific data (e.g., reflection text) and intermediate mastery levels.
   Future<void> handleStepCompletion({
     required String passageId,
-    required PracticeMode mode,
+    required PracticeStep mode,
     required SessionMetrics metrics,
   }) async {
     try {
@@ -219,11 +219,11 @@ class SessionController extends ChangeNotifier {
       // We only update the in-memory card to drive the UI state (resume within session).
 
       switch (mode) {
-        case PracticeMode.impression:
+        case PracticeStep.impression:
           // Nothing to do
           break;
 
-        case PracticeMode.reflection:
+        case PracticeStep.reflection:
           // Update in-memory: Save content + set mastery 1
           if (metrics.userInput.isNotEmpty) {
             _updateInMemoryCard(
@@ -236,28 +236,23 @@ class SessionController extends ChangeNotifier {
           }
           break;
 
-        case PracticeMode.randomWords:
-          // Update in-memory: Mastery 2
+        case PracticeStep.randomWords:
+          // Update in-memory: Mastery 2 (Scaffolding L1)
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 2));
           break;
 
-        case PracticeMode.rotatingClauses:
-          // Update in-memory: Mastery 3
+        case PracticeStep.firstTwoWords:
+          // Update in-memory: Mastery 3 (Scaffolding L2)
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 3));
           break;
 
-        case PracticeMode.firstTwoWords:
-          // Update in-memory: Mastery 4
+        case PracticeStep.rotatingClauses:
+          // Update in-memory: Mastery 4 (Scaffolding L3)
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 4));
           break;
 
-        case PracticeMode.prompted:
-          // Update in-memory: Mastery 5
-          _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 5));
-          break;
-
-        case PracticeMode.reconstruction:
-          // Reconstruction marks card completion.
+        case PracticeStep.fullPassage:
+          // Full passage marks card completion (Scaffolding L4).
           // Persistence is handled by submitReview.
           break;
       }

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
 
 void main() {
@@ -19,34 +19,31 @@ void main() {
       final state = PracticeState.initial(testPassage);
 
       expect(state.currentPassage, testPassage);
-      expect(state.currentMode, PracticeMode.impression);
+      expect(state.currentStep, PracticeStep.impression);
       expect(state.userInput, '');
-      expect(state.completedModes.isEmpty, true);
+      expect(state.completedSteps.isEmpty, true);
       expect(state.isComplete, false);
     });
 
     test('should advance through modes correctly', () {
       var state = PracticeState.initial(testPassage);
 
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.reflection);
-      expect(state.completedModes.contains(PracticeMode.impression), true);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.reflection);
+      expect(state.completedSteps.contains(PracticeStep.impression), true);
 
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.randomWords);
-      expect(state.completedModes.contains(PracticeMode.reflection), true);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.randomWords);
+      expect(state.completedSteps.contains(PracticeStep.reflection), true);
 
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.rotatingClauses);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.firstTwoWords);
 
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.firstTwoWords);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.rotatingClauses);
 
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.prompted);
-
-      state = state.advanceMode();
-      expect(state.currentMode, PracticeMode.reconstruction);
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.fullPassage);
     });
 
     test('should clear user input when advancing mode', () {
@@ -55,7 +52,7 @@ void main() {
 
       expect(state.userInput, 'some input');
 
-      state = state.advanceMode();
+      state = state.advanceStep();
       expect(state.userInput, '');
     });
 
@@ -64,8 +61,8 @@ void main() {
 
       expect(state.isComplete, false);
 
-      for (var i = 0; i < PracticeMode.values.length; i++) {
-        state = state.advanceMode();
+      for (var i = 0; i < PracticeStep.values.length; i++) {
+        state = state.advanceStep();
       }
 
       expect(state.isComplete, true);
@@ -73,15 +70,15 @@ void main() {
 
     test('should reset state correctly', () {
       var state = PracticeState.initial(testPassage);
-      state = state.advanceMode();
-      state = state.advanceMode();
+      state = state.advanceStep();
+      state = state.advanceStep();
       state = state.updateInput('test input');
 
       state = state.reset();
 
-      expect(state.currentMode, PracticeMode.impression);
+      expect(state.currentStep, PracticeStep.impression);
       expect(state.userInput, '');
-      expect(state.completedModes.isEmpty, true);
+      expect(state.completedSteps.isEmpty, true);
       expect(state.currentPassage, testPassage);
     });
 
@@ -104,11 +101,11 @@ void main() {
     test('should implement copyWith correctly', () {
       final state = PracticeState.initial(testPassage);
       final copied = state.copyWith(
-        currentMode: PracticeMode.randomWords,
+        currentStep: PracticeStep.randomWords,
         userInput: 'test',
       );
 
-      expect(copied.currentMode, PracticeMode.randomWords);
+      expect(copied.currentStep, PracticeStep.randomWords);
       expect(copied.userInput, 'test');
       expect(copied.currentPassage, state.currentPassage);
       expect(copied.startTime, state.startTime);

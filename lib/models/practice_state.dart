@@ -1,96 +1,196 @@
 import 'passage.dart';
-import 'practice_mode.dart';
+import 'practice_step.dart';
 
+/// Represents the state of a practice session.
+///
+/// Session Hierarchy: Session → Flow → Steps → Scaffolding → Levels → Rounds → Lives
 class PracticeState {
   final Passage currentPassage;
-  final PracticeMode currentMode;
-  final PracticeMode sessionStartMode;
+  final PracticeStep currentStep;
+  final PracticeStep sessionStartStep;
   final String userInput;
   final DateTime startTime;
-  final Set<PracticeMode> completedModes;
+  final Set<PracticeStep> completedSteps;
+
+  // Scaffolding-specific state
+  final ScaffoldingLevel? currentLevel;     // L1-L4 for scaffolding steps
+  final int currentRound;                   // Which round within the current level (0-indexed)
+  final int livesRemaining;                 // Lives left in current round (0-2)
+  final Set<int> failedWordIndices;         // Word indices failed/revealed across session
 
   const PracticeState({
     required this.currentPassage,
-    this.currentMode = PracticeMode.impression,
-    this.sessionStartMode = PracticeMode.impression,
+    this.currentStep = PracticeStep.impression,
+    this.sessionStartStep = PracticeStep.impression,
     this.userInput = '',
     required this.startTime,
-    this.completedModes = const {},
+    this.completedSteps = const {},
+    this.currentLevel,
+    this.currentRound = 0,
+    this.livesRemaining = 2,
+    this.failedWordIndices = const {},
   });
 
   /// Creates an initial state for a passage
   factory PracticeState.initial(
     Passage passage, {
-    PracticeMode initialMode = PracticeMode.impression,
+    PracticeStep initialStep = PracticeStep.impression,
   }) {
     return PracticeState(
       currentPassage: passage,
-      currentMode: initialMode,
-      sessionStartMode: initialMode,
+      currentStep: initialStep,
+      sessionStartStep: initialStep,
       startTime: DateTime.now(),
+      currentLevel: initialStep.scaffoldingLevel,
+      currentRound: 0,
+      livesRemaining: 2,
     );
   }
 
-  /// Progresses to the next mode.
-  /// If there is no next mode (finished), it effectively stays in the last mode
+  /// Progresses to the next step.
+  /// If there is no next step (finished), it effectively stays in the last step
   /// but adds it to completed.
-  /// Logic can be refined to handle "finished" state explicitly if needed.
-  PracticeState advanceMode() {
-    final nextMode = currentMode.next;
+  PracticeState advanceStep() {
+    final nextStep = currentStep.next;
 
-    // Mark current mode as completed
-    final newCompleted = Set<PracticeMode>.from(completedModes)
-      ..add(currentMode);
+    // Mark current step as completed
+    final newCompleted = Set<PracticeStep>.from(completedSteps)
+      ..add(currentStep);
 
-    if (nextMode != null) {
+    if (nextStep != null) {
       return copyWith(
-        currentMode: nextMode,
-        completedModes: newCompleted,
-        userInput: '', // Reset input for next mode
+        currentStep: nextStep,
+        completedSteps: newCompleted,
+        userInput: '', // Reset input for next step
+        currentLevel: nextStep.scaffoldingLevel,
+        currentRound: 0, // Reset round for new step/level
+        livesRemaining: 2, // Reset lives for new round
       );
     } else {
-      // Finished all modes
-      return copyWith(completedModes: newCompleted);
+      // Finished all steps
+      return copyWith(completedSteps: newCompleted);
     }
+  }
+
+  /// Advances to the next round within the current scaffolding level.
+  /// Resets lives to 2 for the new round.
+  PracticeState advanceRound() {
+    return copyWith(
+      currentRound: currentRound + 1,
+      livesRemaining: 2,
+      userInput: '',
+    );
+  }
+
+  /// Advances to the next scaffolding level (L1→L2→L3→L4).
+  /// Resets round to 0 and lives to 2.
+  PracticeState advanceLevel() {
+    final nextLevel = currentLevel?.next;
+    if (nextLevel == null) {
+      // At L4 or not in scaffolding, advance step instead
+      return advanceStep();
+    }
+
+    return copyWith(
+      currentStep: nextLevel.step,
+      currentLevel: nextLevel,
+      currentRound: 0,
+      livesRemaining: 2,
+      userInput: '',
+    );
+  }
+
+  /// Regresses one scaffolding level (L4→L3→L2→L1, L1 stays at L1).
+  /// Resets to round 0 of the regressed level with 2 lives.
+  PracticeState regressLevel() {
+    final prevLevel = currentLevel?.previous;
+    if (prevLevel == null) {
+      // At L1 or not in scaffolding, stay at current level but reset round
+      return copyWith(
+        currentRound: 0,
+        livesRemaining: 2,
+        userInput: '',
+      );
+    }
+
+    return copyWith(
+      currentStep: prevLevel.step,
+      currentLevel: prevLevel,
+      currentRound: 0,
+      livesRemaining: 2,
+      userInput: '',
+    );
+  }
+
+  /// Decrements lives by 1. Returns new state with updated lives.
+  PracticeState loseLife() {
+    return copyWith(
+      livesRemaining: livesRemaining > 0 ? livesRemaining - 1 : 0,
+    );
+  }
+
+  /// Adds word indices to the failed words set.
+  PracticeState recordFailedWords(Set<int> wordIndices) {
+    return copyWith(
+      failedWordIndices: Set<int>.from(failedWordIndices)..addAll(wordIndices),
+    );
   }
 
   /// Resets the practice session for the current passage
   PracticeState reset() {
-    return PracticeState.initial(currentPassage, initialMode: sessionStartMode);
+    return PracticeState.initial(currentPassage, initialStep: sessionStartStep);
   }
 
-  /// Updates the user input for the current mode
+  /// Updates the user input for the current step
   PracticeState copyWith({
     Passage? currentPassage,
-    PracticeMode? currentMode,
-    PracticeMode? sessionStartMode,
+    PracticeStep? currentStep,
+    PracticeStep? sessionStartStep,
     String? userInput,
     DateTime? startTime,
-    Set<PracticeMode>? completedModes,
+    Set<PracticeStep>? completedSteps,
+    ScaffoldingLevel? currentLevel,
+    int? currentRound,
+    int? livesRemaining,
+    Set<int>? failedWordIndices,
   }) {
     return PracticeState(
       currentPassage: currentPassage ?? this.currentPassage,
-      currentMode: currentMode ?? this.currentMode,
-      sessionStartMode: sessionStartMode ?? this.sessionStartMode,
+      currentStep: currentStep ?? this.currentStep,
+      sessionStartStep: sessionStartStep ?? this.sessionStartStep,
       userInput: userInput ?? this.userInput,
       startTime: startTime ?? this.startTime,
-      completedModes: completedModes ?? this.completedModes,
+      completedSteps: completedSteps ?? this.completedSteps,
+      currentLevel: currentLevel ?? this.currentLevel,
+      currentRound: currentRound ?? this.currentRound,
+      livesRemaining: livesRemaining ?? this.livesRemaining,
+      failedWordIndices: failedWordIndices ?? this.failedWordIndices,
     );
   }
 
-  /// Updates the user input for the current mode
+  /// Updates the user input for the current step
   PracticeState updateInput(String input) {
     return copyWith(userInput: input);
   }
 
-  /// Returns true if all modes have been completed
+  /// Returns true if all steps have been completed
   bool get isComplete {
-    return completedModes.length == PracticeMode.values.length;
+    return completedSteps.length == PracticeStep.values.length;
   }
 
   /// Returns the elapsed time since the practice session started
   Duration get elapsedTime {
     return DateTime.now().difference(startTime);
+  }
+
+  /// Returns true if currently in a scaffolding step
+  bool get isScaffolding {
+    return currentStep.isScaffolding;
+  }
+
+  /// Returns true if out of lives in current round
+  bool get isOutOfLives {
+    return livesRemaining <= 0;
   }
 
   @override
@@ -99,32 +199,43 @@ class PracticeState {
 
     return other is PracticeState &&
         other.currentPassage == currentPassage &&
-        other.currentMode == currentMode &&
-        other.sessionStartMode == sessionStartMode &&
+        other.currentStep == currentStep &&
+        other.sessionStartStep == sessionStartStep &&
         other.userInput == userInput &&
         other.startTime == startTime &&
-        _setEquals(other.completedModes, completedModes);
+        _setEquals(other.completedSteps, completedSteps) &&
+        other.currentLevel == currentLevel &&
+        other.currentRound == currentRound &&
+        other.livesRemaining == livesRemaining &&
+        _setEquals(other.failedWordIndices.cast<Object>(), failedWordIndices.cast<Object>());
   }
 
   @override
   int get hashCode {
     return Object.hash(
       currentPassage,
-      currentMode,
-      sessionStartMode,
+      currentStep,
+      sessionStartStep,
       userInput,
       startTime,
-      Object.hashAllUnordered(completedModes),
+      Object.hashAllUnordered(completedSteps),
+      currentLevel,
+      currentRound,
+      livesRemaining,
+      Object.hashAllUnordered(failedWordIndices),
     );
   }
 
-  bool _setEquals(Set<PracticeMode> a, Set<PracticeMode> b) {
+  bool _setEquals(Set<Object> a, Set<Object> b) {
     if (a.length != b.length) return false;
     return a.containsAll(b);
   }
 
   @override
   String toString() {
-    return 'PracticeState(mode: ${currentMode.name}, start: ${sessionStartMode.name}, input: "$userInput", completed: ${completedModes.length})';
+    final levelInfo = currentLevel != null ? ' L${currentLevel!.name.substring(1)}' : '';
+    final roundInfo = isScaffolding ? ' R${currentRound + 1}' : '';
+    final livesInfo = isScaffolding ? ' ♥${livesRemaining}' : '';
+    return 'PracticeState(step: ${currentStep.name}$levelInfo$roundInfo$livesInfo, input: "$userInput", completed: ${completedSteps.length})';
   }
 }

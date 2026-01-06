@@ -1,27 +1,33 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:red_letter/models/passage.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
 
+/// Controller for managing practice session state using ValueNotifier pattern.
+///
+/// Session Hierarchy: Session → Flow → Steps → Scaffolding → Levels → Rounds → Lives
 class PracticeController extends ValueNotifier<PracticeState> {
   // Callback for when a step is completed (for persistence in parent)
-  final Function(PracticeMode mode, String? input)? onStepComplete;
+  final Function(PracticeStep step, String? input)? onStepComplete;
 
   PracticeController(
     Passage passage, {
     this.onStepComplete,
-    PracticeMode initialMode = PracticeMode.impression,
-  }) : super(PracticeState.initial(passage, initialMode: initialMode));
+    PracticeStep initialStep = PracticeStep.impression,
+  }) : super(PracticeState.initial(passage, initialStep: initialStep));
 
+  /// Advances to the next step in the session.
+  /// For non-scaffolding steps, this moves to the next step.
+  /// For scaffolding steps, use advanceRound() or advanceLevel() instead.
   void advance([String? input]) {
-    final currentMode = value.currentMode;
+    final currentStep = value.currentStep;
 
     // Notify parent of step completion
-    onStepComplete?.call(currentMode, input);
+    onStepComplete?.call(currentStep, input);
 
     // Standard progression
-    final nextState = value.advanceMode();
+    final nextState = value.advanceStep();
     value = nextState;
 
     if (input != null) {
@@ -29,45 +35,47 @@ class PracticeController extends ValueNotifier<PracticeState> {
     }
   }
 
-  /// Regresses the practice session to a previous mode
-  /// Used for acquisition failure (e.g., Prompted -> Scaffolding)
-  void regress() {
-    PracticeMode? targetMode;
-    switch (value.currentMode) {
-      case PracticeMode.prompted:
-        targetMode = PracticeMode.randomWords;
-        break;
-      case PracticeMode.firstTwoWords:
-        targetMode = PracticeMode.rotatingClauses;
-        break;
-      case PracticeMode.rotatingClauses:
-        targetMode = PracticeMode.randomWords;
-        break;
-      case PracticeMode.randomWords:
-        targetMode = PracticeMode.reflection;
-        break;
-      case PracticeMode.reconstruction:
-        targetMode = PracticeMode.prompted;
-        break;
-      default:
-        // No specific regression defined, stay or go back one step?
-        // For now, do nothing if not defined.
-        break;
-    }
-
-    if (targetMode != null) {
-      jumpTo(targetMode);
-    }
+  /// Advances to the next round within the current scaffolding level.
+  /// Resets lives to 2 for the new round.
+  void advanceRound() {
+    value = value.advanceRound();
   }
 
-  /// Forces a jump to a specific mode
-  void jumpTo(PracticeMode mode) {
+  /// Advances to the next scaffolding level (L1→L2→L3→L4).
+  /// After L4, advances to the next step.
+  void advanceLevel() {
+    value = value.advanceLevel();
+  }
+
+  /// Regresses one scaffolding level (L4→L3→L2→L1, L1 stays at L1).
+  /// Used when user runs out of lives in a round.
+  /// Resets to round 0 of the regressed level with 2 lives.
+  void regress() {
+    value = value.regressLevel();
+  }
+
+  /// Decrements lives by 1. Used when user fails a word or reveals it.
+  void loseLife() {
+    value = value.loseLife();
+  }
+
+  /// Records word indices that the user failed or revealed.
+  void recordFailedWords(Set<int> wordIndices) {
+    value = value.recordFailedWords(wordIndices);
+  }
+
+  /// Forces a jump to a specific step
+  void jumpTo(PracticeStep step) {
     value = value.copyWith(
-      currentMode: mode,
+      currentStep: step,
       userInput: '', // Reset input on jump
+      currentLevel: step.scaffoldingLevel,
+      currentRound: 0,
+      livesRemaining: 2,
     );
   }
 
+  /// Resets the entire practice session
   void reset() {
     value = value.reset();
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
@@ -19,7 +19,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
       final occlusion = ClozeOcclusion.randomWordPerClause(
         passage: passage,
         seed: 42,
@@ -45,7 +45,7 @@ void main() {
       final passage = PassageBuilder().build();
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
       final occlusion = ClozeOcclusion.randomWordPerClause(passage: passage);
 
       await tester.pumpWidget(
@@ -77,7 +77,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -110,7 +110,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -151,7 +151,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -192,7 +192,7 @@ void main() {
 
         final state = PracticeState.initial(
           passage,
-        ).copyWith(currentMode: PracticeMode.randomWords);
+        ).copyWith(currentStep: PracticeStep.randomWords);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -230,7 +230,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -301,7 +301,7 @@ void main() {
 
       final state = PracticeState.initial(
         passage,
-      ).copyWith(currentMode: PracticeMode.randomWords);
+      ).copyWith(currentStep: PracticeStep.randomWords);
 
       await tester.pumpWidget(
         MaterialApp(

@@ -3,29 +3,27 @@ import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/data/repositories/passage_repository.dart';
 import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/passage_validator.dart';
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
 import 'package:red_letter/screens/impression_screen.dart';
 import 'package:red_letter/screens/reflection_screen.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
-import 'package:red_letter/screens/prompted_screen.dart';
-import 'package:red_letter/screens/reconstruction_screen.dart';
 import 'package:red_letter/controllers/practice_controller.dart';
 import 'package:red_letter/utils/levenshtein.dart';
 
 class PracticeSessionView extends StatefulWidget {
   final PassageRepository repository;
   final Passage initialPassage;
-  final PracticeMode initialMode;
+  final PracticeStep initialStep;
   final Function(SessionMetrics) onComplete;
-  final Function(PracticeMode, String?)? onStepComplete; // New callback
+  final Function(PracticeStep, String?)? onStepComplete; // New callback
   final ValueChanged<int>? onLivesChange;
 
   const PracticeSessionView({
     super.key,
     required this.repository,
     required this.initialPassage,
-    required this.initialMode,
+    required this.initialStep,
     required this.onComplete,
     this.onStepComplete, // Optional
     this.onLivesChange,
@@ -52,11 +50,11 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialPassage.id != widget.initialPassage.id) {
       _loadPassage();
-    } else if (oldWidget.initialMode != widget.initialMode) {
+    } else if (oldWidget.initialStep != widget.initialStep) {
       // Only reload if the new mode is strictly different from our CURRENT state
       // This prevents resetting the controller when the parent catches up to our internal state
       if (_controller != null &&
-          _controller!.value.currentMode != widget.initialMode) {
+          _controller!.value.currentStep != widget.initialStep) {
         _loadPassage();
       }
     }
@@ -68,7 +66,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
         setState(() {
           _controller = PracticeController(
             widget.initialPassage,
-            initialMode: widget.initialMode,
+            initialStep: widget.initialStep,
             onStepComplete: widget.onStepComplete,
           );
           _isLoading = false;
@@ -96,31 +94,12 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
 
     final currentState = _controller!.value;
 
-    // Check strict match for Prompted/Reconstruction
-    bool success = true;
-    if (currentState.currentMode == PracticeMode.reconstruction) {
-      if (input == null ||
-          !PassageValidator.isStrictMatch(widget.initialPassage.text, input)) {
-        success = false;
-      }
-    }
-
-    if (success) {
-      // If we are about to finish Reconstruction
-      if (currentState.currentMode == PracticeMode.reconstruction) {
-        _submitMetrics(input);
-      } else {
-        _controller!.advance(input);
-      }
+    // Check if we're finishing the session (fullPassage is the final step)
+    if (currentState.currentStep == PracticeStep.fullPassage &&
+        currentState.isComplete) {
+      _submitMetrics(input);
     } else {
-      // Failure -> Regress
-      _controller!.regress();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Incorrect. Stepping back...'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      _controller!.advance(input);
     }
   }
 
@@ -169,40 +148,29 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
       builder: (context, state, child) {
         Widget currentScreen;
 
-        switch (state.currentMode) {
-          case PracticeMode.impression:
+        switch (state.currentStep) {
+          case PracticeStep.impression:
             currentScreen = ImpressionScreen(
               state: state,
               onContinue: () => _handleStep(),
             );
             break;
-          case PracticeMode.reflection:
+          case PracticeStep.reflection:
             currentScreen = ReflectionScreen(
               state: state,
               onContinue: (text) => _handleStep(text),
             );
             break;
-          case PracticeMode.randomWords:
-          case PracticeMode.rotatingClauses:
-          case PracticeMode.firstTwoWords:
+          case PracticeStep.randomWords:
+          case PracticeStep.firstTwoWords:
+          case PracticeStep.rotatingClauses:
+          case PracticeStep.fullPassage:
             currentScreen = ScaffoldingScreen(
-              key: ValueKey('cloze_${state.currentMode.name}'),
+              key: ValueKey('cloze_${state.currentStep.name}'),
               state: state,
               onContinue: () => _handleStep(),
               onLivesChange: widget.onLivesChange,
               onRegress: () => _controller?.regress(),
-            );
-            break;
-          case PracticeMode.prompted:
-            currentScreen = PromptedScreen(
-              state: state,
-              onContinue: (input) => _handleStep(input),
-            );
-            break;
-          case PracticeMode.reconstruction:
-            currentScreen = ReconstructionScreen(
-              state: state,
-              onContinue: (input) => _handleStep(input),
             );
             break;
         }
@@ -212,7 +180,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
           switchInCurve: Curves.easeInOut,
           switchOutCurve: Curves.easeInOut,
           child: KeyedSubtree(
-            key: ValueKey(state.currentMode),
+            key: ValueKey(state.currentStep),
             child: currentScreen,
           ),
         );

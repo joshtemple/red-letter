@@ -9,7 +9,7 @@ import 'package:red_letter/services/fsrs_scheduler_service.dart';
 import 'package:red_letter/services/working_set_service.dart';
 import 'package:drift/drift.dart';
 import 'package:fsrs/fsrs.dart' as fsrs;
-import 'package:red_letter/models/practice_mode.dart';
+import 'package:red_letter/models/practice_step.dart';
 
 @GenerateMocks([UserProgressDAO, WorkingSetService, FSRSSchedulerService])
 import 'review_session_controller_test.mocks.dart';
@@ -163,7 +163,7 @@ void main() {
 
       await controller.handleStepCompletion(
         passageId: '1',
-        mode: PracticeMode.reflection,
+        mode: PracticeStep.reflection,
         metrics: SessionMetrics(
           passageText: '',
           userInput: 'My reflection',
