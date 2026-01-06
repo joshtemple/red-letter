@@ -454,5 +454,48 @@ void main() {
       final inlineView = tester.widget<InlinePassageView>(inlineViewFinder);
       expect(inlineView.showUnderlines, isTrue);
     });
+
+    testWidgets('should reveal active word and deduct life when tapped', (
+      WidgetTester tester,
+    ) async {
+      int lives = 2;
+      final passage = PassageBuilder().withText('Love your enemies').build();
+
+      // Occlude 'Love' (active) and 'your' (inactive)
+      final occlusion = ClozeOcclusion.manual(
+        passage: passage,
+        hiddenIndices: {0, 1},
+      );
+
+      final state = PracticeState.initial(
+        passage,
+      ).copyWith(currentStep: PracticeStep.randomWords);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldingScreen(
+            state: state,
+            onContinue: () {},
+            occlusion: occlusion,
+            onLivesChange: (updatedLives) => lives = updatedLives,
+          ),
+        ),
+      );
+
+      // Verify 'Love' is the active word
+      final loveFinder = find.text('Love');
+      expect(loveFinder, findsOneWidget);
+
+      // Tap it
+      await tester.tap(loveFinder);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+
+      expect(
+        lives,
+        1,
+        reason: "Lives should decrease after tapping active word",
+      );
+    });
   });
 }

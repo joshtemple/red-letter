@@ -63,9 +63,7 @@ class InlinePassageView extends StatelessWidget {
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
               child: GestureDetector(
-                onTap: onWordTap != null && !isIndexActive
-                    ? () => onWordTap!(i)
-                    : null,
+                onTap: onWordTap != null ? () => onWordTap!(i) : null,
                 child: _HiddenContent(
                   text: parts.content,
                   input: isIndexActive ? currentInput : '',

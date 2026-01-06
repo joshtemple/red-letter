@@ -127,6 +127,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
         // 1. Success: strict match (with tolerance)
         if (_occlusion.checkWord(targetIndex, input)) {
           _isSuccessProcessing = true;
+          HapticFeedback.mediumImpact();
           final next = _occlusion.revealIndices({targetIndex});
 
           setState(() {
@@ -153,9 +154,12 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           // 2. Retry
           // Flash red (automatic via isInputValid check) but keep input
           // Do not deduct life
+          // Optional: Light feedback for typo warning?
+          // HapticFeedback.selectionClick();
           setState(() {});
         } else {
           // 3. Failure
+          HapticFeedback.heavyImpact();
           setState(() {
             isProcessingError = true;
           });
