@@ -182,8 +182,10 @@ class PracticeState {
   }
 
   /// Returns true if all steps have been completed
+  /// Note: Reflection step is currently disabled and skipped
   bool get isComplete {
-    return completedSteps.length == PracticeStep.values.length;
+    // Reflection is skipped, so we need one fewer step to complete
+    return completedSteps.length == PracticeStep.values.length - 1;
   }
 
   /// Returns the elapsed time since the practice session started

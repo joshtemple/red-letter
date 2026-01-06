@@ -28,13 +28,10 @@ void main() {
     test('should advance through modes correctly', () {
       var state = PracticeState.initial(testPassage);
 
-      state = state.advanceStep();
-      expect(state.currentStep, PracticeStep.reflection);
-      expect(state.completedSteps.contains(PracticeStep.impression), true);
-
+      // Advance to randomWords (skipping disabled reflection step)
       state = state.advanceStep();
       expect(state.currentStep, PracticeStep.randomWords);
-      expect(state.completedSteps.contains(PracticeStep.reflection), true);
+      expect(state.completedSteps.contains(PracticeStep.impression), true);
 
       state = state.advanceStep();
       expect(state.currentStep, PracticeStep.firstTwoWords);
@@ -61,7 +58,8 @@ void main() {
 
       expect(state.isComplete, false);
 
-      for (var i = 0; i < PracticeStep.values.length; i++) {
+      // Advance through all steps (reflection is skipped, so one fewer advance)
+      for (var i = 0; i < PracticeStep.values.length - 1; i++) {
         state = state.advanceStep();
       }
 

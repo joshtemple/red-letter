@@ -23,14 +23,10 @@ void main() {
 
       expect(state.currentStep, PracticeStep.impression);
 
-      // Advance to Reflection
-      state = state.advanceStep();
-      expect(state.currentStep, PracticeStep.reflection);
-      expect(state.completedSteps, contains(PracticeStep.impression));
-
-      // Advance to Scaffolding
+      // Advance to Scaffolding (skipping disabled Reflection step)
       state = state.advanceStep();
       expect(state.currentStep, PracticeStep.randomWords);
+      expect(state.completedSteps, contains(PracticeStep.impression));
 
       // Advance to First Two Words
       state = state.advanceStep();
@@ -48,8 +44,13 @@ void main() {
       state = state.advanceStep();
 
       expect(state.isComplete, true);
-      expect(state.completedSteps.length, 6);
-      expect(state.completedSteps, containsAll(PracticeStep.values));
+      // Reflection is skipped, so only 5 steps completed
+      expect(state.completedSteps.length, 5);
+      expect(state.completedSteps, contains(PracticeStep.impression));
+      expect(state.completedSteps, contains(PracticeStep.randomWords));
+      expect(state.completedSteps, contains(PracticeStep.firstTwoWords));
+      expect(state.completedSteps, contains(PracticeStep.rotatingClauses));
+      expect(state.completedSteps, contains(PracticeStep.fullPassage));
     });
 
     test('reset should return to initial state', () {

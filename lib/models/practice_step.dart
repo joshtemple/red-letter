@@ -56,10 +56,16 @@ enum PracticeStep {
   }
 
   /// Returns the next step in the sequence, or null if this is the final step.
+  /// Note: Reflection step is currently disabled and will be skipped.
   PracticeStep? get next {
     final index = PracticeStep.values.indexOf(this);
     if (index < PracticeStep.values.length - 1) {
-      return PracticeStep.values[index + 1];
+      final nextStep = PracticeStep.values[index + 1];
+      // Skip reflection step (disabled)
+      if (nextStep == PracticeStep.reflection) {
+        return nextStep.next;
+      }
+      return nextStep;
     }
     return null;
   }
