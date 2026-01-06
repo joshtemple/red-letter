@@ -1,24 +1,30 @@
-# Flows
+# Practice Flows
+
+## Terminology Hierarchy
+**Session** → **Flow** → **Step** → **Scaffolding Level** → **Round** → **Lives**
 
 ## Learning Flow
 
-Each of these is a **step** in a **flow**, the **Learning** flow.
+Designed for acquiring new passages. Consists of sequential **Steps**:
 
-1. **Impression screen**: Tap to reveal each clause, eventually enable read-aloud
-2. **Reflection screen**: What does this passage mean to you?
-  - For now, disable this step but keep it around
-3. **Scaffolding screen**: Progressively delete more and more of the passage (a few words, start of clauses, rotating clause, full passage)
-  - Failed words are prioritized for testing in later rounds (perhaps round n + 2 to interleave?)
-  - Tap anywhere on the screen to reveal a word if you don't know it, but still have to type it
-  - User has two "lives" allowing them to make two mistakes before failing the stage
-  - Failure regresses by one level, success advances one level until complete
-    - Failure in first round stays on the first round
-  - Smart logic for typo detection
-  - Last round does not display the underlines
+1. **Impression Step**: Full text display with visual mnemonic.
+2. **Reflection Step**: Semantic engagement prompt ("What does this mean to you?").
+3. **Scaffolding Step**: Progressive occlusion ladder with 4 **Levels**:
+   - **Level 1 (RandomWords)**: 1-2 words removed per clause. (Fixed 3 Rounds)
+   - **Level 2 (FirstTwoWords)**: Only first 2 words of each clause visible. (1 Round)
+   - **Level 3 (RotatingClauses)**: One clause hidden at a time. (N Rounds = clause count)
+   - **Level 4 (FullPassage)**: 100% hidden, no underlines. (1 Round)
 
-We are going to delete Prompted Mode and Reconstruction Mode (their associated logic and screens), they are redundant in the current design.
+### Mechanics
+- **Lives**: 2 lives per **Round**. Reset at the start of each round.
+- **Progression**: completing a round advances to the next round/level.
+- **Regression**: losing all lives regresses to the previous **Level** (L1 stays at L1).
+- **Assistance**: Tapping a hidden word reveals it (costs 1 life).
 
 ## Review Flow
 
-Review flow is the same as Learning Flow, except it starts at the final step of the Scaffolding screen where the user is expected to fully input the passage. Failing it does not regress to a prior stage, but sends it back to the scheduler (FSRS) with an "Again" rating.
+Designed for maintaining existing passages via FSRS scheduling.
 
+- **Entry Point**: Starts directly at **Scaffolding Level 4 (FullPassage)**.
+- **Success**: Completing the round submits a "Good" or "Easy" rating to FSRS.
+- **Failure**: Failing the round triggers a regression into the **Learning Flow** (starting at L1) and submits an "Again" rating to FSRS.

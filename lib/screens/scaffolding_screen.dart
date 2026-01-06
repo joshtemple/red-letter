@@ -10,6 +10,12 @@ import 'package:red_letter/theme/colors.dart';
 import 'package:red_letter/widgets/inline_passage_view.dart';
 import 'package:red_letter/models/passage_validator.dart';
 
+/// Screen responsible for the Scaffolding Step of the practice flow.
+///
+/// Hierarchy: ... → Scaffolding (Step) → Level (L1-L4) → Round → Lives
+///
+/// Renders the current Scaffolding Level (e.g. RandomWords, FirstTwoWords)
+/// and handles the Round-based progression logic (Lives, Success/Failure).
 class ScaffoldingScreen extends StatefulWidget {
   final PracticeState state;
   final VoidCallback onContinue;

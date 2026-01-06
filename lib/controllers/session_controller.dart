@@ -8,10 +8,15 @@ import 'package:red_letter/services/working_set_service.dart';
 import 'package:fsrs/fsrs.dart' show Rating;
 import 'package:red_letter/models/practice_step.dart'; // Added for handleStepCompletion
 
-/// Controller that manages the daily review session lifecycle.
+/// Controller that manages the daily practice session lifecycle.
+///
+/// Hierarchy: Session → Flow → Steps → Scaffolding → Levels → Rounds → Lives
 ///
 /// Handles loading the review queue, tracking progress through cards,
 /// submitting reviews, and updating FSRS scheduling.
+///
+/// This controller manages the "Session" level of the hierarchy, orchestrating
+/// the individual "Flows" (Learning vs Review) and their internal "Steps".
 class SessionController extends ChangeNotifier {
   final UserProgressDAO _progressDAO;
   final WorkingSetService _workingSetService;
