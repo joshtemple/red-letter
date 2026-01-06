@@ -9,7 +9,7 @@ import 'package:red_letter/screens/practice_session_view.dart';
 import 'package:red_letter/services/fsrs_scheduler_service.dart';
 import 'package:red_letter/services/working_set_service.dart';
 import 'package:red_letter/theme/colors.dart';
-import 'package:fsrs/fsrs.dart' show Rating;
+import 'package:red_letter/models/session_flow_type.dart';
 
 class SessionScreen extends StatefulWidget {
   final PassageRepository repository;
@@ -120,36 +120,8 @@ class _SessionScreenState extends State<SessionScreen> {
   void _handleStepComplete(SessionMetrics metrics) async {
     if (_controller == null) return;
 
-    final card = _controller!.currentCard!;
-    final isReview = card.state == 1; // 1 = Review
-    final rating = metrics.toFSRSRating();
-
-    // Logic:
-    // If in Review Mode (Reconstruction used for review) AND Rating is Again -> Regress
-    // Else -> Submit and Advance
-
-    if (isReview && rating == Rating.again) {
-      // REGRESSION FLOW
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missed it. Let\'s practice.')),
-      );
-
-      // 1. Submit "Again" to FSRS but keep card
-      await _controller!.handleRegression(metrics);
-
-      // 2. Switch UI to Scaffolding (Acquisition flow)
-      if (mounted) {
-        setState(() {
-          _forcedMode = PracticeStep.randomWords;
-        });
-      }
-    } else {
-      // STANDARD FLOW
-      await _controller!.submitReview(metrics);
-      // _onCardChanged will be triggered by listener if index/card changes
-      // But actually listener usage in _onCardChanged might be tricky if notifyListeners happens inside submitReview
-      // It should work.
-    }
+    // Determine Logic is now centralized in SessionController
+    await _controller!.handlePassageCompletion(metrics);
   }
 
   void _handleIntermediateStep(PracticeStep mode, String? input) {
@@ -301,6 +273,12 @@ class _SessionScreenState extends State<SessionScreen> {
         repository: widget.repository,
         initialPassage: _currentPassage!,
         initialStep: _getInitialMode(),
+        // Check Flow Type based on card state.
+        // If State == 1 (Review) -> FlowType.review
+        // Else -> FlowType.learning
+        flowType: (_controller?.currentCard?.state == 1)
+            ? FlowType.review
+            : FlowType.learning,
         onComplete: _handleStepComplete,
         onStepComplete: _handleIntermediateStep,
         onLivesChange: _updateLives,

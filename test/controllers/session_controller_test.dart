@@ -8,7 +8,6 @@ import 'package:red_letter/data/models/session_metrics.dart';
 import 'package:red_letter/services/fsrs_scheduler_service.dart';
 import 'package:red_letter/services/working_set_service.dart';
 import 'package:drift/drift.dart';
-import 'package:fsrs/fsrs.dart' as fsrs;
 import 'package:red_letter/models/practice_step.dart';
 
 @GenerateMocks([UserProgressDAO, WorkingSetService, FSRSSchedulerService])
@@ -99,51 +98,6 @@ void main() {
       // Assert
       expect(controller.currentIndex, 1);
       expect(controller.completedReviews.length, 1);
-    });
-
-    test('handleRegression does NOT advance index', () async {
-      // Setup
-      when(
-        mockProgressDAO.getReviewQueue(limit: anyNamed('limit')),
-      ).thenAnswer((_) async => [testProgress]);
-      when(
-        mockWorkingSetService.getAvailableNewCards(
-          overrideLimit: anyNamed('overrideLimit'),
-        ),
-      ).thenAnswer((_) async => []);
-
-      await controller.loadSession();
-
-      // Mock regression behavior
-      final metrics = SessionMetrics(
-        passageText: 'test',
-        userInput: 'wrong',
-        durationMs: 1000,
-        levenshteinDistance: 5,
-      );
-
-      when(
-        mockFSRSService.reviewPassage(
-          passageId: anyNamed('passageId'),
-          progress: anyNamed('progress'),
-          rating: fsrs.Rating.again,
-        ),
-      ).thenReturn(UserProgressTableCompanion.insert(passageId: '1'));
-
-      when(mockProgressDAO.upsertProgress(any)).thenAnswer((_) async {});
-
-      // Mock fetching refreshed progress
-      when(mockProgressDAO.getProgressByPassageId('1')).thenAnswer(
-        (_) async => testProgress.copyWith(state: 2),
-      ); // Relearning state
-
-      // Act
-      await controller.handleRegression(metrics);
-
-      // Assert
-      expect(controller.currentIndex, 0); // Should stay on same card
-      expect(controller.completedReviews.length, 1);
-      expect(controller.cards[0].state, 2); // Should be updated in memory
     });
 
     test('handleStepCompletion persists reflection', () async {

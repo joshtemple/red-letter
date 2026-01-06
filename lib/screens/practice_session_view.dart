@@ -11,12 +11,15 @@ import 'package:red_letter/screens/scaffolding_screen.dart';
 import 'package:red_letter/controllers/practice_controller.dart';
 import 'package:red_letter/utils/levenshtein.dart';
 
+import 'package:red_letter/models/session_flow_type.dart';
+
 class PracticeSessionView extends StatefulWidget {
   final PassageRepository repository;
   final Passage initialPassage;
   final PracticeStep initialStep;
+  final FlowType flowType; // Added
   final Function(SessionMetrics) onComplete;
-  final Function(PracticeStep, String?)? onStepComplete; // New callback
+  final Function(PracticeStep, String?)? onStepComplete;
   final ValueChanged<int>? onLivesChange;
 
   const PracticeSessionView({
@@ -24,8 +27,9 @@ class PracticeSessionView extends StatefulWidget {
     required this.repository,
     required this.initialPassage,
     required this.initialStep,
+    this.flowType = FlowType.learning, // Default
     required this.onComplete,
-    this.onStepComplete, // Optional
+    this.onStepComplete,
     this.onLivesChange,
   });
 
@@ -67,6 +71,7 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
           _controller = PracticeController(
             widget.initialPassage,
             initialStep: widget.initialStep,
+            flowType: widget.flowType,
             onStepComplete: widget.onStepComplete,
           );
           _isLoading = false;
@@ -170,7 +175,33 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
               state: state,
               onContinue: () => _handleStep(),
               onLivesChange: widget.onLivesChange,
-              onRegress: () => _controller?.regress(),
+
+              onRegress: (input, durationMs) {
+                if (widget.flowType == FlowType.review) {
+                  // Review Flow: Failure ends the card/session
+                  // Construct failure metrics
+                  // We need to calculate Levenshtein distance here or just pass 0 accuracy?
+                  // SessionMetrics calculates accuracy from distance.
+                  final distance = levenshtein(
+                    widget.initialPassage.text,
+                    input,
+                  );
+
+                  final metrics = SessionMetrics(
+                    passageText: widget.initialPassage.text,
+                    userInput: input,
+                    durationMs:
+                        durationMs, // Passed from ScaffoldingScreen (or 0)
+                    levenshteinDistance: distance,
+                  );
+
+                  // Submit metrics to parent (SessionScreen) which will handle 'Again' rating
+                  widget.onComplete(metrics);
+                } else {
+                  // Learning Flow: Failure means regress and try again
+                  _controller?.regress();
+                }
+              },
             );
             break;
         }

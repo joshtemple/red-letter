@@ -140,46 +140,6 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Handle a failed review (regression) for the current card.
-  ///
-  /// Submits an 'Again' rating to FSRS but keeps the card as the current card,
-  /// effectively queueing it for immediate relearning (Acquisition flow).
-  Future<void> handleRegression(SessionMetrics metrics) async {
-    if (currentCard == null) {
-      throw StateError('No current card to regress');
-    }
-
-    final currentCardData = currentCard!;
-    // Force 'Again' rating for regression
-    const rating = Rating.again;
-
-    // Update FSRS scheduling
-    final updatedProgressCompanion = _fsrsService.reviewPassage(
-      passageId: currentCardData.passageId,
-      progress: currentCardData,
-      rating: rating,
-    );
-
-    // Save to database
-    await _progressDAO.upsertProgress(updatedProgressCompanion);
-
-    // Fetch updated record from DB to get clean UserProgress object
-    // This allows us to have the actual UserProgress model instead of the Companion
-    final refreshedProgress = await _progressDAO.getProgressByPassageId(
-      currentCardData.passageId,
-    );
-
-    if (refreshedProgress != null) {
-      // Update the in-memory card to reflect new state
-      _cards[_currentIndex] = refreshedProgress;
-    }
-
-    // Record metrics but do NOT advance index
-    _completedReviews.add(metrics);
-
-    notifyListeners();
-  }
-
   /// Skip the current card without reviewing.
   ///
   /// Moves to the next card but doesn't update scheduling.
@@ -209,6 +169,64 @@ class SessionController extends ChangeNotifier {
 
   // ========== Step Persistence ==========
 
+  /// Handles completion of a passage (L4) or a failure in Review Flow.
+  ///
+  /// Centralizes logic for both Learning and Review flows.
+  Future<void> handlePassageCompletion(SessionMetrics metrics) async {
+    if (currentCard == null) return;
+
+    final card = currentCard!;
+    final isReview = card.state == 1; // 1 = Review
+    final rating = metrics.toFSRSRating();
+
+    // Logic:
+    // Review Flow:
+    // - Always submit to FSRS (Success or Fail).
+    // - Advance to next card (Reschedule).
+    // Learning Flow:
+    // - Only called on Success (Completion of L4).
+    // - Failures are handled internally by PracticeController (Regression).
+    // - Submit Rating.good (Graduation) to FSRS.
+    // - Advance.
+
+    if (isReview) {
+      // Review Flow
+      // Submit actual rating (Again/Hard/Good/Easy)
+      await _submitReviewInternal(rating, metrics);
+    } else {
+      // Learning Flow (Success)
+      // Force 'Good' rating for graduation
+      await _submitReviewInternal(Rating.good, metrics);
+    }
+  }
+
+  /// Internal method to submit review to FSRS and advance.
+  Future<void> _submitReviewInternal(
+    Rating rating,
+    SessionMetrics metrics,
+  ) async {
+    if (currentCard == null) return;
+
+    final currentCardData = currentCard!;
+
+    // Update FSRS scheduling
+    final updatedProgress = _fsrsService.reviewPassage(
+      passageId: currentCardData.passageId,
+      progress: currentCardData,
+      rating: rating,
+    );
+
+    // Save to database
+    await _progressDAO.upsertProgress(updatedProgress);
+
+    // Update state: record metrics and advance
+    _completedReviews.add(metrics);
+    _currentIndex++;
+
+    notifyListeners();
+  }
+
+  /// Deprecated: Use handlePassageCompletion instead.
   /// Handles completion of a practice step (Impression, Reflection, etc.).
   ///
   /// Called by the UI after each step is successfully completed.
@@ -258,7 +276,7 @@ class SessionController extends ChangeNotifier {
 
         case PracticeStep.fullPassage:
           // Full passage marks card completion (Scaffolding L4).
-          // Persistence is handled by submitReview.
+          // Handled by handlePassageCompletion.
           break;
       }
     } catch (e) {

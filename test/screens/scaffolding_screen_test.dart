@@ -310,7 +310,7 @@ void main() {
             state: state,
             onContinue: () {},
             occlusion: occlusion,
-            onRegress: () {
+            onRegress: (input, duration) {
               regressed = true;
             },
           ),

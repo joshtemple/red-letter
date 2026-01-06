@@ -1,3 +1,4 @@
+import 'package:red_letter/models/session_flow_type.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:red_letter/models/passage.dart';
@@ -15,7 +16,14 @@ class PracticeController extends ValueNotifier<PracticeState> {
     Passage passage, {
     this.onStepComplete,
     PracticeStep initialStep = PracticeStep.impression,
-  }) : super(PracticeState.initial(passage, initialStep: initialStep));
+    FlowType flowType = FlowType.learning,
+  }) : super(
+         PracticeState.initial(
+           passage,
+           initialStep: initialStep,
+           flowType: flowType,
+         ),
+       );
 
   /// Advances to the next step in the session.
   /// For non-scaffolding steps, this moves to the next step.

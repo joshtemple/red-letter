@@ -1,5 +1,6 @@
 import 'passage.dart';
 import 'practice_step.dart';
+import 'session_flow_type.dart';
 
 /// Represents the state of a practice session.
 ///
@@ -12,16 +13,19 @@ class PracticeState {
   final DateTime startTime;
   final Set<PracticeStep> completedSteps;
 
+  final FlowType flowType;
   // Scaffolding-specific state
-  final ScaffoldingLevel? currentLevel;     // L1-L4 for scaffolding steps
-  final int currentRound;                   // Which round within the current level (0-indexed)
-  final int livesRemaining;                 // Lives left in current round (0-2)
-  final Set<int> failedWordIndices;         // Word indices failed/revealed across session
+  final ScaffoldingLevel? currentLevel; // L1-L4 for scaffolding steps
+  final int currentRound; // Which round within the current level (0-indexed)
+  final int livesRemaining; // Lives left in current round (0-2)
+  final Set<int>
+  failedWordIndices; // Word indices failed/revealed across session
 
   const PracticeState({
     required this.currentPassage,
     this.currentStep = PracticeStep.impression,
     this.sessionStartStep = PracticeStep.impression,
+    this.flowType = FlowType.learning,
     this.userInput = '',
     required this.startTime,
     this.completedSteps = const {},
@@ -35,11 +39,13 @@ class PracticeState {
   factory PracticeState.initial(
     Passage passage, {
     PracticeStep initialStep = PracticeStep.impression,
+    FlowType flowType = FlowType.learning,
   }) {
     return PracticeState(
       currentPassage: passage,
       currentStep: initialStep,
       sessionStartStep: initialStep,
+      flowType: flowType,
       startTime: DateTime.now(),
       currentLevel: initialStep.scaffoldingLevel,
       currentRound: 0,
@@ -106,11 +112,7 @@ class PracticeState {
     final prevLevel = currentLevel?.previous;
     if (prevLevel == null) {
       // At L1 or not in scaffolding, stay at current level but reset round
-      return copyWith(
-        currentRound: 0,
-        livesRemaining: 2,
-        userInput: '',
-      );
+      return copyWith(currentRound: 0, livesRemaining: 2, userInput: '');
     }
 
     return copyWith(
@@ -138,7 +140,11 @@ class PracticeState {
 
   /// Resets the practice session for the current passage
   PracticeState reset() {
-    return PracticeState.initial(currentPassage, initialStep: sessionStartStep);
+    return PracticeState.initial(
+      currentPassage,
+      initialStep: sessionStartStep,
+      flowType: flowType,
+    );
   }
 
   /// Updates the user input for the current step
@@ -146,6 +152,7 @@ class PracticeState {
     Passage? currentPassage,
     PracticeStep? currentStep,
     PracticeStep? sessionStartStep,
+    FlowType? flowType,
     String? userInput,
     DateTime? startTime,
     Set<PracticeStep>? completedSteps,
@@ -158,6 +165,7 @@ class PracticeState {
       currentPassage: currentPassage ?? this.currentPassage,
       currentStep: currentStep ?? this.currentStep,
       sessionStartStep: sessionStartStep ?? this.sessionStartStep,
+      flowType: flowType ?? this.flowType,
       userInput: userInput ?? this.userInput,
       startTime: startTime ?? this.startTime,
       completedSteps: completedSteps ?? this.completedSteps,
@@ -201,13 +209,17 @@ class PracticeState {
         other.currentPassage == currentPassage &&
         other.currentStep == currentStep &&
         other.sessionStartStep == sessionStartStep &&
+        other.flowType == flowType &&
         other.userInput == userInput &&
         other.startTime == startTime &&
         _setEquals(other.completedSteps, completedSteps) &&
         other.currentLevel == currentLevel &&
         other.currentRound == currentRound &&
         other.livesRemaining == livesRemaining &&
-        _setEquals(other.failedWordIndices.cast<Object>(), failedWordIndices.cast<Object>());
+        _setEquals(
+          other.failedWordIndices.cast<Object>(),
+          failedWordIndices.cast<Object>(),
+        );
   }
 
   @override
@@ -216,6 +228,7 @@ class PracticeState {
       currentPassage,
       currentStep,
       sessionStartStep,
+      flowType,
       userInput,
       startTime,
       Object.hashAllUnordered(completedSteps),
@@ -233,7 +246,9 @@ class PracticeState {
 
   @override
   String toString() {
-    final levelInfo = currentLevel != null ? ' L${currentLevel!.name.substring(1)}' : '';
+    final levelInfo = currentLevel != null
+        ? ' L${currentLevel!.name.substring(1)}'
+        : '';
     final roundInfo = isScaffolding ? ' R${currentRound + 1}' : '';
     final livesInfo = isScaffolding ? ' ♥${livesRemaining}' : '';
     return 'PracticeState(step: ${currentStep.name}$levelInfo$roundInfo$livesInfo, input: "$userInput", completed: ${completedSteps.length})';

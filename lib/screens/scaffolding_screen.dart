@@ -21,7 +21,7 @@ class ScaffoldingScreen extends StatefulWidget {
   final VoidCallback onContinue;
   final ClozeOcclusion? occlusion;
   final ValueChanged<int>? onLivesChange;
-  final VoidCallback? onRegress;
+  final Function(String input, int durationMs)? onRegress;
 
   const ScaffoldingScreen({
     super.key,
@@ -236,7 +236,14 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           duration: Duration(milliseconds: 1500),
         ),
       );
-      widget.onRegress!();
+      // Capture current state for metrics
+      final currentInput = inputController.text;
+      // Use helper to get duration, or just pass 0 if not locally tracked strictly.
+      // PracticeSessionView tracks total duration, but ScaffoldingScreen doesn't easily know "time spent in this specific attempt"
+      // without extra state. For now passing 0, or we can use the mixin's timer if available.
+      // TypingPracticeMixin doesn't expose a timer.
+      // Note: PracticeController tracks session duration.
+      widget.onRegress!(currentInput, 0);
       return;
     }
 
