@@ -17,7 +17,6 @@ class PracticeState {
   // Scaffolding-specific state
   final ScaffoldingLevel? currentLevel; // L1-L4 for scaffolding steps
   final int currentRound; // Which round within the current level (0-indexed)
-  final int livesRemaining; // Lives left in current round (0-2)
   final Set<int>
   failedWordIndices; // Word indices failed/revealed across session
 
@@ -31,7 +30,6 @@ class PracticeState {
     this.completedSteps = const {},
     this.currentLevel,
     this.currentRound = 0,
-    this.livesRemaining = 2,
     this.failedWordIndices = const {},
   });
 
@@ -49,7 +47,6 @@ class PracticeState {
       startTime: DateTime.now(),
       currentLevel: initialStep.scaffoldingLevel,
       currentRound: 0,
-      livesRemaining: 2,
     );
   }
 
@@ -70,7 +67,6 @@ class PracticeState {
         userInput: '', // Reset input for next step
         currentLevel: nextStep.scaffoldingLevel,
         currentRound: 0, // Reset round for new step/level
-        livesRemaining: 2, // Reset lives for new round
       );
     } else {
       // Finished all steps
@@ -81,11 +77,7 @@ class PracticeState {
   /// Advances to the next round within the current scaffolding level.
   /// Resets lives to 2 for the new round.
   PracticeState advanceRound() {
-    return copyWith(
-      currentRound: currentRound + 1,
-      livesRemaining: 2,
-      userInput: '',
-    );
+    return copyWith(currentRound: currentRound + 1, userInput: '');
   }
 
   /// Advances to the next scaffolding level (L1→L2→L3→L4).
@@ -101,7 +93,6 @@ class PracticeState {
       currentStep: nextLevel.step,
       currentLevel: nextLevel,
       currentRound: 0,
-      livesRemaining: 2,
       userInput: '',
     );
   }
@@ -112,22 +103,14 @@ class PracticeState {
     final prevLevel = currentLevel?.previous;
     if (prevLevel == null) {
       // At L1 or not in scaffolding, stay at current level but reset round
-      return copyWith(currentRound: 0, livesRemaining: 2, userInput: '');
+      return copyWith(currentRound: 0, userInput: '');
     }
 
     return copyWith(
       currentStep: prevLevel.step,
       currentLevel: prevLevel,
       currentRound: 0,
-      livesRemaining: 2,
       userInput: '',
-    );
-  }
-
-  /// Decrements lives by 1. Returns new state with updated lives.
-  PracticeState loseLife() {
-    return copyWith(
-      livesRemaining: livesRemaining > 0 ? livesRemaining - 1 : 0,
     );
   }
 
@@ -158,7 +141,6 @@ class PracticeState {
     Set<PracticeStep>? completedSteps,
     ScaffoldingLevel? currentLevel,
     int? currentRound,
-    int? livesRemaining,
     Set<int>? failedWordIndices,
   }) {
     return PracticeState(
@@ -171,7 +153,6 @@ class PracticeState {
       completedSteps: completedSteps ?? this.completedSteps,
       currentLevel: currentLevel ?? this.currentLevel,
       currentRound: currentRound ?? this.currentRound,
-      livesRemaining: livesRemaining ?? this.livesRemaining,
       failedWordIndices: failedWordIndices ?? this.failedWordIndices,
     );
   }
@@ -198,11 +179,6 @@ class PracticeState {
     return currentStep.isScaffolding;
   }
 
-  /// Returns true if out of lives in current round
-  bool get isOutOfLives {
-    return livesRemaining <= 0;
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -217,7 +193,6 @@ class PracticeState {
         _setEquals(other.completedSteps, completedSteps) &&
         other.currentLevel == currentLevel &&
         other.currentRound == currentRound &&
-        other.livesRemaining == livesRemaining &&
         _setEquals(
           other.failedWordIndices.cast<Object>(),
           failedWordIndices.cast<Object>(),
@@ -236,7 +211,6 @@ class PracticeState {
       Object.hashAllUnordered(completedSteps),
       currentLevel,
       currentRound,
-      livesRemaining,
       Object.hashAllUnordered(failedWordIndices),
     );
   }
@@ -252,7 +226,6 @@ class PracticeState {
         ? ' L${currentLevel!.name.substring(1)}'
         : '';
     final roundInfo = isScaffolding ? ' R${currentRound + 1}' : '';
-    final livesInfo = isScaffolding ? ' ♥${livesRemaining}' : '';
-    return 'PracticeState(step: ${currentStep.name}$levelInfo$roundInfo$livesInfo, input: "$userInput", completed: ${completedSteps.length})';
+    return 'PracticeState(step: ${currentStep.name}$levelInfo$roundInfo, input: "$userInput", completed: ${completedSteps.length})';
   }
 }

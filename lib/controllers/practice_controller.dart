@@ -84,14 +84,9 @@ class PracticeController extends ValueNotifier<PracticeState> {
 
   /// Regresses one scaffolding level (L4→L3→L2→L1, L1 stays at L1).
   /// Used when user runs out of lives in a round.
-  /// Resets to round 0 of the regressed level with 2 lives.
+  /// Resets to round 0 of the regressed level.
   void regress() {
     value = value.regressLevel();
-  }
-
-  /// Decrements lives by 1. Used when user fails a word or reveals it.
-  void loseLife() {
-    value = value.loseLife();
   }
 
   /// Records word indices that the user failed or revealed.
@@ -106,7 +101,6 @@ class PracticeController extends ValueNotifier<PracticeState> {
       userInput: '', // Reset input on jump
       currentLevel: step.scaffoldingLevel,
       currentRound: 0,
-      livesRemaining: 2,
     );
   }
 

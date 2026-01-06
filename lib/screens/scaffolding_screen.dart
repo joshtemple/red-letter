@@ -43,12 +43,13 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   late Set<int> _originallyHiddenIndices;
   Set<int> _revealedIndices = {}; // Track manually revealed words
   int _lives = 2;
+  int _attemptNumber = 0; // Track regeneration attempts within same round
   bool _isSuccessProcessing = false;
 
   @override
   void initState() {
     super.initState();
-    _lives = widget.state.livesRemaining; // Initialize from state
+    _lives = 2; // Start with 2 lives
     _occlusion = widget.occlusion ?? _generateOcclusionForStep();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
 
@@ -62,13 +63,14 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   @override
   void didUpdateWidget(ScaffoldingScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Only reset when step/round/passage changes (not on local state changes)
     if (widget.state.currentStep != oldWidget.state.currentStep ||
         widget.state.currentRound != oldWidget.state.currentRound ||
-        widget.state.currentPassage.id != oldWidget.state.currentPassage.id ||
-        (widget.state.livesRemaining == 2 && _lives < 2)) {
-      // Reset for new round/step/passage or regression (lives reset to 2)
+        widget.state.currentPassage.id != oldWidget.state.currentPassage.id) {
+      // Reset for new round/step/passage
       setState(() {
-        _lives = widget.state.livesRemaining;
+        _lives = 2; // Reset to 2 lives for new round
+        _attemptNumber = 0; // Reset attempts for new round
         _occlusion = widget.occlusion ?? _generateOcclusionForStep();
         _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
         _revealedIndices = {};
@@ -92,8 +94,12 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       case PracticeStep.randomWords:
         return ClozeOcclusion.randomWordPerClause(
           passage: passage,
-          // Use round as seed variant to ensure different patterns across rounds
-          seed: passage.hashCode + widget.state.currentRound,
+          // Use round + attempt as seed variants to ensure different patterns
+          // across rounds AND regenerations within the same round
+          seed:
+              passage.hashCode +
+              widget.state.currentRound * 1000 +
+              _attemptNumber,
         );
       case PracticeStep.rotatingClauses:
         return ClozeOcclusion.rotatingClauseDeletion(
@@ -238,6 +244,21 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   }
 
   void _handleDeath() {
+    // Capture current state for metrics before resetting
+    final currentInput = inputController.text;
+
+    // Always reset local state (even when regressing)
+    // This ensures fresh pattern on L1→L1 regression edge case
+    setState(() {
+      _attemptNumber++;
+      _lives = 2;
+      _occlusion = _generateOcclusionForStep();
+      _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+      _revealedIndices = {}; // Clear revealed words
+      inputController.clear();
+    });
+    widget.onLivesChange?.call(_lives);
+
     if (widget.onRegress != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -245,31 +266,15 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
           duration: Duration(milliseconds: 1500),
         ),
       );
-      // Capture current state for metrics
-      final currentInput = inputController.text;
-      // Use helper to get duration, or just pass 0 if not locally tracked strictly.
-      // PracticeSessionView tracks total duration, but ScaffoldingScreen doesn't easily know "time spent in this specific attempt"
-      // without extra state. For now passing 0, or we can use the mixin's timer if available.
-      // TypingPracticeMixin doesn't expose a timer.
-      // Note: PracticeController tracks session duration.
+      // Notify parent to handle regression (for metrics/progression)
       widget.onRegress!(currentInput, 0);
-      return;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Out of lives! Retrying with new pattern...'),
+        ),
+      );
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Out of lives! Retrying with new pattern...'),
-      ),
-    );
-
-    // Reset with new pattern
-    setState(() {
-      _lives = 2;
-      _occlusion = _generateOcclusionForStep();
-      _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
-      _revealedIndices = {}; // Clear revealed words
-    });
-    widget.onLivesChange?.call(_lives);
   }
 
   @override

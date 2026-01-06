@@ -90,7 +90,6 @@ void main() {
         0,
         reason: 'Should reset to Round 0',
       );
-      expect(controller.value.livesRemaining, 2, reason: 'Should have 2 lives');
     });
 
     test('Regress from L1 should stay at L1 Round 0', () {
