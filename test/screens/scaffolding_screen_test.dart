@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/models/practice_step.dart';
 import 'package:red_letter/models/practice_state.dart';
+import 'package:red_letter/widgets/inline_passage_view.dart';
 import 'package:red_letter/models/cloze_occlusion.dart';
 import 'package:red_letter/screens/scaffolding_screen.dart';
 
@@ -404,6 +405,54 @@ void main() {
       // The key test is that it didn't crash and hopefully changed occlusion.
       // With random seed based on round, it "should" be different, but small passage might collide.
       // Mainly verifying didUpdateWidget logic runs.
+    });
+
+    testWidgets('should hide underlines in L4 (Full Passage)', (
+      WidgetTester tester,
+    ) async {
+      final passage = PassageBuilder().build();
+      final state = PracticeState.initial(
+        passage,
+      ).copyWith(currentStep: PracticeStep.fullPassage);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldingScreen(
+            state: state,
+            onContinue: () {},
+            // Let it generate occlusion automatically
+          ),
+        ),
+      );
+
+      final inlineViewFinder = find.byType(InlinePassageView);
+      expect(inlineViewFinder, findsOneWidget);
+      final inlineView = tester.widget<InlinePassageView>(inlineViewFinder);
+      expect(inlineView.showUnderlines, isFalse);
+    });
+
+    testWidgets('should show underlines in L1 (Random Words)', (
+      WidgetTester tester,
+    ) async {
+      final passage = PassageBuilder().build();
+      final state = PracticeState.initial(
+        passage,
+      ).copyWith(currentStep: PracticeStep.randomWords);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ScaffoldingScreen(
+            state: state,
+            onContinue: () {},
+            // Let it generate occlusion automatically
+          ),
+        ),
+      );
+
+      final inlineViewFinder = find.byType(InlinePassageView);
+      expect(inlineViewFinder, findsOneWidget);
+      final inlineView = tester.widget<InlinePassageView>(inlineViewFinder);
+      expect(inlineView.showUnderlines, isTrue);
     });
   });
 }

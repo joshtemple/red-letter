@@ -320,6 +320,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                               originallyHiddenIndices: _originallyHiddenIndices,
                               onWordTap: _handleWordTap,
                               revealedIndices: _revealedIndices,
+                              showUnderlines:
+                                  widget.state.currentStep !=
+                                  PracticeStep.fullPassage,
                             );
                           },
                         ),
