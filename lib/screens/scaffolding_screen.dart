@@ -63,8 +63,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     super.didUpdateWidget(oldWidget);
     if (widget.state.currentStep != oldWidget.state.currentStep ||
         widget.state.currentRound != oldWidget.state.currentRound ||
-        widget.state.currentPassage.id != oldWidget.state.currentPassage.id) {
-      // Reset for new round/step/passage
+        widget.state.currentPassage.id != oldWidget.state.currentPassage.id ||
+        (widget.state.livesRemaining == 2 && _lives < 2)) {
+      // Reset for new round/step/passage or regression (lives reset to 2)
       setState(() {
         _lives = widget.state.livesRemaining;
         _occlusion = widget.occlusion ?? _generateOcclusionForStep();
