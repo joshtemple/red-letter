@@ -117,7 +117,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     final targetIndex = _occlusion.firstHiddenIndex;
     if (targetIndex != null) {
       final targetWord = widget.state.currentPassage.words[targetIndex];
-      final requiredLength = _occlusion.getMatchingLength(targetIndex);
+      // Allow checking as soon as we have enough chars for the *clean* word
+      // e.g. target "don't" (5 chars) -> clean "dont" (4 chars)
+      // We want to validate as soon as user types "dont"
+      final requiredLength = _occlusion.getCleanMatchingLength(targetIndex);
 
       // Evaluate only when length matches target (or exceeds)
       if (input.length >= requiredLength) {

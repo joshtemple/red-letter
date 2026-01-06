@@ -275,6 +275,18 @@ class ClozeOcclusion {
     return parts.content.length;
   }
 
+  /// Returns the length of the "clean" word content (stripped of punctuation/symbols).
+  ///
+  /// This is the minimum length required to validate a stripped input (e.g. "dont" for "don't").
+  int getCleanMatchingLength(int index) {
+    if (index < 0 || index >= passage.words.length) return 0;
+
+    final originalWord = passage.words[index];
+    final parts = parseWordParts(originalWord);
+    // removing punctuation from content to get "clean" length
+    return PassageValidator.cleanWord(parts.content).length;
+  }
+
   /// Splits a word into prefix (punctuation), content (inner word), and suffix (punctuation).
   static ({String prefix, String content, String suffix}) parseWordParts(
     String word,

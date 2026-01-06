@@ -163,6 +163,28 @@ void main() {
       expect(occlusion.isWordHidden(1), false); // "do"
       expect(occlusion.isWordHidden(2), false); // "it."
     });
+
+    test('getCleanMatchingLength returns length of cleaned word', () {
+      final passage = Passage.fromText(
+        id: '1',
+        reference: 'Test 1:1',
+        text: "don't can't won't end.",
+      );
+
+      final occlusion = ClozeOcclusion.fullPassage(passage: passage);
+
+      // "don't" -> "dont" (4)
+      expect(occlusion.getCleanMatchingLength(0), 4);
+
+      // "can't" -> "cant" (4)
+      expect(occlusion.getCleanMatchingLength(1), 4);
+
+      // "won't" -> "wont" (4)
+      expect(occlusion.getCleanMatchingLength(2), 4);
+
+      // "end." -> "end" (3)
+      expect(occlusion.getCleanMatchingLength(3), 3);
+    });
   });
 
   group('ClozeOcclusion - Common Functionality', () {
