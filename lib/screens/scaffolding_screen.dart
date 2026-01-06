@@ -63,7 +63,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     super.didUpdateWidget(oldWidget);
     if (widget.state.currentStep != oldWidget.state.currentStep ||
         widget.state.currentRound != oldWidget.state.currentRound ||
-        widget.state.currentPassage.id != oldWidget.state.currentPassage.id) {
+        widget.state.currentPassage.id != oldWidget.state.currentPassage.id ||
+        (widget.state.livesRemaining == 2 && _lives < 2)) {
+      // Reset for new round/step/passage/regression reset
       // Reset for new round/step/passage
       setState(() {
         _lives = widget.state.livesRemaining;
@@ -88,11 +90,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     final passage = widget.state.currentPassage;
     switch (widget.state.currentStep) {
       case PracticeStep.randomWords:
-        return ClozeOcclusion.randomWordPerClause(
-          passage: passage,
-          // Use round as seed variant to ensure different patterns across rounds
-          seed: passage.hashCode + widget.state.currentRound,
-        );
+        return ClozeOcclusion.randomWordPerClause(passage: passage);
       case PracticeStep.rotatingClauses:
         return ClozeOcclusion.rotatingClauseDeletion(
           passage: passage,
@@ -182,7 +180,8 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   }
 
   void _handleLifeLost(int targetIndex) {
-    inputController.clear();
+    // Delay clearing input until after metrics are potentially captured in _handleDeath
+    final currentInput = inputController.text;
 
     setState(() {
       _lives--;
@@ -196,8 +195,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     });
 
     if (_lives <= 0) {
-      _handleDeath();
+      _handleDeath(currentInput);
     } else {
+      inputController.clear();
       if (next.visibleRatio >= 1.0) {
         widget.onContinue();
       }
@@ -208,10 +208,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     // Ignore if already revealed or not hidden
     if (!_occlusion.isWordHidden(index)) return;
 
-    // Clear input if tapping the active word
-    if (index == _occlusion.firstHiddenIndex) {
-      inputController.clear();
-    }
+    final currentInput = inputController.text;
 
     // Track as manually revealed (for neutral color)
     setState(() {
@@ -227,16 +224,23 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     });
 
     if (_lives <= 0) {
-      _handleDeath();
+      _handleDeath(currentInput);
     } else {
+      // Clear input if tapping the active word
+      if (index == _occlusion.firstHiddenIndex) {
+        inputController.clear();
+      }
       if (next.visibleRatio >= 1.0) {
         widget.onContinue();
       }
     }
   }
 
-  void _handleDeath() {
+  void _handleDeath([String input = '']) {
     if (widget.onRegress != null) {
+      // Clear input after capturing it
+      inputController.clear();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Out of lives! Stepping back...'),
