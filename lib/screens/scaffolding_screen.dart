@@ -41,6 +41,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   @override
   void initState() {
     super.initState();
+    _lives = widget.state.livesRemaining; // Initialize from state
     _occlusion = widget.occlusion ?? _generateOcclusionForMode();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
 
@@ -51,20 +52,51 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     });
   }
 
+  @override
+  void didUpdateWidget(ScaffoldingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.currentStep != oldWidget.state.currentStep ||
+        widget.state.currentRound != oldWidget.state.currentRound ||
+        widget.state.currentPassage.id != oldWidget.state.currentPassage.id) {
+      // Reset for new round/step/passage
+      setState(() {
+        _lives = widget.state.livesRemaining;
+        _occlusion = widget.occlusion ?? _generateOcclusionForMode();
+        _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+        _revealedIndices = {};
+        isProcessingError = false;
+        _isSuccessProcessing = false;
+        inputController.clear();
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onLivesChange?.call(_lives);
+        focusNode.requestFocus();
+      });
+    }
+  }
+
   // ... (omitted methods _generateOcclusionForMode, _isComplete, _onInputChange same as before)
 
   ClozeOcclusion _generateOcclusionForMode() {
     final passage = widget.state.currentPassage;
     switch (widget.state.currentStep) {
       case PracticeStep.randomWords:
-        return ClozeOcclusion.randomWordPerClause(passage: passage);
+        return ClozeOcclusion.randomWordPerClause(
+          passage: passage,
+          // Use round as seed variant to ensure different patterns across rounds
+          seed: passage.hashCode + widget.state.currentRound,
+        );
       case PracticeStep.rotatingClauses:
         return ClozeOcclusion.rotatingClauseDeletion(
           passage: passage,
-          clauseIndex: 0,
+          // L3: Round index maps directly to clause index
+          clauseIndex: widget.state.currentRound,
         );
       case PracticeStep.firstTwoWords:
         return ClozeOcclusion.firstTwoWordsScaffolding(passage: passage);
+      case PracticeStep.fullPassage:
+        return ClozeOcclusion.fullPassage(passage: passage);
       default:
         return ClozeOcclusion.randomWordPerClause(passage: passage);
     }

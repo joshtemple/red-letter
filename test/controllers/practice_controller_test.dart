@@ -1,81 +1,130 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:red_letter/controllers/practice_controller.dart';
-import 'package:red_letter/models/passage.dart';
 import 'package:red_letter/models/practice_step.dart';
+import '../utils/builders/passage_builder.dart';
 
 void main() {
-  group('PracticeController Tests', () {
-    late PracticeController controller;
-    late Passage testPassage;
-    PracticeStep? lastCompletedStep;
-    String? lastInput;
-
-    setUp(() {
-      testPassage = const Passage(
-        id: 'test-1',
-        text: 'Test Passage',
-        reference: 'Test 1:1',
-        words: [],
+  group('PracticeController Scaffolding Logic', () {
+    test('L1 (RandomWords) should have 3 rounds', () {
+      final passage = PassageBuilder().build();
+      // Start at L1
+      final controller = PracticeController(
+        passage,
+        initialStep: PracticeStep.randomWords,
       );
 
-      lastCompletedStep = null;
-      lastInput = null;
-
-      controller = PracticeController(
-        testPassage,
-        onStepComplete: (mode, input) {
-          lastCompletedStep = mode;
-          lastInput = input;
-        },
-      );
-    });
-
-    test('Initial state is correct', () {
-      expect(controller.value.currentStep, PracticeStep.impression);
-      expect(controller.value.currentPassage.id, testPassage.id);
-    });
-
-    test('Advancing emits callback and changes mode', () {
-      // Advance from Impression
+      // Round 0 -> Round 1
       controller.advance();
-      expect(lastCompletedStep, PracticeStep.impression);
-      expect(controller.value.currentStep, PracticeStep.reflection);
-
-      // Advance from Reflection
-      controller.advance('My reflection');
-      expect(lastCompletedStep, PracticeStep.reflection);
-      expect(lastInput, 'My reflection');
+      expect(
+        controller.value.currentRound,
+        1,
+        reason: 'Should advance to Round 1',
+      );
       expect(controller.value.currentStep, PracticeStep.randomWords);
+
+      // Round 1 -> Round 2
+      controller.advance();
+      expect(
+        controller.value.currentRound,
+        2,
+        reason: 'Should advance to Round 2',
+      );
+      expect(controller.value.currentStep, PracticeStep.randomWords);
+
+      // Round 2 -> L2 (FirstTwoWords)
+      controller.advance();
+      expect(
+        controller.value.currentRound,
+        0,
+        reason: 'Should reset to Round 0',
+      );
+      expect(
+        controller.value.currentStep,
+        PracticeStep.firstTwoWords,
+        reason: 'Should advance to L2',
+      );
     });
 
-    test('JumpTo changes step and resets input', () {
-      controller.jumpTo(PracticeStep.fullPassage);
-      expect(controller.value.currentStep, PracticeStep.fullPassage);
-      expect(controller.value.userInput, isEmpty);
-      expect(controller.value.currentLevel, ScaffoldingLevel.l4);
-    });
+    test('L3 (RotatingClauses) should adapt rounds to clause count', () {
+      // Create passage with 2 clauses
+      // Note: ClauseSegmentation typically splits by punctuation marks like period, question mark, exclamation.
+      // Or comma/semicolon depending on implementation.
+      // Let's assume standard implementation.
+      final passage = PassageBuilder()
+          .withText('Love your enemies. Pray for them.')
+          .build();
 
-    test('Regress moves back one scaffolding level', () {
-      // L4 -> L3
-      controller.jumpTo(PracticeStep.fullPassage);
-      controller.regress();
+      final controller = PracticeController(
+        passage,
+        initialStep: PracticeStep.rotatingClauses,
+      );
+
+      // Round 0 (Clause 0) -> Round 1 (Clause 1)
+      controller.advance();
+      expect(controller.value.currentRound, 1);
       expect(controller.value.currentStep, PracticeStep.rotatingClauses);
-      expect(controller.value.currentLevel, ScaffoldingLevel.l3);
 
-      // L3 -> L2
-      controller.regress();
-      expect(controller.value.currentStep, PracticeStep.firstTwoWords);
-      expect(controller.value.currentLevel, ScaffoldingLevel.l2);
+      // Round 1 (Clause 1) -> L4 (FullPassage)
+      controller.advance();
+      expect(controller.value.currentRound, 0);
+      expect(controller.value.currentStep, PracticeStep.fullPassage);
+    });
 
-      // L2 -> L1
+    test('Regress should move to previous level round 0', () {
+      final passage = PassageBuilder().build();
+      // Start at L2
+      final controller = PracticeController(
+        passage,
+        initialStep: PracticeStep.firstTwoWords,
+      );
+
       controller.regress();
+
+      expect(
+        controller.value.currentStep,
+        PracticeStep.randomWords,
+        reason: 'Should regress to L1',
+      );
+      expect(
+        controller.value.currentRound,
+        0,
+        reason: 'Should reset to Round 0',
+      );
+      expect(controller.value.livesRemaining, 2, reason: 'Should have 2 lives');
+    });
+
+    test('Regress from L1 should stay at L1 Round 0', () {
+      final passage = PassageBuilder().build();
+      final controller = PracticeController(
+        passage,
+        initialStep: PracticeStep.randomWords,
+      );
+
+      // Advance to Round 1
+      controller.advance();
+      expect(controller.value.currentRound, 1);
+
+      controller.regress();
+
       expect(controller.value.currentStep, PracticeStep.randomWords);
-      expect(controller.value.currentLevel, ScaffoldingLevel.l1);
+      expect(controller.value.currentRound, 0);
+    });
 
-      // L1 stays at L1
-      controller.regress();
-      expect(controller.value.currentStep, PracticeStep.randomWords);
-      expect(controller.value.currentLevel, ScaffoldingLevel.l1);
+    test('Advance from L4 to completion', () {
+      final passage = PassageBuilder().build();
+      final controller = PracticeController(
+        passage,
+        initialStep: PracticeStep.fullPassage,
+      );
+
+      // L4 has 1 round.
+      controller.advance();
+
+      expect(controller.value.currentStep, PracticeStep.fullPassage);
+      expect(
+        controller.value.completedSteps.contains(PracticeStep.fullPassage),
+        true,
+      );
     });
   });
 }

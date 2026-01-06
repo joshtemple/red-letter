@@ -26,6 +26,33 @@ class PracticeController extends ValueNotifier<PracticeState> {
     // Notify parent of step completion
     onStepComplete?.call(currentStep, input);
 
+    // Scaffolding progression logic
+    if (value.isScaffolding) {
+      final currentLevel = value.currentLevel;
+      // Scaffolding steps MUST have a level, but check for safety
+      if (currentLevel != null) {
+        final totalRounds = currentLevel.getTotalRounds(value.currentPassage);
+
+        // If rounds remain in this level, advance round
+        if (value.currentRound < totalRounds - 1) {
+          advanceRound();
+          if (input != null) {
+            value = value.updateInput(
+              input,
+            ); // Preserve input if needed? Usually cleared on round change
+          }
+          return;
+        } else {
+          // Level complete, advance to next level (or next step if L4)
+          advanceLevel();
+          if (input != null) {
+            value = value.updateInput(input);
+          }
+          return;
+        }
+      }
+    }
+
     // Standard progression
     final nextState = value.advanceStep();
     value = nextState;

@@ -1,3 +1,6 @@
+import 'passage.dart';
+import 'clause_segmentation.dart';
+
 /// Represents a step in a practice session.
 ///
 /// Session Hierarchy: Session → Flow → Steps → Scaffolding → Levels → Rounds → Lives
@@ -13,10 +16,10 @@
 enum PracticeStep {
   impression,
   reflection,
-  randomWords,      // L1: A few words deleted (N rounds)
-  firstTwoWords,    // L2: First 2 words of each clause shown (1 round)
-  rotatingClauses,  // L3: One clause deleted at a time (M rounds, M = # clauses)
-  fullPassage;      // L4: 100% cloze deletion, no underlines (1 round)
+  randomWords, // L1: A few words deleted (N rounds)
+  firstTwoWords, // L2: First 2 words of each clause shown (1 round)
+  rotatingClauses, // L3: One clause deleted at a time (M rounds, M = # clauses)
+  fullPassage; // L4: 100% cloze deletion, no underlines (1 round)
 
   String get displayName {
     switch (this) {
@@ -97,10 +100,10 @@ enum PracticeStep {
 /// Each round has 2 lives. Completing a round advances to the next round/level.
 /// Losing all lives regresses one level (L1 stays at L1).
 enum ScaffoldingLevel {
-  l1,  // randomWords
-  l2,  // firstTwoWords
-  l3,  // rotatingClauses
-  l4;  // fullPassage
+  l1, // randomWords
+  l2, // firstTwoWords
+  l3, // rotatingClauses
+  l4; // fullPassage
 
   String get displayName {
     switch (this) {
@@ -145,5 +148,19 @@ enum ScaffoldingLevel {
       return ScaffoldingLevel.values[index - 1];
     }
     return null; // L1 stays at L1
+  }
+
+  /// Returns the total number of rounds for this level.
+  int getTotalRounds(Passage passage) {
+    switch (this) {
+      case ScaffoldingLevel.l1:
+        return 3; // Fixed 3 rounds
+      case ScaffoldingLevel.l2:
+        return 1;
+      case ScaffoldingLevel.l3:
+        return ClauseSegmentation.fromPassage(passage).clauseCount;
+      case ScaffoldingLevel.l4:
+        return 1;
+    }
   }
 }

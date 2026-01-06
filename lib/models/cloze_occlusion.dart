@@ -14,6 +14,9 @@ enum ClozeRound {
 
   /// Round 3: Show only the first 2 words of every clause, hide all others
   firstTwoWordsScaffolding,
+
+  /// Round 4: Hide everything (100% cloze)
+  fullPassage,
 }
 
 /// Manages word occlusion for the Advanced Acquisition Ladder.
@@ -22,6 +25,7 @@ enum ClozeRound {
 /// 1. Random word removal per clause (1-2 words)
 /// 2. Rotating clause deletion (hide entire clauses)
 /// 3. First-2-words scaffolding (show only first 2 words of each clause)
+/// 4. Full Passage (hide everything)
 class ClozeOcclusion {
   final Passage passage;
   final ClauseSegmentation segmentation;
@@ -129,6 +133,25 @@ class ClozeOcclusion {
       passage: passage,
       segmentation: segmentation,
       round: ClozeRound.firstTwoWordsScaffolding,
+      hiddenIndices: hiddenIndices,
+    );
+  }
+
+  /// Creates Round 4: Full Passage.
+  ///
+  /// Hides 100% of the words.
+  factory ClozeOcclusion.fullPassage({required Passage passage}) {
+    final segmentation = ClauseSegmentation.fromPassage(passage);
+    final hiddenIndices = <int>{};
+
+    for (int i = 0; i < passage.words.length; i++) {
+      hiddenIndices.add(i);
+    }
+
+    return ClozeOcclusion._(
+      passage: passage,
+      segmentation: segmentation,
+      round: ClozeRound.fullPassage,
       hiddenIndices: hiddenIndices,
     );
   }
