@@ -233,7 +233,7 @@ class SessionController extends ChangeNotifier {
   /// Persists step-specific data (e.g., reflection text) and intermediate mastery levels.
   Future<void> handleStepCompletion({
     required String passageId,
-    required PracticeStep mode,
+    required PracticeStep step,
     required SessionMetrics metrics,
   }) async {
     try {
@@ -241,7 +241,7 @@ class SessionController extends ChangeNotifier {
       // Persistence only happens on successful completion of the full loop (submitReview).
       // We only update the in-memory card to drive the UI state (resume within session).
 
-      switch (mode) {
+      switch (step) {
         case PracticeStep.impression:
           // Nothing to do
           break;

@@ -48,7 +48,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   void initState() {
     super.initState();
     _lives = widget.state.livesRemaining; // Initialize from state
-    _occlusion = widget.occlusion ?? _generateOcclusionForMode();
+    _occlusion = widget.occlusion ?? _generateOcclusionForStep();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
 
     // Report initial lives to parent
@@ -67,7 +67,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       // Reset for new round/step/passage
       setState(() {
         _lives = widget.state.livesRemaining;
-        _occlusion = widget.occlusion ?? _generateOcclusionForMode();
+        _occlusion = widget.occlusion ?? _generateOcclusionForStep();
         _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
         _revealedIndices = {};
         isProcessingError = false;
@@ -82,9 +82,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     }
   }
 
-  // ... (omitted methods _generateOcclusionForMode, _isComplete, _onInputChange same as before)
+  // ... (omitted methods _generateOcclusionForStep, _isComplete, _onInputChange same as before)
 
-  ClozeOcclusion _generateOcclusionForMode() {
+  ClozeOcclusion _generateOcclusionForStep() {
     final passage = widget.state.currentPassage;
     switch (widget.state.currentStep) {
       case PracticeStep.randomWords:
@@ -259,7 +259,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     // Reset with new pattern
     setState(() {
       _lives = 2;
-      _occlusion = _generateOcclusionForMode();
+      _occlusion = _generateOcclusionForStep();
       _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
       _revealedIndices = {}; // Clear revealed words
     });

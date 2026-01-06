@@ -29,7 +29,7 @@ class _SessionScreenState extends State<SessionScreen> {
   // Track current passage text and mode manually since Controller only has UserProgress
   Passage? _currentPassage;
   PracticeStep?
-  _forcedMode; // Used for handling regression (overriding default)
+  _forcedStep; // Used for handling regression (overriding default)
 
   @override
   void initState() {
@@ -87,7 +87,7 @@ class _SessionScreenState extends State<SessionScreen> {
       if (mounted) {
         setState(() {
           _currentPassage = null;
-          _forcedMode = null;
+          _forcedStep = null;
         });
       }
       return;
@@ -98,7 +98,7 @@ class _SessionScreenState extends State<SessionScreen> {
     // Reset forced mode when changing cards
     if (mounted) {
       setState(() {
-        _forcedMode = null;
+        _forcedStep = null;
         _lives = null;
       });
     }
@@ -124,7 +124,7 @@ class _SessionScreenState extends State<SessionScreen> {
     await _controller!.handlePassageCompletion(metrics);
   }
 
-  void _handleIntermediateStep(PracticeStep mode, String? input) {
+  void _handleIntermediateStep(PracticeStep step, String? input) {
     if (_controller == null || _currentPassage == null) return;
 
     // Create intermediate metrics (approximate duration)
@@ -139,13 +139,13 @@ class _SessionScreenState extends State<SessionScreen> {
 
     _controller!.handleStepCompletion(
       passageId: _currentPassage!.id,
-      mode: mode,
+      step: step,
       metrics: metrics,
     );
   }
 
-  PracticeStep _getInitialMode() {
-    if (_forcedMode != null) return _forcedMode!;
+  PracticeStep _getInitialStep() {
+    if (_forcedStep != null) return _forcedStep!;
 
     if (_controller?.currentCard == null) return PracticeStep.impression;
 
@@ -272,7 +272,7 @@ class _SessionScreenState extends State<SessionScreen> {
         key: ValueKey(_currentPassage!.id),
         repository: widget.repository,
         initialPassage: _currentPassage!,
-        initialStep: _getInitialMode(),
+        initialStep: _getInitialStep(),
         // Check Flow Type based on card state.
         // If State == 1 (Review) -> FlowType.review
         // Else -> FlowType.learning

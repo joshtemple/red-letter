@@ -117,7 +117,7 @@ void main() {
 
       await controller.handleStepCompletion(
         passageId: '1',
-        mode: PracticeStep.reflection,
+        step: PracticeStep.reflection,
         metrics: SessionMetrics(
           passageText: '',
           userInput: 'My reflection',
