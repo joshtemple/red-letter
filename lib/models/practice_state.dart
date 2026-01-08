@@ -165,8 +165,18 @@ class PracticeState {
   /// Returns true if all steps have been completed
   /// Note: Reflection step is currently disabled and skipped
   bool get isComplete {
-    // Reflection is skipped, so we need one fewer step to complete
-    return completedSteps.length == PracticeStep.values.length - 1;
+    if (flowType == FlowType.review) {
+      // Review flow: Only executing fullPassage (L4)
+      // Ready to finish when we're at fullPassage
+      return currentStep == PracticeStep.fullPassage;
+    }
+
+    // Learning flow: Reflection is skipped, so we progress through 5 steps total
+    // (impression, randomWords, firstTwoWords, rotatingClauses, fullPassage)
+    // When at the final step (fullPassage), we should have completed 4+ previous steps
+    // Use >= to handle both before final advance (4 steps) and after (5 steps)
+    return currentStep == PracticeStep.fullPassage &&
+        completedSteps.length >= PracticeStep.values.length - 2;
   }
 
   /// Returns the elapsed time since the practice session started
