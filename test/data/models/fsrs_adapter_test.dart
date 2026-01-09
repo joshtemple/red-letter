@@ -217,6 +217,76 @@ void main() {
 
       expect(companion.stability.value, equals(0.0)); // Clamped to 0
     });
+
+    test('prevents mastery level regression on successful review', () {
+      // Simulate a passage with mastery level 2 (stability 3-14 days)
+      // After review, stability drops to 2.5 days (which would normally be level 1)
+      // But since it's still in Review state (not Relearning), mastery should stay at 2
+      final card = fsrs.Card(
+        cardId: 123,
+        state: fsrs.State.review, // Still in review, not failed
+        step: null,
+        stability: 2.5, // Low stability (would normally be mastery 1)
+        difficulty: 5.0,
+        due: DateTime.now(),
+        lastReview: DateTime.now(),
+      );
+
+      final companion = FSRSAdapter.toUserProgressCompanion(
+        passageId: 'test',
+        card: card,
+        previousMasteryLevel: 2, // Was at mastery level 2
+      );
+
+      // Should maintain mastery level 2, not regress to 1
+      expect(companion.masteryLevel.value, equals(2));
+      expect(companion.stability.value, equals(2.5));
+    });
+
+    test('allows mastery level increase on successful review', () {
+      // Simulate a passage with mastery level 2 that improves to level 3
+      final card = fsrs.Card(
+        cardId: 124,
+        state: fsrs.State.review,
+        step: null,
+        stability: 20.0, // High stability (mastery level 3)
+        difficulty: 4.0,
+        due: DateTime.now(),
+        lastReview: DateTime.now(),
+      );
+
+      final companion = FSRSAdapter.toUserProgressCompanion(
+        passageId: 'test',
+        card: card,
+        previousMasteryLevel: 2, // Was at mastery level 2
+      );
+
+      // Should increase to mastery level 3
+      expect(companion.masteryLevel.value, equals(3));
+    });
+
+    test('allows mastery level regression on failed review (relearning)', () {
+      // Simulate a failed review that enters Relearning state
+      final card = fsrs.Card(
+        cardId: 125,
+        state: fsrs.State.relearning, // Failed - entered relearning
+        step: 0,
+        stability: 1.0, // Low stability (mastery level 1)
+        difficulty: 7.0,
+        due: DateTime.now(),
+        lastReview: DateTime.now(),
+      );
+
+      final companion = FSRSAdapter.toUserProgressCompanion(
+        passageId: 'test',
+        card: card,
+        previousMasteryLevel: 2, // Was at mastery level 2
+      );
+
+      // Should regress to mastery level 1 because it failed (Relearning state)
+      expect(companion.masteryLevel.value, equals(1));
+      expect(companion.state.value, equals(2)); // Relearning = 2
+    });
   });
 
   group('FSRSAdapter - Performance Rating Conversion', () {

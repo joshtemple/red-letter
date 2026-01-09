@@ -45,9 +45,13 @@ class FSRSAdapter {
   ///
   /// Direct mapping of FSRS fields back to database schema.
   /// Returns a UserProgressTableCompanion for use with Drift updates.
+  ///
+  /// If [previousMasteryLevel] is provided, the new mastery level will not
+  /// regress below it unless the card enters the Relearning state (indicating failure).
   static UserProgressTableCompanion toUserProgressCompanion({
     required String passageId,
     required fsrs.Card card,
+    int? previousMasteryLevel,
   }) {
     // Clamp stability to reasonable range (0-36500 days = ~100 years)
     final stability = (card.stability ?? 0.0);
@@ -56,7 +60,15 @@ class FSRSAdapter {
         : 0.0;
 
     // Calculate mastery level based on stability
-    final masteryLevel = _stabilityToMasteryLevel(clampedStability);
+    var masteryLevel = _stabilityToMasteryLevel(clampedStability);
+
+    // Prevent mastery regression on successful reviews
+    // Only allow regression if entering Relearning state (failed review)
+    if (previousMasteryLevel != null && card.state != fsrs.State.relearning) {
+      masteryLevel = masteryLevel < previousMasteryLevel
+          ? previousMasteryLevel
+          : masteryLevel;
+    }
 
     // Convert FSRS State enum to integer for storage
     final stateInt = _stateToInt(card.state);

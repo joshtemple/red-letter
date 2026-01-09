@@ -98,10 +98,11 @@ class FSRSSchedulerService {
     final result = _scheduler.reviewCard(currentCard, rating);
     final updatedCard = result.card;
 
-    // Convert back to UserProgress companion
+    // Convert back to UserProgress companion, preserving mastery level floor
     return FSRSAdapter.toUserProgressCompanion(
       passageId: passageId,
       card: updatedCard,
+      previousMasteryLevel: progress.masteryLevel,
     );
   }
 
