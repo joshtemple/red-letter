@@ -10,6 +10,7 @@ import 'package:red_letter/theme/typography.dart';
 
 import 'package:red_letter/widgets/inline_passage_view.dart';
 import 'package:red_letter/models/passage_validator.dart';
+import 'package:red_letter/models/clause_segmentation.dart';
 
 /// Screen responsible for the Scaffolding Step of the practice flow.
 ///
@@ -46,18 +47,39 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
   int _attemptNumber = 0; // Track regeneration attempts within same round
   bool _isSuccessProcessing = false;
 
+  // Auto-scroll tracking
+  final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _clauseKeys = {};
+  int? _previousActiveClauseIndex;
+  int? _previousActiveIndex;
+
   @override
   void initState() {
     super.initState();
     _lives = 2; // Start with 2 lives
     _occlusion = widget.occlusion ?? _generateOcclusionForStep();
     _originallyHiddenIndices = Set<int>.from(_occlusion.hiddenIndices);
+    _initializeClauseKeys();
 
     // Report initial lives to parent
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onLivesChange?.call(_lives);
       focusNode.requestFocus();
     });
+  }
+
+  void _initializeClauseKeys() {
+    _clauseKeys.clear();
+    final segmentation = ClauseSegmentation.fromPassage(widget.state.currentPassage);
+    for (int i = 0; i < segmentation.clauseCount; i++) {
+      _clauseKeys[i] = GlobalKey();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -77,7 +99,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
         isProcessingError = false;
         _isSuccessProcessing = false;
         inputController.clear();
+        _previousActiveClauseIndex = null;
+        _previousActiveIndex = null;
       });
+      _initializeClauseKeys();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onLivesChange?.call(_lives);
@@ -277,9 +302,65 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
     }
   }
 
+  void _scrollToActiveClause(int? activeIndex) {
+    if (activeIndex == null) return;
+
+    // Use post-frame callback to ensure layout is complete and avoid build-time side effects
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final segmentation = ClauseSegmentation.fromPassage(widget.state.currentPassage);
+      final activeClause = segmentation.getClauseForWordIndex(activeIndex);
+
+      if (activeClause == null) return;
+
+      // Find which clause index this is
+      final clauseIndex = segmentation.clauses.indexOf(activeClause);
+
+      // Only scroll if we've moved to a new clause AND it's moving forward (line increased)
+      if (_previousActiveClauseIndex != null &&
+          clauseIndex > _previousActiveClauseIndex!) {
+        final key = _clauseKeys[clauseIndex];
+        if (key == null) return;
+
+        final context = key.currentContext;
+        if (context == null) return;
+
+        final renderBox = context.findRenderObject() as RenderBox?;
+        if (renderBox == null) return;
+
+        // Get the position of the clause relative to the viewport
+        final position = renderBox.localToGlobal(Offset.zero).dy;
+
+        // Account for SafeArea and padding (roughly 24 + 32 + any system UI)
+        // We want the line to be near the top but not cut off
+        const targetTopOffset = 80.0;
+
+        // Calculate how much we need to scroll
+        final currentScroll = _scrollController.offset;
+        final scrollTo = currentScroll + position - targetTopOffset;
+
+        // Smooth scroll with easing
+        _scrollController.animateTo(
+          scrollTo.clamp(0.0, _scrollController.position.maxScrollExtent),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+
+      _previousActiveClauseIndex = clauseIndex;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeIndex = _occlusion.firstHiddenIndex;
+
+    // Only trigger auto-scroll when active index actually changes
+    if (activeIndex != _previousActiveIndex) {
+      _scrollToActiveClause(activeIndex);
+      _previousActiveIndex = activeIndex;
+    }
 
     return Scaffold(
       backgroundColor: RedLetterColors.background,
@@ -295,8 +376,33 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Column(
               children: [
+                // Hidden TextField outside of ScrollView to prevent auto-scroll
+                SizedBox(
+                  width: 1,
+                  height: 1,
+                  child: TextField(
+                    controller: inputController,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    onChanged: _onInputChange,
+                    readOnly: isProcessingError,
+                    autocorrect: true,
+                    enableSuggestions: true,
+                    showCursor: false,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(RegExp(r'\s')),
+                    ],
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      counterText: '',
+                    ),
+                    style: const TextStyle(color: Colors.transparent),
+                  ),
+                ),
                 Expanded(
                   child: SingleChildScrollView(
+                    controller: _scrollController,
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.manual,
                     child: Container(
                       width: double.infinity,
                       constraints: BoxConstraints(
@@ -317,28 +423,6 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                             textAlign: TextAlign.start,
                           ),
                           const SizedBox(height: 32),
-                          SizedBox(
-                            width: 1,
-                            height: 1,
-                            child: TextField(
-                              controller: inputController,
-                              focusNode: focusNode,
-                              autofocus: true,
-                              onChanged: _onInputChange,
-                              readOnly: isProcessingError,
-                              autocorrect: true,
-                              enableSuggestions: true,
-                              showCursor: false,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.deny(RegExp(r'\s')),
-                              ],
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                counterText: '',
-                              ),
-                              style: const TextStyle(color: Colors.transparent),
-                            ),
-                          ),
                           AnimatedBuilder(
                             animation: pulseController,
                             builder: (context, _) {
@@ -362,6 +446,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
                                 showUnderlines:
                                     widget.state.currentStep !=
                                     PracticeStep.fullPassage,
+                                clauseKeys: _clauseKeys,
                               );
                             },
                           ),

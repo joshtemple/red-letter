@@ -17,6 +17,7 @@ class InlinePassageView extends StatelessWidget {
   final bool showUnderlines;
   final Function(int)? onWordTap; // Callback when a hidden word is tapped
   final Set<int> revealedIndices; // Track manually revealed words
+  final Map<int, GlobalKey>? clauseKeys; // Keys for each clause for auto-scrolling
 
   const InlinePassageView({
     super.key,
@@ -31,6 +32,7 @@ class InlinePassageView extends StatelessWidget {
     this.showUnderlines = true,
     this.onWordTap,
     this.revealedIndices = const {},
+    this.clauseKeys,
   });
 
   @override
@@ -39,7 +41,8 @@ class InlinePassageView extends StatelessWidget {
     final segmentation = ClauseSegmentation.fromPassage(passage);
     final clauseWidgets = <Widget>[];
 
-    for (var clause in segmentation.clauses) {
+    for (int clauseIndex = 0; clauseIndex < segmentation.clauses.length; clauseIndex++) {
+      final clause = segmentation.clauses[clauseIndex];
       final spans = <InlineSpan>[];
 
       for (var wordIndex in clause.wordIndices) {
@@ -141,14 +144,24 @@ class InlinePassageView extends StatelessWidget {
         }
       }
 
-      // Add this clause as a separate line
-      clauseWidgets.add(
-        Text.rich(
-          TextSpan(style: RedLetterTypography.passageBody, children: spans),
-          textAlign: TextAlign.start,
-          textScaler: TextScaler.noScaling,
-        ),
+      // Add this clause as a separate line, with key if provided
+      final clauseWidget = Text.rich(
+        TextSpan(style: RedLetterTypography.passageBody, children: spans),
+        textAlign: TextAlign.start,
+        textScaler: TextScaler.noScaling,
       );
+
+      // Wrap with key if available for auto-scrolling
+      if (clauseKeys != null && clauseKeys!.containsKey(clauseIndex)) {
+        clauseWidgets.add(
+          Container(
+            key: clauseKeys![clauseIndex],
+            child: clauseWidget,
+          ),
+        );
+      } else {
+        clauseWidgets.add(clauseWidget);
+      }
     }
 
     return Column(
