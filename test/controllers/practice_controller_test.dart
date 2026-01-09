@@ -31,7 +31,7 @@ void main() {
       );
       expect(controller.value.currentStep, PracticeStep.randomWords);
 
-      // Round 2 -> L2 (FirstTwoWords)
+      // Round 2 -> L2 (RotatingClauses)
       controller.advance();
       expect(
         controller.value.currentRound,
@@ -40,12 +40,12 @@ void main() {
       );
       expect(
         controller.value.currentStep,
-        PracticeStep.firstTwoWords,
+        PracticeStep.rotatingClauses,
         reason: 'Should advance to L2',
       );
     });
 
-    test('L3 (RotatingClauses) should adapt rounds to clause count', () {
+    test('L2 (RotatingClauses) should adapt rounds to clause count', () {
       // Create passage with 2 clauses
       // Note: ClauseSegmentation typically splits by punctuation marks like period, question mark, exclamation.
       // Or comma/semicolon depending on implementation.
@@ -64,15 +64,15 @@ void main() {
       expect(controller.value.currentRound, 1);
       expect(controller.value.currentStep, PracticeStep.rotatingClauses);
 
-      // Round 1 (Clause 1) -> L4 (FullPassage)
+      // Round 1 (Clause 1) -> L3 (FirstTwoWords)
       controller.advance();
       expect(controller.value.currentRound, 0);
-      expect(controller.value.currentStep, PracticeStep.fullPassage);
+      expect(controller.value.currentStep, PracticeStep.firstTwoWords);
     });
 
     test('Regress should move to previous level round 0', () {
       final passage = PassageBuilder().build();
-      // Start at L2
+      // Start at L3
       final controller = PracticeController(
         passage,
         initialStep: PracticeStep.firstTwoWords,
@@ -82,8 +82,8 @@ void main() {
 
       expect(
         controller.value.currentStep,
-        PracticeStep.randomWords,
-        reason: 'Should regress to L1',
+        PracticeStep.rotatingClauses,
+        reason: 'Should regress to L2',
       );
       expect(
         controller.value.currentRound,

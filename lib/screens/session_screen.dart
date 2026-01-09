@@ -168,11 +168,11 @@ class _SessionScreenState extends State<SessionScreen> {
       case 1:
         return PracticeStep.randomWords; // Resume after Reflection (L1)
       case 2:
-        return PracticeStep.firstTwoWords; // Resume after RandomWords (L2)
+        return PracticeStep.rotatingClauses; // Resume after RandomWords (L2)
       case 3:
-        return PracticeStep.rotatingClauses; // Resume after FirstTwoWords (L3)
+        return PracticeStep.firstTwoWords; // Resume after RotatingClauses (L3)
       case 4:
-        return PracticeStep.fullPassage; // Resume after RotatingClauses (L4)
+        return PracticeStep.fullPassage; // Resume after FirstTwoWords (L4)
       default:
         return PracticeStep.impression;
     }

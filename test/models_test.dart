@@ -28,13 +28,13 @@ void main() {
       expect(state.currentStep, PracticeStep.randomWords);
       expect(state.completedSteps, contains(PracticeStep.impression));
 
-      // Advance to First Two Words
-      state = state.advanceStep();
-      expect(state.currentStep, PracticeStep.firstTwoWords);
-
       // Advance to Rotating Clauses
       state = state.advanceStep();
       expect(state.currentStep, PracticeStep.rotatingClauses);
+
+      // Advance to First Two Words
+      state = state.advanceStep();
+      expect(state.currentStep, PracticeStep.firstTwoWords);
 
       // Advance to Full Passage
       state = state.advanceStep();
@@ -73,8 +73,8 @@ void main() {
       expect(state.currentStep, PracticeStep.randomWords);
       expect(state.sessionStartStep, PracticeStep.randomWords);
 
-      state = state.advanceStep(); // First Two Words
-      expect(state.currentStep, PracticeStep.firstTwoWords);
+      state = state.advanceStep(); // Rotating Clauses
+      expect(state.currentStep, PracticeStep.rotatingClauses);
 
       state = state.reset();
       expect(state.currentStep, PracticeStep.randomWords);

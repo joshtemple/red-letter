@@ -167,8 +167,8 @@ class _PracticeSessionViewState extends State<PracticeSessionView> {
             );
             break;
           case PracticeStep.randomWords:
-          case PracticeStep.firstTwoWords:
           case PracticeStep.rotatingClauses:
+          case PracticeStep.firstTwoWords:
           case PracticeStep.fullPassage:
             currentScreen = ScaffoldingScreen(
               key: ValueKey('cloze_${state.currentStep.name}'),

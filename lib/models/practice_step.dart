@@ -10,15 +10,15 @@ import 'clause_segmentation.dart';
 /// 2. Reflection - Semantic understanding prompt
 /// 3. Scaffolding - Progressive cloze deletion with 4 levels:
 ///    - L1: randomWords
-///    - L2: firstTwoWords
-///    - L3: rotatingClauses
+///    - L2: rotatingClauses
+///    - L3: firstTwoWords
 ///    - L4: fullPassage
 enum PracticeStep {
   impression,
   reflection,
   randomWords, // L1: A few words deleted (N rounds)
-  firstTwoWords, // L2: First 2 words of each clause shown (1 round)
-  rotatingClauses, // L3: One clause deleted at a time (M rounds, M = # clauses)
+  rotatingClauses, // L2: One clause deleted at a time (M rounds, M = # clauses)
+  firstTwoWords, // L3: First 2 words of each clause shown (1 round)
   fullPassage; // L4: 100% cloze deletion, no underlines (1 round)
 
   String get displayName {
@@ -29,10 +29,10 @@ enum PracticeStep {
         return 'Reflection';
       case PracticeStep.randomWords:
         return 'Scaffolding L1: Random Words';
-      case PracticeStep.firstTwoWords:
-        return 'Scaffolding L2: First Two Words';
       case PracticeStep.rotatingClauses:
-        return 'Scaffolding L3: Rotating Clauses';
+        return 'Scaffolding L2: Rotating Clauses';
+      case PracticeStep.firstTwoWords:
+        return 'Scaffolding L3: First Two Words';
       case PracticeStep.fullPassage:
         return 'Scaffolding L4: Full Passage';
     }
@@ -46,10 +46,10 @@ enum PracticeStep {
         return 'Mandatory reflection prompt (semantic encoding)';
       case PracticeStep.randomWords:
         return '1-2 random non-trivial words removed per clause';
-      case PracticeStep.firstTwoWords:
-        return 'Only the first 2 words of each clause shown';
       case PracticeStep.rotatingClauses:
         return 'One entire clause hidden (rotating)';
+      case PracticeStep.firstTwoWords:
+        return 'Only the first 2 words of each clause shown';
       case PracticeStep.fullPassage:
         return 'Total independent recall (100% cloze deletion)';
     }
@@ -73,8 +73,8 @@ enum PracticeStep {
   /// Returns true if this step is part of scaffolding (has levels and rounds).
   bool get isScaffolding {
     return this == PracticeStep.randomWords ||
-        this == PracticeStep.firstTwoWords ||
         this == PracticeStep.rotatingClauses ||
+        this == PracticeStep.firstTwoWords ||
         this == PracticeStep.fullPassage;
   }
 
@@ -83,9 +83,9 @@ enum PracticeStep {
     switch (this) {
       case PracticeStep.randomWords:
         return ScaffoldingLevel.l1;
-      case PracticeStep.firstTwoWords:
-        return ScaffoldingLevel.l2;
       case PracticeStep.rotatingClauses:
+        return ScaffoldingLevel.l2;
+      case PracticeStep.firstTwoWords:
         return ScaffoldingLevel.l3;
       case PracticeStep.fullPassage:
         return ScaffoldingLevel.l4;
@@ -99,16 +99,16 @@ enum PracticeStep {
 ///
 /// Scaffolding uses progressive cloze deletion across 4 levels:
 /// - L1: Random words (repeat N rounds)
-/// - L2: First two words (1 round)
-/// - L3: Rotating clauses (M rounds, M = # of clauses)
+/// - L2: Rotating clauses (M rounds, M = # of clauses)
+/// - L3: First two words (1 round)
 /// - L4: Full passage (1 round, no underlines)
 ///
 /// Each round has 2 lives. Completing a round advances to the next round/level.
 /// Losing all lives regresses one level (L1 stays at L1).
 enum ScaffoldingLevel {
   l1, // randomWords
-  l2, // firstTwoWords
-  l3, // rotatingClauses
+  l2, // rotatingClauses
+  l3, // firstTwoWords
   l4; // fullPassage
 
   String get displayName {
@@ -116,9 +116,9 @@ enum ScaffoldingLevel {
       case ScaffoldingLevel.l1:
         return 'Level 1: Random Words';
       case ScaffoldingLevel.l2:
-        return 'Level 2: First Two Words';
+        return 'Level 2: Rotating Clauses';
       case ScaffoldingLevel.l3:
-        return 'Level 3: Rotating Clauses';
+        return 'Level 3: First Two Words';
       case ScaffoldingLevel.l4:
         return 'Level 4: Full Passage';
     }
@@ -130,9 +130,9 @@ enum ScaffoldingLevel {
       case ScaffoldingLevel.l1:
         return PracticeStep.randomWords;
       case ScaffoldingLevel.l2:
-        return PracticeStep.firstTwoWords;
-      case ScaffoldingLevel.l3:
         return PracticeStep.rotatingClauses;
+      case ScaffoldingLevel.l3:
+        return PracticeStep.firstTwoWords;
       case ScaffoldingLevel.l4:
         return PracticeStep.fullPassage;
     }
@@ -162,9 +162,9 @@ enum ScaffoldingLevel {
       case ScaffoldingLevel.l1:
         return 3; // Fixed 3 rounds
       case ScaffoldingLevel.l2:
-        return 1;
-      case ScaffoldingLevel.l3:
         return ClauseSegmentation.fromPassage(passage).clauseCount;
+      case ScaffoldingLevel.l3:
+        return 1;
       case ScaffoldingLevel.l4:
         return 1;
     }

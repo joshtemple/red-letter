@@ -31,9 +31,6 @@ class PracticeController extends ValueNotifier<PracticeState> {
   void advance([String? input]) {
     final currentStep = value.currentStep;
 
-    // Notify parent of step completion
-    onStepComplete?.call(currentStep, input);
-
     // Scaffolding progression logic
     if (value.isScaffolding) {
       final currentLevel = value.currentLevel;
@@ -41,7 +38,7 @@ class PracticeController extends ValueNotifier<PracticeState> {
       if (currentLevel != null) {
         final totalRounds = currentLevel.getTotalRounds(value.currentPassage);
 
-        // If rounds remain in this level, advance round
+        // If rounds remain in this level, advance round (don't notify step completion)
         if (value.currentRound < totalRounds - 1) {
           advanceRound();
           if (input != null) {
@@ -51,7 +48,10 @@ class PracticeController extends ValueNotifier<PracticeState> {
           }
           return;
         } else {
-          // Level complete, advance to next level (or next step if L4)
+          // Level complete - all rounds done, notify parent of step completion
+          onStepComplete?.call(currentStep, input);
+
+          // Advance to next level (or next step if L4)
           advanceLevel();
           if (input != null) {
             value = value.updateInput(input);
@@ -61,7 +61,10 @@ class PracticeController extends ValueNotifier<PracticeState> {
       }
     }
 
-    // Standard progression
+    // Standard progression for non-scaffolding steps
+    // Notify parent of step completion
+    onStepComplete?.call(currentStep, input);
+
     final nextState = value.advanceStep();
     value = nextState;
 

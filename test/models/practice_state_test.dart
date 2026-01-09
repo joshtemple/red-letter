@@ -34,10 +34,10 @@ void main() {
       expect(state.completedSteps.contains(PracticeStep.impression), true);
 
       state = state.advanceStep();
-      expect(state.currentStep, PracticeStep.firstTwoWords);
+      expect(state.currentStep, PracticeStep.rotatingClauses);
 
       state = state.advanceStep();
-      expect(state.currentStep, PracticeStep.rotatingClauses);
+      expect(state.currentStep, PracticeStep.firstTwoWords);
 
       state = state.advanceStep();
       expect(state.currentStep, PracticeStep.fullPassage);

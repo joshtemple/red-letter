@@ -129,7 +129,7 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       case PracticeStep.rotatingClauses:
         return ClozeOcclusion.rotatingClauseDeletion(
           passage: passage,
-          // L3: Round index maps directly to clause index
+          // L2: Round index maps directly to clause index
           clauseIndex: widget.state.currentRound,
         );
       case PracticeStep.firstTwoWords:

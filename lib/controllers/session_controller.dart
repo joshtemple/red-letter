@@ -264,12 +264,12 @@ class SessionController extends ChangeNotifier {
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 2));
           break;
 
-        case PracticeStep.firstTwoWords:
+        case PracticeStep.rotatingClauses:
           // Update in-memory: Mastery 3 (Scaffolding L2)
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 3));
           break;
 
-        case PracticeStep.rotatingClauses:
+        case PracticeStep.firstTwoWords:
           // Update in-memory: Mastery 4 (Scaffolding L3)
           _updateInMemoryCard(passageId, (p) => p.copyWith(masteryLevel: 4));
           break;
