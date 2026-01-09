@@ -1,10 +1,8 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
+import 'connection/connection.dart'
+    if (dart.library.js_interop) 'connection/web.dart'
+    if (dart.library.io) 'connection/native.dart';
 import 'tables.dart';
 import 'database_seeder.dart';
 
@@ -116,17 +114,9 @@ class AppDatabase extends _$AppDatabase {
 
 /// Opens a connection to the SQLite database.
 ///
-/// For production: Uses app documents directory
-/// Location: {app_documents}/red_letter.db
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'red_letter.db'));
-
-    if (Platform.isMacOS || Platform.isIOS) {
-      print('📱 Database file path: ${file.path}');
-    }
-
-    return NativeDatabase(file);
-  });
+/// Uses platform-specific implementations:
+/// - Native platforms: app documents directory
+/// - Web: IndexedDB-backed WASM SQLite
+QueryExecutor _openConnection() {
+  return openConnection();
 }
