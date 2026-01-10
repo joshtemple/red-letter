@@ -317,9 +317,10 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       // Find which clause index this is
       final clauseIndex = segmentation.clauses.indexOf(activeClause);
 
-      // Only scroll if we've moved to a new clause AND it's moving forward (line increased)
-      if (_previousActiveClauseIndex != null &&
-          clauseIndex > _previousActiveClauseIndex!) {
+      // Scroll whenever the active clause changes or on initial positioning
+      // This enables bidirectional scrolling and handles level/round transitions
+      if (_previousActiveClauseIndex == null ||
+          clauseIndex != _previousActiveClauseIndex) {
         final key = _clauseKeys[clauseIndex];
         if (key == null) return;
 
