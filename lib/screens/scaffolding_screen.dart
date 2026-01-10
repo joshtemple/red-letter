@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:red_letter/mixins/typing_practice_mixin.dart';
@@ -113,6 +114,18 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
 
   // ... (omitted methods _generateOcclusionForStep, _isComplete, _onInputChange same as before)
 
+  /// Generates a randomized clause index for the rotating clauses level.
+  /// Uses a seeded Random to ensure deterministic shuffling per passage.
+  int _getShuffledClauseIndex(int round, int clauseCount) {
+    final seed = widget.state.currentPassage.hashCode;
+    final random = Random(seed);
+
+    // Generate a shuffled list of clause indices
+    final indices = List<int>.generate(clauseCount, (i) => i)..shuffle(random);
+
+    return indices[round];
+  }
+
   ClozeOcclusion _generateOcclusionForStep() {
     final passage = widget.state.currentPassage;
     switch (widget.state.currentStep) {
@@ -127,10 +140,15 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
               _attemptNumber,
         );
       case PracticeStep.rotatingClauses:
+        final segmentation = ClauseSegmentation.fromPassage(passage);
+        final clauseIndex = _getShuffledClauseIndex(
+          widget.state.currentRound,
+          segmentation.clauseCount,
+        );
         return ClozeOcclusion.rotatingClauseDeletion(
           passage: passage,
-          // L2: Round index maps directly to clause index
-          clauseIndex: widget.state.currentRound,
+          // L3: Random clause order, but each clause appears exactly once
+          clauseIndex: clauseIndex,
         );
       case PracticeStep.firstTwoWords:
         return ClozeOcclusion.firstTwoWordsScaffolding(passage: passage);
