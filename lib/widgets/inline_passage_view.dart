@@ -164,11 +164,21 @@ class InlinePassageView extends StatelessWidget {
       }
     }
 
+    // Add spacing between clauses
+    final spacedChildren = <Widget>[];
+    for (int i = 0; i < clauseWidgets.length; i++) {
+      spacedChildren.add(clauseWidgets[i]);
+      // Add spacing after each clause except the last
+      if (i < clauseWidgets.length - 1) {
+        spacedChildren.add(const SizedBox(height: 12));
+      }
+    }
+
     return Column(
       key: const Key('passage_text'),
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: clauseWidgets,
+      children: spacedChildren,
     );
   }
 }
