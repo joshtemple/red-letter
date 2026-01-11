@@ -132,6 +132,9 @@ class _ScaffoldingScreenState extends State<ScaffoldingScreen>
       case PracticeStep.randomWords:
         return ClozeOcclusion.randomWordPerClause(
           passage: passage,
+          // Progressive difficulty: increase words per clause each round
+          // Round 0: 1 word, Round 1: 2 words, Round 2: 3 words
+          wordsPerClause: widget.state.currentRound + 1,
           // Use round + attempt as seed variants to ensure different patterns
           // across rounds AND regenerations within the same round
           seed:
